@@ -22,6 +22,8 @@ import Link from "next/link";
 import {AxiosError} from "axios";
 import EmployeesList from "@/components/EmployeesList";
 import usePhoneInput from '@/hooks/usePhoneInput';
+import { useCreateEmployeeSchedule } from "@/hooks/useEmployeeSchedules";
+import {fetchEmployeeScheduleByPeriod} from "@/services/еmployeeScheduleApi";
 
 const Page: React.FC = ( ) => {
 
@@ -58,7 +60,17 @@ const Page: React.FC = ( ) => {
 
     const [isNotFound, setIsNotFound] = useState(false);
 
+    const [weeklyPeriods, setWeeklyPeriods] = useState<{ day: string; start: string; end: string }[]>([]);
+    // Добавим состояние блокировки отправки
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const router = useRouter();
+
+    // Добавляем хук для создания графика
+    const createScheduleMutation = useCreateEmployeeSchedule();
+
+    // ... остальной код
+
 
     const toggleFilModal = () => {
         setIsModalFilOpen((prev) => !prev);
@@ -225,15 +237,20 @@ const Page: React.FC = ( ) => {
         email: "",
         phone: "",
         hire_date: "",
+        schedule_type: "weekly", // Добавляем поле по умолчанию
+        start_date: "",
+        end_date: "",
     });
 
     // Обработчик изменения данных в форме
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
         const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
+        setFormData(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
 
@@ -252,7 +269,7 @@ const Page: React.FC = ( ) => {
     };
 
 
-    const handleEdit = (employee: Employee) => {
+    /*const handleEdit = (employee: Employee) => {
         setEditingEmployee(employee);
         setFormData({
             name: employee.name,
@@ -262,14 +279,71 @@ const Page: React.FC = ( ) => {
             hire_date: employee.hire_date,
         });
         setIsEditModalOpen(true);
+    };*/
+
+    // 2. В родительском компоненте Page
+    const handleEdit = async (employee: Employee) => {
+        try {
+            // Загрузка расписания сотрудника
+            const schedules = await fetchEmployeeScheduleByPeriod(
+                employee.id,
+                new Date().toISOString().split('T')[0],
+                new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            );
+
+            // Заполняем данные формы
+            setFormData({
+                name: employee.name,
+                specialty: employee.specialty,
+                email: employee.email || '',
+                phone: employee.phone || '',
+                hire_date: employee.hire_date,
+                schedule_type: schedules[0]?.schedule_type || 'weekly',
+                start_date: schedules[0]?.start_date || '',
+                end_date: schedules[0]?.end_date || ''
+            });
+
+            // Заполняем периоды для weekly
+            if (schedules[0]?.schedule_type === 'weekly') {
+                setWeeklyPeriods(
+                    schedules[0].periods.map(p => ({
+                        day: p[0] as string,
+                        start: p[1],
+                        end: p[2]
+                    }))
+                );
+            }
+
+            setEditingEmployee(employee);
+            setIsEditModalOpen(true);
+        } catch (error) {
+            console.error('Ошибка загрузки расписания:', error);
+        }
     };
 
 
+// 2. Модифицируем обработчик отправки
     const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (isSubmitting) return; // Блокировка повторной отправки
+        setIsSubmitting(true);
+
         try {
-            console.log("branch_id:", id, typeof id); // Должно быть число
-            console.log("Отправляемые данные:", { ...formData, branch_id: id, online_booking: 1 });
+            setIsSubmitting(true);
+            // Валидация
+            if (formData.schedule_type === "weekly") {
+                if (!formData.start_date || !formData.end_date) {
+                    alert("Укажите даты начала и окончания");
+                    return;
+                }
+                if (weeklyPeriods.length === 0) {
+                    alert("Добавьте хотя бы один период");
+                    return;
+                }
+            }
+
+            // Создание сотрудника
             const newEmployee = await createEmployee({
                 ...formData,
                 branch_id: id,
@@ -277,34 +351,57 @@ const Page: React.FC = ( ) => {
                 email: formData.email || null,
                 phone: formData.phone || null,
             });
-            setEmployees((prev) => [...prev, newEmployee]);
-            setFormData({ name: "", specialty: "",  email: "", phone: "", hire_date: "" });
-            setIsAddModalOpen(false);
-        } catch (error) {
-            const errors = error.response?.data;
-            if (Array.isArray(errors)) {
-                const messages = errors.map((e: any) => e.message || JSON.stringify(e)).join("\n");
-                alert(`Ошибка при добавлении сотрудника:\n${messages}`);
-            } else {
-                alert(`Ошибка: ${error.message}`);
+
+            // Создание расписания
+            if (formData.schedule_type) {
+                await createScheduleMutation.mutateAsync({
+                    employee_id: newEmployee.id,
+                    schedule_type: formData.schedule_type,
+                    start_date: formData.start_date,
+                    end_date: formData.end_date,
+                    night_shift: 0,
+                    periods: weeklyPeriods.map(p => [p.day, p.start, p.end])
+                });
             }
-            console.error("Ошибка при добавлении сотрудника:", errors || error.message);
+
+            // Обновление UI
+            setEmployees(prev => [...prev, newEmployee]);
+            setIsAddModalOpen(false);
+
+        } catch (error) {
+            console.error("Ошибка создания:", error);
+        } finally {
+            setIsSubmitting(false); // Разблокировка формы
         }
     };
 
     const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if (!editingEmployee || editingEmployee.id === undefined) {
-            console.error("Ошибка: Нет сотрудника для редактирования или отсутствует ID");
-            return;
-        }
         try {
+            if (!editingEmployee) return;
+
+            // Обновляем данные сотрудника
             const updatedEmployee = await updateEmployee(editingEmployee.id, formData);
-            setEmployees((prev) => prev.map(emp => emp.id === editingEmployee.id ? updatedEmployee : emp));
-            setFormData({ name: "", specialty: "", email: "", phone: "", hire_date: "" });
+
+            // Обновляем расписание
+            if (formData.schedule_type) {
+                await updateEmployeeSchedule(editingEmployee.id, {
+                    schedule_type: formData.schedule_type,
+                    start_date: formData.start_date,
+                    end_date: formData.end_date,
+                    periods: weeklyPeriods.map(p => [p.day, p.start, p.end])
+                });
+            }
+
+            // Обновляем UI
+            setEmployees(prev =>
+                prev.map(emp =>
+                    emp.id === editingEmployee.id ? updatedEmployee : emp
+                )
+            );
             setIsEditModalOpen(false);
         } catch (error) {
-            console.error("Ошибка при обновлении сотрудника:", error);
+            console.error('Ошибка обновления:', error);
         }
     };
 
@@ -419,6 +516,13 @@ const Page: React.FC = ( ) => {
                     className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
                     onClick={() => setIsMenuOpen(false)}
                 ></div>
+            )}
+
+            {/* Уведомление о загрузке */}
+            {createScheduleMutation.isLoading && (
+                <div className="fixed top-0 left-0 right-0 bg-blue-500 text-white p-2 text-center z-50">
+                    Создание расписания...
+                </div>
             )}
 
             {/* Левая колонка (меню) */}
@@ -574,12 +678,21 @@ const Page: React.FC = ( ) => {
 
                 {/* Модальное окно добавления */}
                 <EmployeeModal
+                    mode="edit"
                     isOpen={isAddModalOpen}
-                    onClose={() => setIsAddModalOpen(false)}
+                    onClose={() => {
+                        setIsAddModalOpen(false);
+                        setFormData(INITIAL_FORM_DATA);
+                        setWeeklyPeriods([]);
+                    }}
                     onSubmit={handleAddSubmit}
                     formData={formData}
                     handleInputChange={handleInputChange}
                     title="Добавить сотрудника"
+                    weeklyPeriods={weeklyPeriods}
+                    setWeeklyPeriods={setWeeklyPeriods}
+                    isSubmitting={isSubmitting} // Добавляем проп
+                    setIsSubmitting={setIsSubmitting} // Добавляем проп
                 />
 
                 {/* Модальное окно редактирования */}
@@ -676,7 +789,27 @@ const EmployeesTable = ({
     );
 };
 
+interface FormData {
+    name: string;
+    specialty: string;
+    email: string;
+    phone: string;
+    hire_date: string;
+    schedule_type: 'weekly' | 'cycle';
+    start_date: string;
+    end_date: string;
+}
 
+const INITIAL_FORM_DATA: FormData = {
+    name: "",
+    specialty: "",
+    email: "",
+    phone: "",
+    hire_date: "",
+    schedule_type: "weekly",
+    start_date: "",
+    end_date: ""
+};
 
 const daysOfWeek = [
     { key: "mon", label: "Пн" },
@@ -695,26 +828,41 @@ type EmployeeModalProps = {
     formData: any;
     handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
     title: string;
+    weeklyPeriods: { day: string; start: string; end: string }[];
+    setWeeklyPeriods: React.Dispatch<React.SetStateAction<{ day: string; start: string; end: string }[]>>;
+    isSubmitting: boolean; // Новый проп
+    setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>; // Новый проп
+    mode: 'create' | 'edit'; // Добавляем режим работы
 };
 
 const EmployeeModal = ({
+                           isSubmitting,
+                           setIsSubmitting,
+                           weeklyPeriods = [],
+                           setWeeklyPeriods,
                            isOpen,
                            onClose,
                            onSubmit,
                            formData,
                            handleInputChange,
                            title,
+                           mode // Получаем mode из пропсов
                        }: EmployeeModalProps) => {
     const nameInputRef = useRef<HTMLInputElement>(null);
     const [activeTab, setActiveTab] = useState("info");
-    const [weeklyPeriods, setWeeklyPeriods] = useState<any[]>([]);
     const [cyclePeriods, setCyclePeriods] = useState<any[]>([]);
 
     useEffect(() => {
-        if (isOpen) {
-            nameInputRef.current?.focus();
+        if (isOpen && mode === 'create') {
+            setWeeklyPeriods([]);
+            handleInputChange({
+                target: {
+                    name: 'reset',
+                    value: INITIAL_FORM_DATA
+                }
+            } as React.ChangeEvent<HTMLInputElement>);
         }
-    }, [isOpen]);
+    }, [isOpen, mode]); // Добавляем mode в зависимости
 
     const addWeeklyPeriod = () => {
         setWeeklyPeriods([...weeklyPeriods, { day: "mon", start: "09:00", end: "18:00" }]);
@@ -784,7 +932,10 @@ const EmployeeModal = ({
                     </button>
                 </div>
 
-                <form onSubmit={onSubmit}>
+                <form onSubmit={(e) => {
+                    setIsSubmitting(true);
+                    onSubmit(e);
+                }}>
                     {activeTab === "info" && (
                         <>
                             <div className="mb-4">
@@ -870,6 +1021,7 @@ const EmployeeModal = ({
                                     value={formData.start_date || ""}
                                     onChange={handleInputChange}
                                     className="w-full p-2 border rounded"
+                                    required
                                 />
                             </div>
                             <div className="mb-4">
@@ -880,6 +1032,7 @@ const EmployeeModal = ({
                                     value={formData.end_date || ""}
                                     onChange={handleInputChange}
                                     className="w-full p-2 border rounded"
+                                    required
                                 />
                             </div>
 
@@ -958,8 +1111,9 @@ const EmployeeModal = ({
                         <button
                             type="submit"
                             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                            disabled={isSubmitting}
                         >
-                            Сохранить
+                            {isSubmitting ? "Сохранение..." : "Сохранить"}
                         </button>
                     </div>
                 </form>
