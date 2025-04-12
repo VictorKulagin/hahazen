@@ -3,16 +3,28 @@ import apiClient from "./api";
 
 
 // Интерфейс для графика сотрудника
-export interface EmployeeSchedule {
+// Интерфейсы для разных типов графиков
+interface WeeklySchedule {
+    schedule_type: 'weekly';
+    periods: Array<[dayOfWeek: string, start: string, end: string]>;
+    // ... остальные поля
+}
+
+interface CycleSchedule {
+    schedule_type: 'cycle';
+    periods: Array<[dayOfCycle: number, start: string, end: string]>;
+    cycle_length: number; // Делаем обязательным для cycle
+    // ... остальные поля
+}
+
+// Общий тип графика
+export type EmployeeSchedule = (WeeklySchedule | CycleSchedule) & {
     id: number;
     employee_id: number;
-    schedule_type: 'weekly' | 'cycle';
     start_date: string;
     end_date: string;
     night_shift: number;
-    cycle_length?: number;
-    periods: Array<[string | number, string, string]>; // День недели и время работы
-}
+};
 
 // Получение графиков всех сотрудников
 export const fetchEmployeeSchedules = async (
@@ -68,9 +80,10 @@ export const fetchEmployeeScheduleByBranchAndPeriod = async (branchId: number, s
 };
 
 // Получение графика по ID
+// Пример исправления пути в fetchEmployeeScheduleById (если нужно):
 export const fetchEmployeeScheduleById = async (scheduleId: number): Promise<EmployeeSchedule> => {
     try {
-        const response = await apiClient.get<EmployeeSchedule>(`/employee-schedules/${scheduleId}`);
+        const response = await apiClient.get<EmployeeSchedule>(`/employee-schedule/${scheduleId}`); // Убрано 's' в пути
         return response.data;
     } catch (error) {
         console.error('Error in fetchEmployeeScheduleById:', error);
@@ -79,7 +92,14 @@ export const fetchEmployeeScheduleById = async (scheduleId: number): Promise<Emp
 };
 
 // Создание графика сотрудника
-export const createEmployeeSchedule = async (schedule: Omit<EmployeeSchedule, 'id'>): Promise<EmployeeSchedule> => {
+export const createEmployeeSchedule = async (
+    schedule: Omit<EmployeeSchedule, 'id'>
+): Promise<EmployeeSchedule> => {
+    // Проверка для cycle типа
+    if (schedule.schedule_type === 'cycle' && !('cycle_length' in schedule)) {
+        throw new Error('cycle_length is required for cycle schedules.');
+    }
+
     try {
         const response = await apiClient.post<EmployeeSchedule>("/employee-schedule/create", schedule);
         return response.data;
@@ -88,7 +108,6 @@ export const createEmployeeSchedule = async (schedule: Omit<EmployeeSchedule, 'i
         throw error;
     }
 };
-
 // Обновление графика сотрудника
 export const updateEmployeeSchedule = async (scheduleId: number, updatedSchedule: Partial<EmployeeSchedule>): Promise<EmployeeSchedule> => {
     try {
