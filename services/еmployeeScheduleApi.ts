@@ -14,13 +14,29 @@ export interface EmployeeSchedule {
     periods: Array<[string | number, string, string]>; // День недели и время работы
 }
 
-// Получение списка графиков всех сотрудников
-export const fetchEmployeeSchedules = async (): Promise<EmployeeSchedule[]> => {
+// Получение графиков всех сотрудников
+export const fetchEmployeeSchedules = async (
+    branchId?: number,
+    employeeId?: number,
+    startDate?: string,
+    endDate?: string
+): Promise<EmployeeSchedule[]> => {
     try {
-        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedule");
+        const params: Record<string, string | number> = {};
+
+        if (branchId) params.branch_id = branchId;
+        if (employeeId) params.employee_id = employeeId;
+        if (startDate) params.start_date = startDate;
+        if (endDate) params.end_date = endDate;
+
+        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedule", {
+            params,
+        });
+
+        console.log('Employee schedules fetched:', response.data);
         return response.data;
     } catch (error) {
-        console.error('Error in fetchEmployeeSchedules:', error);
+        console.error('Error fetching employee schedules:', error);
         throw error;
     }
 };
