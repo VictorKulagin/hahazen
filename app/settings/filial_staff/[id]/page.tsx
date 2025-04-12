@@ -671,21 +671,22 @@ const EmployeesTable = ({
 
 
 
-
-
+const daysOfWeek = [
+    { key: "mon", label: "Пн" },
+    { key: "tue", label: "Вт" },
+    { key: "wed", label: "Ср" },
+    { key: "thu", label: "Чт" },
+    { key: "fri", label: "Пт" },
+    { key: "sat", label: "Сб" },
+    { key: "sun", label: "Вс" },
+];
 
 type EmployeeModalProps = {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-    formData: {
-        name: string;
-        specialty: string;
-        email: string;
-        phone: string;
-        hire_date: string;
-    };
-    handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    formData: any;
+    handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
     title: string;
 };
 
@@ -699,12 +700,50 @@ const EmployeeModal = ({
                        }: EmployeeModalProps) => {
     const nameInputRef = useRef<HTMLInputElement>(null);
     const [activeTab, setActiveTab] = useState("info");
+    const [weeklyPeriods, setWeeklyPeriods] = useState<any[]>([]);
+    const [cyclePeriods, setCyclePeriods] = useState<any[]>([]);
 
     useEffect(() => {
         if (isOpen) {
             nameInputRef.current?.focus();
         }
     }, [isOpen]);
+
+    const addWeeklyPeriod = () => {
+        setWeeklyPeriods([...weeklyPeriods, { day: "mon", start: "09:00", end: "18:00" }]);
+    };
+
+    const updateWeeklyPeriod = (index: number, field: string, value: string) => {
+        const updated = [...weeklyPeriods];
+        if (field === "end" && updated[index].start && value <= updated[index].start) {
+            alert("Время окончания должно быть позже времени начала");
+            return;
+        }
+        if (field === "start" && updated[index].end && value >= updated[index].end) {
+            alert("Время начала должно быть раньше времени окончания");
+            return;
+        }
+        updated[index][field] = value;
+        setWeeklyPeriods(updated);
+    };
+
+    const addCyclePeriod = () => {
+        setCyclePeriods([...cyclePeriods, { day: 0, start: "20:00", end: "08:00" }]);
+    };
+
+    const updateCyclePeriod = (index: number, field: string, value: any) => {
+        const updated = [...cyclePeriods];
+        if (field === "end" && updated[index].start && value <= updated[index].start) {
+            alert("Время окончания должно быть позже времени начала");
+            return;
+        }
+        if (field === "start" && updated[index].end && value >= updated[index].end) {
+            alert("Время начала должно быть раньше времени окончания");
+            return;
+        }
+        updated[index][field] = value;
+        setCyclePeriods(updated);
+    };
 
     if (!isOpen) return null;
 
@@ -811,15 +850,92 @@ const EmployeeModal = ({
                                     className="w-full p-2 border rounded"
                                 >
                                     <option value="">Выберите тип</option>
-                                    <option value="weekly">Еженедельный</option>
-                                    <option value="cycle">Цикл (2 через 3)</option>
+                                    <option value="weekly">Еженедельный — график повторяется по дням недели</option>
+                                    <option value="cycle">Цикл (например, 2 через 3) — чередование смен по дням</option>
                                 </select>
                             </div>
+
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-1">Дата начала</label>
+                                <input
+                                    type="date"
+                                    name="start_date"
+                                    value={formData.start_date || ""}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-1">Дата окончания</label>
+                                <input
+                                    type="date"
+                                    name="end_date"
+                                    value={formData.end_date || ""}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                />
+                            </div>
+
                             {formData.schedule_type === "weekly" && (
-                                <div className="mb-4 text-sm text-gray-600">Weekly UI тут</div>
+                                <div className="mb-4">
+                                    <label className="block font-semibold mb-1">Периоды</label>
+                                    {weeklyPeriods.map((p, i) => (
+                                        <div key={i} className="flex gap-2 mb-2">
+                                            <select
+                                                value={p.day}
+                                                onChange={(e) => updateWeeklyPeriod(i, "day", e.target.value)}
+                                                className="p-2 border rounded w-1/3"
+                                            >
+                                                {daysOfWeek.map((d) => (
+                                                    <option key={d.key} value={d.key}>{d.label}</option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                type="time"
+                                                value={p.start}
+                                                onChange={(e) => updateWeeklyPeriod(i, "start", e.target.value)}
+                                                className="p-2 border rounded w-1/3"
+                                            />
+                                            <input
+                                                type="time"
+                                                value={p.end}
+                                                onChange={(e) => updateWeeklyPeriod(i, "end", e.target.value)}
+                                                className="p-2 border rounded w-1/3"
+                                            />
+                                        </div>
+                                    ))}
+                                    <button type="button" onClick={addWeeklyPeriod} className="text-blue-600">+ Добавить период</button>
+                                </div>
                             )}
                             {formData.schedule_type === "cycle" && (
-                                <div className="mb-4 text-sm text-gray-600">Cycle UI тут</div>
+                                <div className="mb-4">
+                                    <label className="block font-semibold mb-1">Периоды</label>
+                                    {cyclePeriods.map((p, i) => (
+                                        <div key={i} className="flex gap-2 mb-2">
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={31}
+                                                value={p.day}
+                                                onChange={(e) => updateCyclePeriod(i, "day", parseInt(e.target.value))}
+                                                className="p-2 border rounded w-1/4"
+                                            />
+                                            <input
+                                                type="time"
+                                                value={p.start}
+                                                onChange={(e) => updateCyclePeriod(i, "start", e.target.value)}
+                                                className="p-2 border rounded w-1/3"
+                                            />
+                                            <input
+                                                type="time"
+                                                value={p.end}
+                                                onChange={(e) => updateCyclePeriod(i, "end", e.target.value)}
+                                                className="p-2 border rounded w-1/3"
+                                            />
+                                        </div>
+                                    ))}
+                                    <button type="button" onClick={addCyclePeriod} className="text-blue-600">+ Добавить период</button>
+                                </div>
                             )}
                         </>
                     )}
