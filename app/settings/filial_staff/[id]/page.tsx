@@ -281,7 +281,14 @@ const Page: React.FC = ( ) => {
             setFormData({ name: "", specialty: "",  email: "", phone: "", hire_date: "" });
             setIsAddModalOpen(false);
         } catch (error) {
-            console.error("Ошибка при добавлении сотрудника:", error.response?.data || error.message);
+            const errors = error.response?.data;
+            if (Array.isArray(errors)) {
+                const messages = errors.map((e: any) => e.message || JSON.stringify(e)).join("\n");
+                alert(`Ошибка при добавлении сотрудника:\n${messages}`);
+            } else {
+                alert(`Ошибка: ${error.message}`);
+            }
+            console.error("Ошибка при добавлении сотрудника:", errors || error.message);
         }
     };
 
