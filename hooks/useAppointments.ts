@@ -8,28 +8,6 @@ import {
     Appointment
 } from "@/services/appointmentsApi";
 
-/*export const useAppointments = (
-    branchId?: number,
-    employeeId?: number
-) => {
-    return useQuery<Appointment[]>({
-        queryKey: ['appointments', branchId, employeeId],
-        queryFn: () => {
-            if (!branchId || !employeeId) {
-                return Promise.resolve([]); // Не вызываем API без параметров
-            }
-            return fetchAppointments(branchId, employeeId);
-        },
-        enabled: !!branchId && !!employeeId,
-        staleTime: 10 * 60 * 1000, // 10 минут кэширования
-        gcTime: 30 * 60 * 1000, // 15 минут хранения в кэше
-        refetchOnWindowFocus: "always", // "always" | "always" | boolean
-        refetchOnReconnect: true,
-        refetchOnMount: true,
-        refetchInterval: 300 * 1000, // Фоновое обновление каждые пять минут
-        refetchIntervalInBackground: false
-    });
-};*/
 
 
 export type DurationOption =
@@ -40,107 +18,6 @@ export type DurationOption =
     | '5-days'
     | '6-days'
     | 'week';
-
-// Новая функция группировки
-//type GroupedAppointments = Record<string, Record<string, Appointment[]>>;
-
-
-
-/***Рабочая useAppointments***/
-/*export const useAppointments = (
-    branchId?: number,
-    employeeId?: number,
-    duration: DurationOption = 'week'
-) => {
-    const getDateRange = () => {
-        const today = new Date();
-        const endDate = new Date(today);
-        endDate.setDate(today.getDate() + 6); // Всегда неделя для упрощения
-        return {
-            start: formatDate(today),
-            end: formatDate(endDate)
-        };
-    };
-
-    const { start, end } = getDateRange();
-    return useQuery({
-        queryKey: ['appointments', branchId, employeeId, start, end],
-        queryFn: () => {
-            if (!branchId || !employeeId) return [];
-            return fetchAppointments(branchId, employeeId, start, end);
-        },
-        enabled: !!branchId && !!employeeId,
-        select: groupAppointments, // Используем новую группировку
-        staleTime: 600000
-    });
-};*/
-
-
-
-
-
-/*
-const groupAppointments = (appointments: Appointment[]): GroupedAppointments => {
-    return appointments.reduce((acc, appointment) => {
-        const date = new Date(appointment.appointment_datetime);
-        const dateKey = date.toISOString().split('T')[0];
-        const timeKey = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-
-        acc[dateKey] = acc[dateKey] || {};
-        acc[dateKey][timeKey] = acc[dateKey][timeKey] || [];
-        acc[dateKey][timeKey].push(appointment);
-
-        return acc;
-    }, {} as GroupedAppointments);
-};
-
-
-export const useAppointments = (
-    branchId?: number,
-    employeeId?: number,
-    duration: DurationOption = 'week'
-) => {
-    // Функция расчета диапазона дат на основе длительности
-    const getDateRange = (): { start: string; end: string } => {
-        const today = new Date();
-        const endDate = new Date(today);
-
-        // Количество дней в зависимости от длительности
-        const daysToAdd = {
-            '1-day': 0,
-            '2-days': 1,
-            '3-days': 2,
-            '4-days': 3,
-            '5-days': 4,
-            '6-days': 5,
-            'week': 6
-        }[duration];
-
-        endDate.setDate(today.getDate() + daysToAdd);
-
-        return {
-            start: formatDate(today),
-            end: formatDate(endDate)
-        };
-    };
-
-    const { start, end } = getDateRange();
-
-    return useQuery<Appointment[], Error, GroupedAppointments>({
-        queryKey: ['appointments', branchId, employeeId, start, end],
-        queryFn: () => {
-            if (!branchId || !employeeId) return [];
-            return fetchAppointments(branchId, employeeId, start, end);
-        },
-        enabled: !!branchId && !!employeeId,
-        select: groupAppointments,
-        staleTime: 600000
-    });
-};
-
-const formatDate = (date: Date): string => {
-    return date.toISOString().split('T')[0];
-};*/
 
 
 interface GroupedAppointments {
