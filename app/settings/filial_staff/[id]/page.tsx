@@ -16,10 +16,8 @@ import {companiesList} from "@/services/companiesList";
 import { Employee, fetchEmployees } from "@/services/employeeApi";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
 import { createEmployee } from "@/services/employeeApi";
-//import { fetchEmployees } from "@/services/employeeApi"; // Импорт функции из API-файла
 import { deleteEmployee } from "@/services/employeeApi";
 import { updateEmployee } from "@/services/employeeApi";
-import apiClient from "../../../../services/api";
 import Link from "next/link";
 import {AxiosError} from "axios";
 import EmployeesList from "@/components/EmployeesList";
@@ -214,12 +212,6 @@ const Page: React.FC = ( ) => {
     }, [isNotFound]);
 
 
-    /*useEffect(() => {
-        if (isModalOpen) {
-            document.querySelector("input[name='name']").focus();
-        }
-    }, [isModalOpen]);*/
-
     useEffect(() => {
         if (isModalOpen) {
             nameInputRef.current?.focus();
@@ -271,23 +263,6 @@ const Page: React.FC = ( ) => {
         });
         setIsEditModalOpen(true);
     };
-
-/*Потом удалит*/
-    /*const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        debugger;
-        try {
-            console.log("branch_id:", id, typeof id); // Должно быть число
-            console.log("Отправляемые данные:", { ...formData, branch_id: id, online_booking: 1 });
-            const newEmployee = await createEmployee({ ...formData, branch_id: id, online_booking: 1 });
-            setEmployees((prev) => [...prev, newEmployee]);
-            setFormData({ name: "", specialty: "", hire_date: "" });
-            setIsAddModalOpen(false);
-        } catch (error) {
-            // @ts-ignore
-            console.error("Ошибка при добавлении сотрудника:", error.response?.data || error.message);
-        }
-    };*/
 
 
     const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -723,6 +698,7 @@ const EmployeeModal = ({
                            title,
                        }: EmployeeModalProps) => {
     const nameInputRef = useRef<HTMLInputElement>(null);
+    const [activeTab, setActiveTab] = useState("info");
 
     useEffect(() => {
         if (isOpen) {
@@ -734,7 +710,7 @@ const EmployeeModal = ({
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white text-black p-6 rounded shadow-lg w-96 relative">
+            <div className="bg-white text-black p-6 rounded shadow-lg w-[600px] relative">
                 <button
                     onClick={onClose}
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
@@ -742,69 +718,113 @@ const EmployeeModal = ({
                     ✖
                 </button>
                 <h2 className="text-xl font-bold mb-4">{title}</h2>
+
+                <div className="mb-4 flex border-b">
+                    <button
+                        className={`px-4 py-2 font-medium ${
+                            activeTab === "info" ? "border-b-2 border-blue-600" : "text-gray-500"
+                        }`}
+                        onClick={() => setActiveTab("info")}
+                    >
+                        Основное
+                    </button>
+                    <button
+                        className={`px-4 py-2 font-medium ${
+                            activeTab === "schedule" ? "border-b-2 border-blue-600" : "text-gray-500"
+                        }`}
+                        onClick={() => setActiveTab("schedule")}
+                    >
+                        График
+                    </button>
+                </div>
+
                 <form onSubmit={onSubmit}>
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Имя</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            ref={nameInputRef}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border rounded"
-                            required
-                        />
-                    </div>
+                    {activeTab === "info" && (
+                        <>
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-1">Имя</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={formData.name}
+                                    ref={nameInputRef}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-1">Специализация</label>
+                                <input
+                                    type="text"
+                                    name="specialty"
+                                    value={formData.specialty}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-1">Email</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-1">Телефон</label>
+                                <input
+                                    type="tel"
+                                    name="phone"
+                                    value={formData.phone}
+                                    placeholder="+123456789012345"
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                    pattern="\+[0-9]{6,15}"
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-1">Дата найма</label>
+                                <input
+                                    type="date"
+                                    name="hire_date"
+                                    value={formData.hire_date}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                        </>
+                    )}
 
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Специализация</label>
-                        <input
-                            type="text"
-                            name="specialty"
-                            value={formData.specialty}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border rounded"
-                            required
-                        />
-                    </div>
+                    {activeTab === "schedule" && (
+                        <>
+                            <div className="mb-4">
+                                <label className="block mb-1 font-semibold">Тип графика</label>
+                                <select
+                                    name="schedule_type"
+                                    value={formData.schedule_type || ""}
+                                    onChange={handleInputChange}
+                                    className="w-full p-2 border rounded"
+                                >
+                                    <option value="">Выберите тип</option>
+                                    <option value="weekly">Еженедельный</option>
+                                    <option value="cycle">Цикл (2 через 3)</option>
+                                </select>
+                            </div>
+                            {formData.schedule_type === "weekly" && (
+                                <div className="mb-4 text-sm text-gray-600">Weekly UI тут</div>
+                            )}
+                            {formData.schedule_type === "cycle" && (
+                                <div className="mb-4 text-sm text-gray-600">Cycle UI тут</div>
+                            )}
+                        </>
+                    )}
 
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Email</label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border rounded"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Телефон</label>
-                        <input
-                            type="tel"
-                            name="phone"
-                            value={formData.phone}
-                            placeholder="+123456789012345"
-                            onChange={handleInputChange}
-                            className="w-full p-2 border rounded"
-                            pattern="\+[0-9]{6,15}"
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Дата найма</label>
-                        <input
-                            type="date"
-                            name="hire_date"
-                            value={formData.hire_date}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border rounded"
-                            required
-                        />
-                    </div>
-
-                    <div className="flex justify-end">
+                    <div className="flex justify-end mt-6">
                         <button
                             type="button"
                             onClick={onClose}
