@@ -7,7 +7,7 @@ import {
     deleteEmployeeSchedule,
     fetchEmployeeScheduleForDate,
     EmployeeSchedule,
-} from "@/services/employeeScheduleApi";
+} from "@/services/еmployeeScheduleApi";
 
 export const useEmployeeSchedules = (
     branchId?: number,
