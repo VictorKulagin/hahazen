@@ -642,7 +642,13 @@ const Page: React.FC = ( ) => {
                 {/* Кнопка "Добавить сотрудника" */}
                 <div className="mb-4">
                     <button
-                        onClick={() => setIsAddModalOpen(true)}
+
+                        onClick={() => {
+                            // Сброс данных при открытии модалки
+                            setFormData(INITIAL_FORM_DATA);
+                            setWeeklyPeriods([]);
+                            setIsAddModalOpen(true);
+                        }}
                         className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                     >
                         + Добавить сотрудника
