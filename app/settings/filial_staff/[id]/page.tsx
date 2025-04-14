@@ -22,8 +22,12 @@ import Link from "next/link";
 import {AxiosError} from "axios";
 import EmployeesList from "@/components/EmployeesList";
 import usePhoneInput from '@/hooks/usePhoneInput';
-import { useCreateEmployeeSchedule } from "@/hooks/useEmployeeSchedules";
-import {fetchEmployeeScheduleByPeriod} from "@/services/еmployeeScheduleApi";
+import {useCreateEmployeeSchedule, useUpdateEmployeeSchedule} from "@/hooks/useEmployeeSchedules";
+import {
+    createEmployeeSchedule,
+    fetchEmployeeScheduleByPeriod,
+    updateEmployeeSchedule
+} from "@/services/еmployeeScheduleApi";
 
 const Page: React.FC = ( ) => {
 
@@ -67,7 +71,16 @@ const Page: React.FC = ( ) => {
     const router = useRouter();
 
     // Добавляем хук для создания графика
-    const createScheduleMutation = useCreateEmployeeSchedule();
+    //const createScheduleMutation = useCreateEmployeeSchedule();
+    //const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
+    //const { mutateAsync: createSchedule, isLoading: isCreating } = useCreateEmployeeSchedule();
+    const {
+        mutateAsync: createSchedule,
+        isPending: isCreating // Используем isPending вместо isLoading
+    } = useCreateEmployeeSchedule();
+    const updateSchedule = useUpdateEmployeeSchedule();
+
+    const [isScheduleLoading, setIsScheduleLoading] = useState(false);
 
     // ... остальной код
 
@@ -247,10 +260,19 @@ const Page: React.FC = ( ) => {
         e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
     ) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+
+        // Для полей с префиксом schedule_
+        if (name.startsWith('schedule_')) {
+            setFormData(prev => ({
+                ...prev,
+                [name.replace('schedule_', '')]: value
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
     };
 
 
@@ -318,6 +340,8 @@ const Page: React.FC = ( ) => {
             setIsEditModalOpen(true);
         } catch (error) {
             console.error('Ошибка загрузки расписания:', error);
+        } finally {
+            setIsScheduleLoading(false);
         }
     };
 
@@ -380,28 +404,46 @@ const Page: React.FC = ( ) => {
         try {
             if (!editingEmployee) return;
 
-            // Обновляем данные сотрудника
+            // 1. Обновление данных сотрудника
             const updatedEmployee = await updateEmployee(editingEmployee.id, formData);
 
-            // Обновляем расписание
-            if (formData.schedule_type) {
-                await updateEmployeeSchedule(editingEmployee.id, {
-                    schedule_type: formData.schedule_type,
-                    start_date: formData.start_date,
-                    end_date: formData.end_date,
-                    periods: weeklyPeriods.map(p => [p.day, p.start, p.end])
-                });
+            // 2. Подготовка данных расписания
+            const scheduleData: EmployeeSchedule = {
+                id: 0, // Временное значение для TypeScript
+                employee_id: editingEmployee.id,
+                schedule_type: formData.schedule_type,
+                start_date: formData.start_date,
+                end_date: formData.end_date,
+                periods: weeklyPeriods.map(p => [p.day, p.start, p.end]),
+                night_shift: 0
+            };
+
+            // 3. Поиск существующего расписания
+            const existingSchedules = await fetchEmployeeScheduleByPeriod(
+                editingEmployee.id,
+                formData.start_date,
+                formData.end_date
+            );
+
+            // 4. Использование React Query мутаций
+            if (existingSchedules.length > 0) {
+                scheduleData.id = existingSchedules[0].id;
+                await updateSchedule.mutateAsync(scheduleData);
+            } else {
+                await createSchedule.mutateAsync(scheduleData);
             }
 
-            // Обновляем UI
+            // 5. Обновление состояния
             setEmployees(prev =>
                 prev.map(emp =>
                     emp.id === editingEmployee.id ? updatedEmployee : emp
                 )
             );
             setIsEditModalOpen(false);
+
         } catch (error) {
-            console.error('Ошибка обновления:', error);
+            console.error('Ошибка:', error);
+            alert(error.response?.data?.message || 'Ошибка сохранения');
         }
     };
 
@@ -519,7 +561,7 @@ const Page: React.FC = ( ) => {
             )}
 
             {/* Уведомление о загрузке */}
-            {createScheduleMutation.isLoading && (
+            {isCreating && (
                 <div className="fixed top-0 left-0 right-0 bg-blue-500 text-white p-2 text-center z-50">
                     Создание расписания...
                 </div>
@@ -684,7 +726,7 @@ const Page: React.FC = ( ) => {
 
                 {/* Модальное окно добавления */}
                 <EmployeeModal
-                    mode="edit"
+                    mode="create"
                     isOpen={isAddModalOpen}
                     onClose={() => {
                         setIsAddModalOpen(false);
@@ -696,19 +738,27 @@ const Page: React.FC = ( ) => {
                     handleInputChange={handleInputChange}
                     title="Добавить сотрудника"
                     weeklyPeriods={weeklyPeriods}
-                    setWeeklyPeriods={setWeeklyPeriods}
-                    isSubmitting={isSubmitting} // Добавляем проп
-                    setIsSubmitting={setIsSubmitting} // Добавляем проп
+                    setWeeklyPeriods={setWeeklyPeriods} // Добавляем здесь
+                    isSubmitting={isSubmitting}
+                    setIsSubmitting={setIsSubmitting}
+                    isScheduleLoading={isScheduleLoading}
                 />
 
                 {/* Модальное окно редактирования */}
+                // В компоненте Page:
                 <EmployeeModal
+                    mode="edit"
                     isOpen={isEditModalOpen}
                     onClose={() => setIsEditModalOpen(false)}
                     onSubmit={handleEditSubmit}
                     formData={formData}
                     handleInputChange={handleInputChange}
                     title="Редактировать сотрудника"
+                    weeklyPeriods={weeklyPeriods} // Передаём текущие периоды
+                    setWeeklyPeriods={setWeeklyPeriods} // Передаём функцию обновления
+                    isSubmitting={isSubmitting}
+                    setIsSubmitting={setIsSubmitting}
+                    isScheduleLoading={isScheduleLoading}
                 />
             </main>
         </div>
@@ -814,7 +864,9 @@ const INITIAL_FORM_DATA: FormData = {
     hire_date: "",
     schedule_type: "weekly",
     start_date: "",
-    end_date: ""
+    end_date: "",
+    start_date: new Date().toISOString().split('T')[0], // Текущая дата по умолчанию
+    end_date: new Date(Date.now() + 30*24*60*60*1000).toISOString().split('T')[0] // +30 дней
 };
 
 const daysOfWeek = [
@@ -839,6 +891,7 @@ type EmployeeModalProps = {
     isSubmitting: boolean; // Новый проп
     setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>; // Новый проп
     mode: 'create' | 'edit'; // Добавляем режим работы
+    isScheduleLoading: boolean;
 };
 
 const EmployeeModal = ({
@@ -852,7 +905,8 @@ const EmployeeModal = ({
                            formData,
                            handleInputChange,
                            title,
-                           mode // Получаем mode из пропсов
+                           mode, // Получаем mode из пропсов
+                           isScheduleLoading,
                        }: EmployeeModalProps) => {
     const nameInputRef = useRef<HTMLInputElement>(null);
     const [activeTab, setActiveTab] = useState("info");
@@ -866,9 +920,17 @@ const EmployeeModal = ({
                     name: 'reset',
                     value: INITIAL_FORM_DATA
                 }
-            } as React.ChangeEvent<HTMLInputElement>);
+            } as unknown as React.ChangeEvent<HTMLInputElement>);
         }
     }, [isOpen, mode]); // Добавляем mode в зависимости
+
+    // В компоненте EmployeeModal:
+    useEffect(() => {
+        if (isOpen && mode === 'edit') {
+            // Сброс состояний при открытии модалки редактирования
+            setWeeklyPeriods(weeklyPeriods || []);
+        }
+    }, [isOpen, mode, weeklyPeriods]);
 
     const addWeeklyPeriod = () => {
         setWeeklyPeriods([...weeklyPeriods, { day: "mon", start: "09:00", end: "18:00" }]);
@@ -1023,7 +1085,7 @@ const EmployeeModal = ({
                                 <label className="block font-semibold mb-1">Дата начала</label>
                                 <input
                                     type="date"
-                                    name="start_date"
+                                    name="schedule_start_date"
                                     value={formData.start_date || ""}
                                     onChange={handleInputChange}
                                     className="w-full p-2 border rounded"
@@ -1034,7 +1096,7 @@ const EmployeeModal = ({
                                 <label className="block font-semibold mb-1">Дата окончания</label>
                                 <input
                                     type="date"
-                                    name="end_date"
+                                    name="schedule_end_date"
                                     value={formData.end_date || ""}
                                     onChange={handleInputChange}
                                     className="w-full p-2 border rounded"
@@ -1104,6 +1166,12 @@ const EmployeeModal = ({
                                 </div>
                             )}
                         </>
+                    )}
+
+                    {isScheduleLoading && (
+                        <div className="text-center py-4">
+                            <p>Загрузка расписания...</p>
+                        </div>
                     )}
 
                     <div className="flex justify-end mt-6">
