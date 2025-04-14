@@ -18,11 +18,13 @@ interface CycleSchedule {
 }
 
 // Общий тип графика
-export type EmployeeSchedule = (WeeklySchedule | CycleSchedule) & {
+export type EmployeeSchedule = {
     id: number;
     employee_id: number;
+    schedule_type: 'weekly' | 'cycle';
     start_date: string;
     end_date: string;
+    periods: Array<[string, string, string]>;
     night_shift: number;
 };
 
