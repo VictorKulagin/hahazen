@@ -771,7 +771,6 @@ const Page: React.FC = ( ) => {
                 />
 
                 {/* Модальное окно редактирования */}
-                // В компоненте Page:
                 <EmployeeModal
                     mode="edit"
                     isOpen={isEditModalOpen}
