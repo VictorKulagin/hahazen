@@ -22,9 +22,10 @@ import Link from "next/link";
 import {AxiosError} from "axios";
 import EmployeesList from "@/components/EmployeesList";
 import usePhoneInput from '@/hooks/usePhoneInput';
-import {useCreateEmployeeSchedule, useUpdateEmployeeSchedule} from "@/hooks/useEmployeeSchedules";
+import {useCreateEmployeeSchedule, useUpdateEmployeeSchedule, useEmployeeSchedules} from "@/hooks/useEmployeeSchedules";
+
 import {
-    createEmployeeSchedule,
+    createEmployeeSchedule, EmployeeSchedule,
     fetchEmployeeScheduleByPeriod,
     updateEmployeeSchedule
 } from "@/services/еmployeeScheduleApi";
@@ -79,6 +80,10 @@ const Page: React.FC = ( ) => {
         isPending: isCreating // Используем isPending вместо isLoading
     } = useCreateEmployeeSchedule();
     const updateSchedule = useUpdateEmployeeSchedule();
+
+
+
+
 
     const [isScheduleLoading, setIsScheduleLoading] = useState(false);
 
@@ -213,6 +218,10 @@ const Page: React.FC = ( ) => {
     const id = branchesData?.[0]?.id ?? null;
     console.log(id + " ID из данных филиала ....");
 
+
+
+
+
     const params = useParams();
     //const idFromUrl = params.id as string || null;
     let idFromUrl: string | null = null;
@@ -254,6 +263,20 @@ const Page: React.FC = ( ) => {
         start_date: "",
         end_date: "",
     });
+
+
+    const {
+        data: schedules,
+        isLoading: isSchedulesLoading
+    } = useEmployeeSchedules(
+        id, // branchId
+        editingEmployee?.id, // employeeId
+        formData.start_date,
+        formData.end_date
+    );
+
+
+
 
     // Обработчик изменения данных в форме
     const handleInputChange = (
@@ -378,9 +401,9 @@ const Page: React.FC = ( ) => {
 
             // Создание расписания
             if (formData.schedule_type) {
-                await createScheduleMutation.mutateAsync({
+                await createSchedule({ // Используем createSchedule
                     employee_id: newEmployee.id,
-                    schedule_type: formData.schedule_type,
+                    schedule_type: formData.schedule_type as 'weekly' | 'cycle', // Явное приведение типа
                     start_date: formData.start_date,
                     end_date: formData.end_date,
                     night_shift: 0,
@@ -419,11 +442,12 @@ const Page: React.FC = ( ) => {
             };
 
             // 3. Поиск существующего расписания
-            const existingSchedules = await fetchEmployeeScheduleByPeriod(
+            /*const existingSchedules = await fetchEmployeeScheduleByPeriod(
                 editingEmployee.id,
                 formData.start_date,
                 formData.end_date
-            );
+            );*/
+            const existingSchedules = schedules || [];
 
             // 4. Использование React Query мутаций
             if (existingSchedules.length > 0) {
@@ -444,6 +468,8 @@ const Page: React.FC = ( ) => {
         } catch (error) {
             console.error('Ошибка:', error);
             alert(error.response?.data?.message || 'Ошибка сохранения');
+        } finally {
+            setIsSubmitting(false); // Добавляем сброс состояния
         }
     };
 
@@ -911,6 +937,13 @@ const EmployeeModal = ({
     const nameInputRef = useRef<HTMLInputElement>(null);
     const [activeTab, setActiveTab] = useState("info");
     const [cyclePeriods, setCyclePeriods] = useState<any[]>([]);
+    const removeWeeklyPeriod = (index: number) => {
+        setWeeklyPeriods(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeCyclePeriod = (index: number) => {
+        setCyclePeriods(prev => prev.filter((_, i) => i !== index));
+    };
 
     useEffect(() => {
         if (isOpen && mode === 'create') {
@@ -1071,8 +1104,14 @@ const EmployeeModal = ({
                                 <label className="block mb-1 font-semibold">Тип графика</label>
                                 <select
                                     name="schedule_type"
-                                    value={formData.schedule_type || ""}
-                                    onChange={handleInputChange}
+                                    value={formData.schedule_type}
+                                    onChange={(e) => handleInputChange({
+                                        ...e,
+                                        target: {
+                                            ...e.target,
+                                            value: e.target.value as 'weekly' | 'cycle'
+                                        }
+                                    })}
                                     className="w-full p-2 border rounded"
                                 >
                                     <option value="">Выберите тип</option>
@@ -1130,6 +1169,14 @@ const EmployeeModal = ({
                                                 onChange={(e) => updateWeeklyPeriod(i, "end", e.target.value)}
                                                 className="p-2 border rounded w-1/3"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeWeeklyPeriod(i)}
+                                                className="text-red-500 hover:text-red-700"
+                                                title="Удалить период"
+                                            >
+                                                ×
+                                            </button>
                                         </div>
                                     ))}
                                     <button type="button" onClick={addWeeklyPeriod} className="text-blue-600">+ Добавить период</button>
@@ -1160,6 +1207,13 @@ const EmployeeModal = ({
                                                 onChange={(e) => updateCyclePeriod(i, "end", e.target.value)}
                                                 className="p-2 border rounded w-1/3"
                                             />
+                                            <button
+                                                type="button"
+                                                onClick={() => removeCyclePeriod(i)}
+                                                className="text-red-500 hover:text-red-700"
+                                            >
+                                                ×
+                                            </button>
                                         </div>
                                     ))}
                                     <button type="button" onClick={addCyclePeriod} className="text-blue-600">+ Добавить период</button>

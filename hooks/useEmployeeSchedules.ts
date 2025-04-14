@@ -16,20 +16,29 @@ export const useEmployeeSchedules = (
     endDate?: string
 ) => {
     return useQuery<EmployeeSchedule[], Error>({
-        queryKey: ['employeeSchedules', branchId, employeeId, startDate, endDate],
+        queryKey: [
+            'employeeSchedules',
+            branchId,
+            employeeId, // Добавляем в ключ
+            startDate,
+            endDate
+        ],
         queryFn: () => {
             if (!branchId || !employeeId) return [];
             return fetchEmployeeSchedules(branchId, employeeId, startDate, endDate);
         },
-        enabled: !!branchId && !!employeeId,
-        staleTime: 600000
+        enabled: !!branchId && !!employeeId
     });
 };
 
 export const useCreateEmployeeSchedule = () => {
     const queryClient = useQueryClient();
 
-    return useMutation<EmployeeSchedule, Error, Omit<EmployeeSchedule, 'id'>>({
+    return useMutation<
+        EmployeeSchedule,
+        Error,
+        Omit<EmployeeSchedule, 'id'> & { schedule_type: 'weekly' | 'cycle' }
+    >({
         mutationFn: createEmployeeSchedule,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['employeeSchedules'] });
@@ -37,13 +46,28 @@ export const useCreateEmployeeSchedule = () => {
     });
 };
 
-export const useUpdateEmployeeSchedule = () => {
+/*export const useUpdateEmployeeSchedule = () => {
     const queryClient = useQueryClient();
 
     return useMutation<EmployeeSchedule, Error, EmployeeSchedule>({
         mutationFn: (data) => updateEmployeeSchedule(data.id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['employeeSchedules'] });
+        }
+    });
+};*/
+
+export const useUpdateEmployeeSchedule = () => {
+    const queryClient = useQueryClient();
+//debugger;
+    return useMutation<EmployeeSchedule, Error, EmployeeSchedule>({
+        mutationFn: (data) => updateEmployeeSchedule(data.id, data),
+
+        onSuccess: (data) => {
+            // Инвалидация для конкретного сотрудника
+            queryClient.invalidateQueries({
+                queryKey: ['employeeSchedules', data.employee_id]
+            });
         }
     });
 };
