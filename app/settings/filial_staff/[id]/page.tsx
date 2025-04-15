@@ -22,7 +22,7 @@ import Link from "next/link";
 import {AxiosError} from "axios";
 import EmployeesList from "@/components/EmployeesList";
 import usePhoneInput from '@/hooks/usePhoneInput';
-import {useCreateEmployeeSchedule, useUpdateEmployeeSchedule, useEmployeeSchedules} from "@/hooks/useEmployeeSchedules";
+import {useCreateEmployeeSchedule, useUpdateEmployeeSchedule, useEmployeeSchedules, useDeleteEmployeeSchedule} from "@/hooks/useEmployeeSchedules";
 
 import {
     createEmployeeSchedule, EmployeeSchedule,
@@ -71,23 +71,15 @@ const Page: React.FC = ( ) => {
 
     const router = useRouter();
 
-    // Добавляем хук для создания графика
-    //const createScheduleMutation = useCreateEmployeeSchedule();
-    //const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
-    //const { mutateAsync: createSchedule, isLoading: isCreating } = useCreateEmployeeSchedule();
     const {
         mutateAsync: createSchedule,
         isPending: isCreating // Используем isPending вместо isLoading
     } = useCreateEmployeeSchedule();
     const updateSchedule = useUpdateEmployeeSchedule();
 
-
-
-
+    const { mutateAsync: deleteSchedule } = useDeleteEmployeeSchedule();
 
     const [isScheduleLoading, setIsScheduleLoading] = useState(false);
-
-    // ... остальной код
 
 
     const toggleFilModal = () => {
@@ -314,18 +306,6 @@ const Page: React.FC = ( ) => {
     };
 
 
-    /*const handleEdit = (employee: Employee) => {
-        setEditingEmployee(employee);
-        setFormData({
-            name: employee.name,
-            specialty: employee.specialty,
-            email: employee.email,
-            phone: employee.phone,
-            hire_date: employee.hire_date,
-        });
-        setIsEditModalOpen(true);
-    };*/
-
     // 2. В родительском компоненте Page
     const handleEdit = async (employee: Employee) => {
         try {
@@ -441,12 +421,7 @@ const Page: React.FC = ( ) => {
                 night_shift: 0
             };
 
-            // 3. Поиск существующего расписания
-            /*const existingSchedules = await fetchEmployeeScheduleByPeriod(
-                editingEmployee.id,
-                formData.start_date,
-                formData.end_date
-            );*/
+
             const existingSchedules = schedules || [];
 
             // 4. Использование React Query мутаций
