@@ -1147,6 +1147,33 @@ const EmployeeModal = ({
                                     <label className="block font-semibold mb-1">Периоды</label>
                                     {weeklyPeriods.map((p, i) => (
                                         <div key={i} className="flex gap-2 mb-2">
+                                            {/* Кнопки перемещения */}
+                                            <div className="flex flex-col gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newPeriods = [...weeklyPeriods];
+                                                        [newPeriods[i], newPeriods[i - 1]] = [newPeriods[i - 1], newPeriods[i]];
+                                                        setWeeklyPeriods(newPeriods);
+                                                    }}
+                                                    disabled={i === 0}
+                                                    className="disabled:opacity-50"
+                                                >
+                                                    ↑
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newPeriods = [...weeklyPeriods];
+                                                        [newPeriods[i], newPeriods[i + 1]] = [newPeriods[i + 1], newPeriods[i]];
+                                                        setWeeklyPeriods(newPeriods);
+                                                    }}
+                                                    disabled={i === weeklyPeriods.length - 1}
+                                                    className="disabled:opacity-50"
+                                                >
+                                                    ↓
+                                                </button>
+                                            </div>
                                             <select
                                                 value={p.day}
                                                 onChange={(e) => updateWeeklyPeriod(i, "day", e.target.value)}
