@@ -851,7 +851,7 @@ interface FormData {
     email: string;
     phone: string;
     hire_date: string;
-    schedule_type: 'weekly' | 'cycle';
+    schedule_type: 'weekly' /*| 'cycle'*/; // Убрали 'cycle'
     start_date: string;
     end_date: string;
 }
@@ -915,9 +915,9 @@ const EmployeeModal = ({
         setWeeklyPeriods(prev => prev.filter((_, i) => i !== index));
     };
 
-    const removeCyclePeriod = (index: number) => {
-        setCyclePeriods(prev => prev.filter((_, i) => i !== index));
-    };
+    /*const removeCyclePeriod = (index: number) => {
+        setCyclePeriods(prev => prev.filter((_, i) => i !== index)); // Убрали 'cycle'
+    };*/
 
     useEffect(() => {
         if (isOpen && mode === 'create') {
@@ -957,11 +957,11 @@ const EmployeeModal = ({
         setWeeklyPeriods(updated);
     };
 
-    const addCyclePeriod = () => {
-        setCyclePeriods([...cyclePeriods, { day: 0, start: "20:00", end: "08:00" }]);
-    };
+    /*const addCyclePeriod = () => {
+        setCyclePeriods([...cyclePeriods, { day: 0, start: "20:00", end: "08:00" }]); // Убрали 'cycle'
+    };*/
 
-    const updateCyclePeriod = (index: number, field: string, value: any) => {
+    /*const updateCyclePeriod = (index: number, field: string, value: any) => {
         const updated = [...cyclePeriods];
         if (field === "end" && updated[index].start && value <= updated[index].start) {
             alert("Время окончания должно быть позже времени начала");
@@ -973,7 +973,7 @@ const EmployeeModal = ({
         }
         updated[index][field] = value;
         setCyclePeriods(updated);
-    };
+    };*/ // Убрали 'cycle'
 
     if (!isOpen) return null;
 
@@ -1083,14 +1083,14 @@ const EmployeeModal = ({
                                         ...e,
                                         target: {
                                             ...e.target,
-                                            value: e.target.value as 'weekly' | 'cycle'
+                                            value: e.target.value as 'weekly' /*| 'cycle'*/ // Только weekly
                                         }
                                     })}
                                     className="w-full p-2 border rounded"
                                 >
                                     <option value="">Выберите тип</option>
                                     <option value="weekly">Еженедельный — график повторяется по дням недели</option>
-                                    <option value="cycle">Цикл (например, 2 через 3) — чередование смен по дням</option>
+                                    {/*<option value="cycle">Цикл (например, 2 через 3) — чередование смен по дням</option>*/}
                                 </select>
                             </div>
 
@@ -1183,7 +1183,9 @@ const EmployeeModal = ({
                                     <button type="button" onClick={addWeeklyPeriod} className="text-blue-600">+ Добавить период</button>
                                 </div>
                             )}
-                            {formData.schedule_type === "cycle" && (
+                            {/* // 5. Закомментировать секцию cycle */}
+                            {/*
+                                formData.schedule_type === "cycle" && (
                                 <div className="mb-4">
                                     <label className="block font-semibold mb-1">Периоды</label>
                                     {cyclePeriods.map((p, i) => (
@@ -1219,7 +1221,8 @@ const EmployeeModal = ({
                                     ))}
                                     <button type="button" onClick={addCyclePeriod} className="text-blue-600">+ Добавить период</button>
                                 </div>
-                            )}
+                            )
+                            */}
                         </>
                     )}
 
