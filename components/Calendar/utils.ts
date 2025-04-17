@@ -83,12 +83,23 @@ export const generateWeekDates = (
         return date.toLocaleDateString('en-CA'); // '2025-04-03'
     });
 };
-export const generateTimeSlots = () => {
+/* Разбиение времени до получаса */
+/*export const generateTimeSlots = () => {
     return Array.from({length: 48}, (_, i) => {
         const hours = Math.floor(i / 2);
         const minutes = (i % 2) * 30;
         return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
     });
+};*/
+
+// Обновленная функция generateTimeSlots
+export const generateTimeSlots = () => {
+    const slots = [];
+    for (let h = 0; h < 24; h++) {
+        // Добавляем только целые часы
+        slots.push(`${h.toString().padStart(2, '0')}:00`);
+    }
+    return slots;
 };
 
 export const getWeekRange = (startDate: Date) => {

@@ -137,6 +137,7 @@ export const fetchEmployeeScheduleForDate = async (employeeId: number, date: str
         const response = await apiClient.get<EmployeeSchedule>("/employee-schedule/schedule-for-date", {
             params: { employee_id: employeeId, date: date }
         });
+        debugger;
         return response.data;
     } catch (error) {
         console.error('Error in fetchEmployeeScheduleForDate:', error);

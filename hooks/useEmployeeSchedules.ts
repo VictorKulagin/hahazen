@@ -23,9 +23,30 @@ export const useEmployeeSchedules = (
             startDate,
             endDate
         ],
-        queryFn: () => {
-            if (!branchId || !employeeId) return [];
-            return fetchEmployeeSchedules(branchId, employeeId, startDate, endDate);
+        queryFn: async () => {
+            try {
+                if (!branchId || !employeeId || !startDate || !endDate) return [];
+
+                console.log('Fetching schedules with:', {
+                    branchId,
+                    employeeId,
+                    startDate,
+                    endDate
+                });
+
+                const data = await fetchEmployeeSchedules(
+                    branchId,
+                    employeeId,
+                    startDate,
+                    endDate
+                );
+
+                console.log('Received schedules:', data);
+                return data;
+            } catch (error) {
+                console.error('Error fetching schedules:', error);
+                throw error;
+            }
         },
         enabled: !!branchId && !!employeeId
     });
@@ -45,17 +66,6 @@ export const useCreateEmployeeSchedule = () => {
         }
     });
 };
-
-/*export const useUpdateEmployeeSchedule = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation<EmployeeSchedule, Error, EmployeeSchedule>({
-        mutationFn: (data) => updateEmployeeSchedule(data.id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['employeeSchedules'] });
-        }
-    });
-};*/
 
 export const useUpdateEmployeeSchedule = () => {
     const queryClient = useQueryClient();
@@ -111,25 +121,3 @@ export const useEmployeeScheduleForDate = (employeeId: number, date: string) => 
         enabled: !!employeeId && !!date
     });
 };
-
-
-// Пример компонента для отображения графиков
-/*const EmployeeSchedulesList = ({ employeeId }: { employeeId: number }) => {
-    const { data: schedules, isLoading, error } = useEmployeeSchedules(1, employeeId);
-
-    if (isLoading) return <Loader />;
-    if (error) return <ErrorAlert message={error.message} />;
-
-    return (
-        <div>
-            {schedules?.map(schedule => (
-                <ScheduleItem
-                    key={schedule.id}
-    schedule={schedule}
-    onUpdate={useUpdateEmployeeSchedule()}
-    onDelete={useDeleteEmployeeSchedule()}
-    />
-))}
-    </div>
-);
-};*/

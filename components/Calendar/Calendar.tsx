@@ -9,6 +9,7 @@ import {useMutation} from '@tanstack/react-query';
 import { add30Minutes, generateWeekDates, generateTimeSlots, getWeekRange } from "./utils";
 import { CurrentTimeIndicator } from "./CurrentTimeIndicator";
 import { CalendarEvent } from "./CalendarEvent";
+import { useEmployeeSchedules } from "@/hooks/useEmployeeSchedules";
 
 
 import { useQueryClient } from '@tanstack/react-query';
@@ -16,16 +17,24 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import {useRouter} from "next/navigation";
 import {WeekNavigator} from "@/components/Calendar/WeekNavigator";
-import {durationToDays} from "@/components/Calendar/durationToDays"; // Импортируем useRouter
+import {durationToDays} from "@/components/Calendar/durationToDays";
+import {EmployeeSchedule} from "@/services/еmployeeScheduleApi"; // Импортируем useRouter
 
 
-const convertTimeToMinutes = (time: string): number => {
+// 1. Модифицируем функцию конвертации времени
+const convertTimeToMinutes = (time?: string | null): number => {
     if (!time || typeof time !== 'string') {
-        console.error('Invalid time input:', time);
+        console.warn('Invalid time input:', time);
         return 0;
     }
 
-    const [hours, minutes] = time.split(':').map(Number);
+    const timeParts = time.split(':');
+    if (timeParts.length !== 2) {
+        console.error('Invalid time format, expected HH:mm:', time);
+        return 0;
+    }
+
+    const [hours, minutes] = timeParts.map(Number);
 
     if (isNaN(hours) || hours < 0 || hours > 23) {
         console.error('Invalid hours:', hours);
@@ -47,6 +56,15 @@ const convertTimeToMinutes = (time: string): number => {
 
 const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
+// В начале компонента Calendar, после импортов
+    const isValidTime = (time: string): boolean => {
+        return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+    };
+
+    // 1. Добавляем функцию-валидатор
+    const isValidTimeFormat = (time: string): boolean => {
+        return /^([01]\d|2[0-3]):([0-5]\d)$/.test(time);
+    };
 
     if (branchId === null) return <div>Выберите филиал</div>;// Остальная логика с branchId как number}
 
@@ -76,6 +94,10 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         isPending,
         isError
     } = useCreateAppointment();
+
+
+
+
 
 
     // Внутри компонента Calendar:
@@ -126,10 +148,98 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-    const dates = useMemo(
+    /*const dates = useMemo(
         () => generateWeekDates(currentStartDate, selectedDuration),
         [currentStartDate, selectedDuration]
+    );*/
+
+
+    /*const date = new Date('2025-04-17');
+    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
+    console.log("dayOfWeek" + dayOfWeek); // Должно быть 'thu'*/
+
+    const dates = useMemo(() => {
+        const dates = generateWeekDates(currentStartDate, selectedDuration);
+        console.log("Generated dates-:", dates);
+        return dates;
+    }, [currentStartDate, selectedDuration]);
+
+    // 3. Получаем данные о рабочих часах сотрудника
+    const { data: employeeSchedules } = useEmployeeSchedules(
+        branchId || undefined,
+        employeeId || undefined,
+        dates[0], // startDate (первая дата в диапазоне)
+        dates[dates.length - 1] // endDate (последняя дата в диапазоне)
     );
+
+    // 4. Создаем хэш-таблицу расписаний для быстрого доступа
+  /*  const scheduleMap = useMemo(() => {
+        const map: Record<string, EmployeeSchedule> = {};
+        employeeSchedules?.forEach(schedule => {
+            const date = new Date(schedule.date).toISOString().split('T')[0];
+            map[date] = schedule;
+        });
+        return map;
+    }, [employeeSchedules]);*/
+
+
+// 1. Модифицируем структуру scheduleMap для хранения массивов периодов
+    const scheduleMap = useMemo(() => {
+        const map: Record<string, Array<{ start: string; end: string }>> = {};
+
+        employeeSchedules?.forEach(schedule => {
+            const startDate = new Date(schedule.start_date);
+            const endDate = new Date(schedule.end_date);
+
+            for (let day = new Date(startDate); day <= endDate; day.setDate(day.getDate() + 1)) {
+                const dayKey = day.toISOString().split('T')[0];
+                const dayOfWeek = day.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase().slice(0, 3);
+
+                schedule.periods.forEach(([periodDay, startTime, endTime]) => {
+                    const normalizedPeriodDay = periodDay.toLowerCase().slice(0, 3);
+
+                    if (dayOfWeek === normalizedPeriodDay) {
+                        if (!map[dayKey]) {
+                            map[dayKey] = [];
+                        }
+                        map[dayKey].push({
+                            start: startTime.padStart(5, '0'),
+                            end: endTime.padStart(5, '0')
+                        });
+                    }
+                });
+            }
+        });
+
+        console.log('ScheduleMap with periods:', map);
+        return map;
+    }, [employeeSchedules]);
+
+
+    // Проверка, прошло ли время
+    const checkIfPast = (date: string, time: string) => {
+        const [year, month, day] = date.split('-').map(Number);
+        const [hours, minutes] = time.split(':').map(Number);
+        const slotTime = new Date(year, month - 1, day, hours, minutes);
+        return slotTime < new Date();
+    };
+
+// 1. Модифицируем проверку времени
+// 2. Обновляем проверку доступности времени
+    const isTimeAvailable = (date: string, time: string) => {
+        const periods = scheduleMap[date] || [];
+        //if (!periods.length) return false;
+        if (periods.length === 0) return false; // Важная проверка
+
+        const slotMinutes = convertTimeToMinutes(time);
+
+        return periods.some(period => {
+            const start = convertTimeToMinutes(period.start);
+            const end = convertTimeToMinutes(period.end);
+            return slotMinutes >= start && slotMinutes < end;
+        });
+    };
+
     const MemoizedCalendarEvent = React.memo(CalendarEvent);
     const MemoizedWeekNavigator = React.memo(WeekNavigator);
 
@@ -139,11 +249,30 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
     const times = generateTimeSlots();
 
-    const handleCellClick = useCallback((date: string, time: string) => {
+    /*const handleCellClick = useCallback((date: string, time: string) => {
         if (!modalData) { // Проверяем, не открыто ли уже модальное окно
             setModalData({ date, time });
         }
-    }, [modalData]);
+    }, [modalData]);*/
+
+
+// 1. Обновляем обработчик клика
+    const handleCellClick = useCallback((date: string, time: string) => {
+        const periods = scheduleMap[date] || [];
+        if (periods.length === 0) {
+            console.error('No schedule found for:', date);
+            alert('Расписание не найдено для выбранной даты');
+            return;
+        }
+
+        const isAvailable = isTimeAvailable(date, time);
+        if (!isAvailable) {
+            alert('Выбранное время недоступно для записи');
+            return;
+        }
+
+        setModalData({ date, time });
+    }, [scheduleMap]);
 
     console.log(branchId + " Branch ID");
     console.log(employeeId + " EmployeeId ID");
@@ -155,13 +284,13 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         refetch();
     }, [refetch, getEmployeeIdFromHash]);
 
+
+
+
+
     useEffect(() => {
-        console.log('Current dates:', dates);
-        console.log('generateWeekDates input:', {
-            baseDate: currentStartDate,
-            duration: selectedDuration
-        });
-    }, [dates]);
+        console.log("Employee Schedules RAW Data:", JSON.stringify(employeeSchedules, null, 2));
+    }, [employeeSchedules]);
 
     useEffect(() => {
         console.log('Полученные данные:',
@@ -173,9 +302,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     }, [groupedAppointments]);
 
 
-    useEffect(() => {
-        console.log('[Calendar] State updated:', modalData);
-    }, [modalData]);
 
 
     useEffect(() => {
@@ -312,15 +438,15 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     }
 
     const getDayClass = (date: string) => {
+        if (!Date.parse(date)) { // Исправлено здесь
+            console.error('Invalid date:', date); // И здесь
+            return 'invalid-date';
+        }
         const today = new Date().toISOString().split('T')[0];
         const isPast = date < today;
         const isToday = date === today;
 
-        return `
-      day-column
-      ${isPast ? 'past-day' : ''}
-      ${isToday ? 'current-day' : ''}
-    `;
+        return `day-column ${isPast ? 'past-day' : ''} ${isToday ? 'current-day' : ''}`;
     };
 
 
@@ -348,16 +474,20 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     return (
         <div className="calendar-container" ref={calendarRef}>
 
-            {/* === Блок уведомления === */}
+            {/* Уведомления */}
             {notification && (
                 <div className={`notification ${notification.type}`}>
                     <span>{notification.message}</span>
-                    <button onClick={() => setNotification(null)} className="close-notification">&times;</button>
+                    <button onClick={() => setNotification(null)} className="close-notification">
+                        &times;
+                    </button>
                 </div>
             )}
+
             {/* === Конец блока уведомления === */}
 
 
+            {/* Навигация */}
             <MemoizedWeekNavigator
                 currentStartDate={currentStartDate}
                 selectedDuration={selectedDuration}
@@ -367,7 +497,8 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
             <div className="calendar-grid">
                 <div className="time-column">
-                    {times.map((time, index) => (
+                    {/*
+                        times.map((time, index) => (
                         <div key={time} className="time-slot">
                             {index % 2 === 0 && (
                                 <span className="hour-marker">
@@ -376,54 +507,73 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                             )}
                             <span className="time-text">{time}</span>
                         </div>
-                    ))}
+                    ))
+                    */}
+                    {times.map((time) => {
+                        const [hours] = time.split(':').map(Number);
+                        return (
+                            <div key={time} className="hour-slot">
+                                <span className="hour-marker">{hours}</span>
+                                <div className="half-hour-line"></div>
+                            </div>
+                        );
+                    })}
                     <CurrentTimeIndicator/>
                 </div>
 
-                {dates.map(date => (
+                {dates.map((currentDate) => {
+                    // 1. Проверяем наличие расписания для текущей даты
+                    const schedule = scheduleMap[currentDate];
+                    const isWorkingDay = !!schedule; // Простая проверка наличия расписания
 
-                    <div key={date} className={getDayClass(date)}>
-                        <div className="day-header">
-                            {new Date(date).toLocaleDateString('en-US', {
-                                weekday: 'short',
-                                day: 'numeric'
-                            })}
+                    // 2. Проверяем валидность даты
+                    if (!Date.parse(currentDate)) {
+                        console.error('Invalid date detected:', currentDate);
+                        return null;
+                    }
+
+                    return (
+                        <div
+                            key={currentDate}
+                            className={`day-column ${getDayClass(currentDate)} ${!isWorkingDay ? 'non-working-day' : ''}`}
+                        >
+                            <div className="day-header">
+                                {new Date(currentDate).toLocaleDateString('en-US', {
+                                    weekday: 'short',
+                                    day: 'numeric'
+                                })}
+                                {!isWorkingDay && <span className="day-off-badge">Day off</span>}
+                            </div>
+                            <div className="day-content">
+                                {times.map(time => {
+                                    const [hours, minutes] = time.split(':').map(Number);
+                                    const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                                    const currentEvents = groupedAppointments?.[currentDate]?.[formattedTime] || [];
+                                    const isAvailable = isTimeAvailable(currentDate, time);
+                                    const isPast = checkIfPast(currentDate, time);
+
+                                    return (
+                                        <div
+                                            key={`${currentDate}-${time}`}
+                                            className={`time-slot 
+                                ${isPast ? 'past-slot' : 'future-slot'} 
+                                ${isAvailable ? 'available' : 'unavailable'}`}
+                                            onClick={() => isAvailable && handleCellClick(currentDate, time)}
+                                        >
+                                            {currentEvents.map(event => (
+                                                <MemoizedCalendarEvent
+                                                    key={event.id}
+                                                    event={event}
+                                                    onDelete={handleDeleteAppointment}
+                                                />
+                                            ))}
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
-                        <div className="day-content">
-                            {times.map(time => {
-                                const [hours, minutes] = time.split(':').map(Number);
-                                const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                                const currentEvents = groupedAppointments?.[date]?.[formattedTime] || [];
-
-                                // Исправленная логика проверки времени
-                                const now = new Date();
-                                const [year, month, day] = date.split('-').map(Number);
-
-                                // Создаём полную дату слота с учётом локального времени
-                                const slotDateTime = new Date(year, month - 1, day, hours, minutes);
-
-                                // Правильное сравнение с текущим моментом
-                                const isPast = slotDateTime < now;
-
-                                return (
-                                    <div
-                                        key={`${date}-${formattedTime}`}
-                                        className={`time-slot ${isPast ? 'past-slot' : 'future-slot'}`}
-                                        onClick={() => !isPast && setModalData({ date, time })}
-                                    >
-                                        {currentEvents.map(event => (
-                                            <MemoizedCalendarEvent
-                                                key={event.id}
-                                                event={event}
-                                                onDelete={handleDeleteAppointment}
-                                            />
-                                        ))}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {modalData && (
@@ -562,27 +712,63 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 grid-template-columns: 80px repeat(auto-fit, minmax(120px, 1fr));
               }
 
-              .time-column {
+             /* {
                 position: sticky;
                 left: 0;
                 background: white;
                 z-index: 2;
+              }*/
+
+              .time-column {
+                width: 50px;
+                background: #f8f9fa;
+                border-right: 1px solid #dee2e6;
               }
 
-              .time-slot {
+              .hour-slot {
+                height: 60px;
+                position: relative;
+              }
+
+              /*.time-slot {
                 height: 40px;
                 position: relative;
                 background: white;
                 border-bottom: 1px solid #eee;
                 padding: 2px;
+              }*/
+
+              .time-slot {
+                height: 60px; // Высота слота = 1 час
+                position: relative;
               }
 
-              .hour-marker {
+              /*.hour-marker {
                 position: absolute;
                 left: 4px;
                 top: 2px;
                 font-size: 0.8em;
                 color: #666;
+              }*/
+
+
+              .hour-marker {
+                position: absolute;
+                top: -10px;
+                left: 8px;
+                font-size: 0.85em;
+                color: #6c757d;
+                background: #f8f9fa;
+                padding: 0 4px;
+              }
+
+              .half-hour-line {
+                position: absolute;
+                top: 50%;
+                left: 0;
+                right: 0;
+                border-bottom: 1px solid #e9ecef;
+                z-index: 1;
               }
 
               .time-text {
@@ -599,6 +785,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
               .day-column {
                 min-width: 150px;
+                transition: all 0.2s ease-in-out;
                 flex: 1;
               }
 
@@ -635,7 +822,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 background: #e9ecef;
               }
 
-              .current-time {
+              /*.current-time {
                 position: absolute;
                 left: 0;
                 right: 0;
@@ -643,6 +830,23 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 background: #ff4444;
                 z-index: 3;
                 pointer-events: none;
+              }*/
+
+              .current-time {
+                height: 2px;
+                background: #dc3545;
+                box-shadow: 0 0 3px rgba(220, 53, 69, 0.3);
+
+                &::before {
+                  content: '';
+                  position: absolute;
+                  width: 8px;
+                  height: 8px;
+                  background: #dc3545;
+                  border-radius: 50%;
+                  left: -4px;
+                  top: -3px;
+                }
               }
 
               .current-time .circle {
@@ -700,6 +904,108 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 padding-bottom: 80px;
                 box-sizing: border-box;
               }
+              
+
+              .no-schedule {
+                background: repeating-linear-gradient(
+                        45deg,
+                        #f8f9fa,
+                        #f8f9fa 10px,
+                        #ffd6d6 10px,
+                        #ffd6d6 20px
+                );
+                cursor: not-allowed;
+              }
+
+
+              /* Стили для нерабочих дней */
+              /*.non-working-day {
+                background-color: rgba(248, 249, 250, 0.4);
+                position: relative;
+              }*/
+
+
+
+              .non-working-day {
+                background: repeating-linear-gradient(
+                        45deg,
+                        #f8f9fa,
+                        #f8f9fa 10px,
+                        #ffe0e0 10px,
+                        #ffe0e0 20px
+                );
+              }
+              
+
+              .day-column.non-working-day {
+                background-color: rgba(248, 249, 250, 0.4) !important;
+                position: relative;
+              }
+
+              .day-column.non-working-day .day-header {
+                opacity: 0.7;
+              }
+
+              .day-column.non-working-day .time-slot {
+                background-color: transparent !important;
+                cursor: default !important;
+              }
+
+              .day-column.non-working-day::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: repeating-linear-gradient(
+                        45deg,
+                        transparent,
+                        transparent 3px,
+                        rgba(0, 0, 0, 0.05) 3px,
+                        rgba(0, 0, 0, 0.05) 6px
+                );
+                pointer-events: none;
+                z-index: 1;
+              }
+
+              /*.non-working-day .day-header {
+                opacity: 0.7; 
+              }
+
+              .non-working-day .time-slot {
+                background-color: transparent !important;
+                cursor: default !important;
+              }*/
+
+
+
+              /* Индикатор в заголовке */
+              .day-off-badge {
+                background: rgba(220, 53, 69, 0.1);
+                color: #dc3545;
+                border: 1px solid rgba(220, 53, 69, 0.2);
+                font-size: 0.75em;
+                padding: 2px 6px;
+                border-radius: 4px;
+              }
+
+
+
+
+              .available {
+                background-color: #e8f5e9 !important;
+                cursor: pointer;
+              }
+
+              .unavailable {
+                background-color: transparent !important; /* Сбрасываем цвет */
+                cursor: default;
+              }
+
+              .past-slot {
+                background-color: #f8f9fa !important;
+              }
 
               /* Мобильная версия */
               @media (max-width: 768px) {
@@ -727,12 +1033,16 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                   height: calc(100vh - 120px); 
                   margin-top: 0;
                 }*/
-                .calendar-grid {
+                /*.calendar-grid {
                   display: flex;
                   overflow-x: auto;
                   min-height: 80vh;
+                }*/
+
+                .calendar-grid {
+                  grid-template-columns: 50px repeat(auto-fit, minmax(120px, 1fr));
                 }
-              }
+              
 
               .event {
                 position: relative;
@@ -761,6 +1071,27 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                   transform: scale(1.1);
                 }
               }
+
+                /*.non-working-day {
+                  background: repeating-linear-gradient(
+                          45deg,
+                          #f8f9fa,
+                          #f8f9fa 10px,
+                          #ffe0e0 10px,
+                          #ffe0e0 20px
+                  );
+                }
+
+                .day-off-badge {
+                  font-size: 0.7em;
+                  background: #dc3545;
+                  color: white;
+                  padding: 2px 5px;
+                  border-radius: 3px;
+                  margin-left: 5px;
+                }*/
+
+  
 
               .notification {
                 position: fixed; /* Или absolute, если контейнер позиционирован */
@@ -795,6 +1126,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 color: inherit;
                 margin-left: 15px;
                 padding: 0;
+              }
               }
 
 
