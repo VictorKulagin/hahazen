@@ -1,13 +1,21 @@
 // components/Calendar/CalendarEvent.tsx
-import {Appointment} from "@/services/appointmentsApi";
+import {Appointment, AppointmentRequest} from "@/services/appointmentsApi";
 
-export const CalendarEvent = ({
-                           event,
-                           onDelete
-                       }: {
+// 1. Добавим тип для редактируемого события (в types/Appointment.ts)
+export interface Appointment extends AppointmentRequest {
+    id: number;
+}
+
+
+interface CalendarEventProps {
     event: Appointment;
     onDelete: (id: number) => void;
-}) => {
+    onEdit: (event: Appointment) => void; // Добавьте пропс
+}
+
+export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) => {
+
+    console.log('CalendarEvent received:', JSON.stringify(event, null, 2));
     // Проверка наличия обязательных полей
     if (!event.appointment_datetime) {
         console.error("Некорректные данные события:", event);
@@ -53,9 +61,18 @@ export const CalendarEvent = ({
                 className="event"
                 style={eventStyle}
                 data-testid="calendar-event"
+                //onClick={() => onEdit(event)} // Добавьте обработчик
+                onClick={(e) => {
+                    console.log('Edit button clicked for event:', event.id);
+                    e.stopPropagation(); // Блокируем всплытие события
+                    onEdit(event);
+                }}
             >
                 <div className="event-time">
                     {localStart.toLocaleTimeString()} - {localEnd.toLocaleTimeString()}
+                </div>
+                <div className="event-content" onClick={() => onEdit(event)}>
+                    {/* ... */}
                 </div>
                 <div className="event-content">
                     <button
