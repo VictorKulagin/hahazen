@@ -20,6 +20,13 @@ import {WeekNavigator} from "@/components/Calendar/WeekNavigator";
 import {durationToDays} from "@/components/Calendar/durationToDays";
 import {EmployeeSchedule} from "@/services/еmployeeScheduleApi"; // Импортируем useRouter
 
+import { useServices } from "@/hooks/useServices";
+import {Services} from "@/services/servicesApi";
+
+
+
+
+
 
 // 1. Модифицируем функцию конвертации времени
 const convertTimeToMinutes = (time?: string | null): number => {
@@ -95,15 +102,15 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         isError
     } = useCreateAppointment();
 
+   /* const {
+        data: services,
+        isLoading, // <-- Добавьте эту строку
+        isError
+    } = useServices();*/
 
 
-
-
-
-    // Внутри компонента Calendar:
     const {mutate: deleteAppointment} = useDeleteAppointment(/*id*/);
 
-    // 6. Обработка создания записи
     // 3. Запрос данных
 // Внутри компонента Calendar:
     const [selectedDuration, setSelectedDuration] = useState<DurationOption>('1-day');
@@ -111,7 +118,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const {
         data: groupedAppointments,
         refetch,
-        isLoading,
+        isLoading: isLoadingAppointments,
         isError: isAppointmentsError,
         error // Добавляем получение ошибки
     } = useAppointments(
@@ -134,13 +141,14 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     }, [branchId, employeeId, selectedDuration]);
 
 
+// Обновляем useEffect с новым именем
     useEffect(() => {
-        if (!isLoading && groupedAppointments) {
+        if (!isLoadingAppointments && groupedAppointments) {
             console.log('Grouped Appointments Data:', groupedAppointments);
             console.log('Dates:', Object.keys(groupedAppointments));
             console.log('Count:', Object.values(groupedAppointments).flat().length);
         }
-    }, [groupedAppointments, isLoading]);
+    }, [groupedAppointments, isLoadingAppointments]); // Используем переименованную переменную
 
     const [modalData, setModalData] = useState<{ date: string; time: string } | null>(null);
 
@@ -148,15 +156,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
-    /*const dates = useMemo(
-        () => generateWeekDates(currentStartDate, selectedDuration),
-        [currentStartDate, selectedDuration]
-    );*/
 
-
-    /*const date = new Date('2025-04-17');
-    const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'short' }).toLowerCase();
-    console.log("dayOfWeek" + dayOfWeek); // Должно быть 'thu'*/
 
     const dates = useMemo(() => {
         const dates = generateWeekDates(currentStartDate, selectedDuration);
@@ -172,22 +172,14 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         dates[dates.length - 1] // endDate (последняя дата в диапазоне)
     );
 
-    // 4. Создаем хэш-таблицу расписаний для быстрого доступа
-  /*  const scheduleMap = useMemo(() => {
-        const map: Record<string, EmployeeSchedule> = {};
-        employeeSchedules?.forEach(schedule => {
-            const date = new Date(schedule.date).toISOString().split('T')[0];
-            map[date] = schedule;
-        });
-        return map;
-    }, [employeeSchedules]);*/
-
 
 // 1. Модифицируем структуру scheduleMap для хранения массивов периодов
     const scheduleMap = useMemo(() => {
         const map: Record<string, Array<{ start: string; end: string }>> = {};
 
-        employeeSchedules?.forEach(schedule => {
+        //console.log("Raw employee schedules data JSON:", JSON.stringify(employeeSchedules, null, 4));
+
+        employeeSchedules?.forEach((schedule, scheduleIndex) => {
             const startDate = new Date(schedule.start_date);
             const endDate = new Date(schedule.end_date);
 
@@ -236,6 +228,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         return periods.some(period => {
             const start = convertTimeToMinutes(period.start);
             const end = convertTimeToMinutes(period.end);
+            //debugger;
             return slotMinutes >= start && slotMinutes < end;
         });
     };
@@ -1154,6 +1147,13 @@ const Modal = ({data, onSave, onClose}: {
         total_duration: 30
     });
 
+
+    const {
+        data: services,
+        isLoading: isLoadingServices, // Переименовано
+        isError: isServicesError
+    } = useServices();
+
     const handleAddService = () => {
         setForm(prev => ({
             ...prev,
@@ -1174,6 +1174,10 @@ const Modal = ({data, onSave, onClose}: {
         });
     };
 
+    interface ServiceItem {
+        service_id: number;
+        qty: number;
+    }
 
     return (
         <div className="modal-overlay">
@@ -1233,31 +1237,52 @@ const Modal = ({data, onSave, onClose}: {
 
                 <div className="services-section">
                     <h4>Services:</h4>
-                    {form.services.map((service, index) => (
+                    {form.services.map((service: ServiceItem, index: number) => (
                         <div key={index} className="service-item">
-                            <input
-                                type="number"
-                                placeholder="Service ID"
+                            <select
                                 value={service.service_id}
                                 onChange={e => {
                                     const newServices = [...form.services];
                                     newServices[index].service_id = Number(e.target.value);
                                     setForm({...form, services: newServices});
                                 }}
-                            />
+                            >
+                                <option value={0}>Выберите услугу</option>
+                                {services?.map(svc => (
+                                    <option key={svc.id} value={svc.id}>
+                                        {svc.name} ({svc.base_price} руб.)
+                                    </option>
+                                ))}
+                            </select>
+
                             <input
                                 type="number"
-                                placeholder="Qty"
+                                min="1"
                                 value={service.qty}
                                 onChange={e => {
                                     const newServices = [...form.services];
-                                    newServices[index].qty = Number(e.target.value);
+                                    newServices[index].qty = Math.max(1, Number(e.target.value));
                                     setForm({...form, services: newServices});
                                 }}
                             />
+
+                            <button
+                                className="delete-service"
+                                onClick={() => {
+                                    const newServices = form.services.filter((_, i) => i !== index);
+                                    setForm({...form, services: newServices});
+                                }}
+                            >
+                                ×
+                            </button>
                         </div>
                     ))}
-                    <button onClick={handleAddService}>Add Service</button>
+                    <button
+                        onClick={handleAddService}
+                        disabled={!services?.length || isLoadingServices}
+                    >
+                        {isLoadingServices ? 'Загрузка услуг...' : 'Добавить услугу'}
+                    </button>
                 </div>
 
                 <div className="modal-actions">
@@ -1340,6 +1365,38 @@ const Modal = ({data, onSave, onClose}: {
               button:last-child {
                 background: #007bff;
                 color: white;
+              }
+
+              // В блоке стилей модального окна
+              .service-item {
+                display: grid;
+                grid-template-columns: 1fr 80px;
+                gap: 8px;
+                margin-bottom: 8px;
+              }
+
+              select {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background: white;
+              }
+
+              input[type="number"] {
+                width: 100%;
+                padding: 8px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                text-align: right;
+              }
+
+              .delete-service {
+                background: transparent;
+                border: none;
+                color: #ff4444;
+                cursor: pointer;
+                padding: 0 8px;
               }
 
             `}</style>
