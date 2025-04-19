@@ -2,7 +2,7 @@
 "use client";
 import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
 import {createAppointment, Appointment, Service, AppointmentRequest} from "@/services/appointmentsApi";
-import {useAppointments, DurationOption, useCreateAppointment} from "@/hooks/useAppointments"; // Добавляем импорт
+import {useAppointments, DurationOption, useCreateAppointment, useUpdateAppointment} from "@/hooks/useAppointments"; // Добавляем импорт
 import {usePathname, useSearchParams} from 'next/navigation';
 import {useDeleteAppointment} from "@/hooks/useAppointments";
 import {useMutation} from '@tanstack/react-query';
@@ -22,6 +22,7 @@ import {EmployeeSchedule} from "@/services/еmployeeScheduleApi"; // Импор�
 
 import { useServices } from "@/hooks/useServices";
 import {Services} from "@/services/servicesApi";
+import {EditEventModal} from "@/components/Calendar/EditEventModal";
 
 
 
@@ -102,6 +103,11 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         isError
     } = useCreateAppointment();
 
+
+    const [editingEvent, setEditingEvent] = useState<Appointment | null>(null);
+
+    const { mutate: updateAppointment } = useUpdateAppointment();
+
    /* const {
         data: services,
         isLoading, // <-- Добавьте эту строку
@@ -155,6 +161,10 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const [currentStartDate, setCurrentStartDate] = useState(new Date());
 
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    const [selectedEvent, setSelectedEvent] = useState<Appointment | null>(null);
 
 
 
@@ -251,6 +261,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
 // 1. Обновляем обработчик клика
     const handleCellClick = useCallback((date: string, time: string) => {
+        //setSelectedEvent(null); // Сбрасываем редактирование
         const periods = scheduleMap[date] || [];
         if (periods.length === 0) {
             console.error('No schedule found for:', date);
@@ -313,22 +324,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         }
     }, [isError, error]); // Добавляем зависимости
 
-    /*useEffect(() => {
-        const start = new Date(event.appointment_datetime);
-        const end = new Date(start.getTime() + event.total_duration * 60000);
-
-        console.log("Расчет позиции для события:", {
-            eventId: event.id,
-            serverTime: event.appointment_datetime,
-            localStart: start.toString(),
-            localEnd: end.toString(),
-            calculatedTop: start.getHours() * 80 + (start.getMinutes() / 60 * 80),
-            //cssTop: startMinutes * 1.333
-        });
-    }, []);*/
-
-
-
     // 5. Эффекты для отслеживания изменений
     useEffect(() => {
         window.addEventListener("hashchange", handleHashChange);
@@ -345,12 +340,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
             console.log("Даты с событиями:", Object.keys(groupedAppointments));
         }
     }, [groupedAppointments]);
-    /*ВУ*/
-    /*useEffect(() => {
-        setDates(generateWeekDates(currentStartDate));
-        setTimeout(scrollToCurrentTime, 100);
-    }, [currentStartDate]);*/
-
 
     // Основной эффект для отслеживания изменений
     const scrollToCurrentTime = () => {
@@ -419,6 +408,9 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 setModalData(null);
             }
         });
+
+        console.log("branchId handleAddEvent:", branchId, "employeeId handleAddEvent:", employeeId);
+
     }, [branchId, employeeId, createAppointment, queryClient]);
 
     // Добавляем обработку состояний
@@ -429,6 +421,24 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     if (isError) {
         return <div>Ошибка: {error?.message}</div>;
     }
+
+// Обновим обработчик открытия модалки
+    /*const handleEditEvent = (event: Appointment) => {
+        setModalData({
+            date: event.date,
+            time: event.time_start
+        });
+        setEditingEvent(event);
+    };*/
+
+
+    const handleEditEvent = (event: Appointment) => {
+        console.log('Opening edit modal for event:', event.id, 'Data:', event);
+        setSelectedEvent(event);
+        setIsEditModalOpen(true); // Добавляем это!
+        setModalData(null); // Закрываем модалку создания
+    };
+
 
     const getDayClass = (date: string) => {
         if (!Date.parse(date)) { // Исправлено здесь
@@ -558,6 +568,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                                                     key={event.id}
                                                     event={event}
                                                     onDelete={handleDeleteAppointment}
+                                                    onEdit={handleEditEvent}
                                                 />
                                             ))}
                                         </div>
@@ -568,7 +579,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                     );
                 })}
             </div>
-
+            {/* 3. Модалка создания */}
             {modalData && (
                 <Modal
                     data={modalData}
@@ -583,6 +594,18 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                         setModalData(null);
                     }}
                     onClose={() => setModalData(null)}
+                />
+            )}
+
+            {/* 4. Модалка редактирования */}
+            {isEditModalOpen && selectedEvent && (
+                <EditEventModal
+                    event={selectedEvent}
+                    onSave={(updatedEvent) => {
+                        updateAppointment(updatedEvent);
+                        setIsEditModalOpen(false);
+                    }}
+                    onClose={() => setIsEditModalOpen(false)}
                 />
             )}
 
@@ -1128,24 +1151,29 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     );
 }
 
-const Modal = ({data, onSave, onClose}: {
+
+interface ModalProps {
     data: { date: string; time: string };
-    onSave: (data: Omit<Appointment, 'id'>) => void;
+    editingEvent?: Appointment | null;
+    onSave: (data: Appointment | Omit<Appointment, 'id'>) => void;
     onClose: () => void;
-}) => {
-    const [form, setForm] = useState<Omit<Appointment, 'id'>>({
-        client_name: "",
-        client_last_name: "",
-        client_phone: "",
-        employee_id: 0,
-        branch_id: 0,
-        date: data.date,
-        time_start: data.time,
-        time_end: add30Minutes(data.time),
-        services: [],
-        comment: "",
-        total_duration: 30
-    });
+}
+const Modal = ({ data, editingEvent, onSave, onClose }: ModalProps) => {
+
+    const [form, setForm] = useState<Appointment | Omit<Appointment, 'id'>>(
+        editingEvent || {
+            client_name: "",
+            client_last_name: "",
+            client_phone: "",
+            employee_id: 0,
+            branch_id: 0,
+            date: data.date,
+            time_start: data.time,
+            time_end: add30Minutes(data.time),
+            services: [],
+            comment: "",
+            total_duration: 30
+        });
 
 
     const {
@@ -1173,6 +1201,7 @@ const Modal = ({data, onSave, onClose}: {
             total_duration: duration
         });
     };
+
 
     interface ServiceItem {
         service_id: number;
@@ -1397,6 +1426,10 @@ const Modal = ({data, onSave, onClose}: {
                 color: #ff4444;
                 cursor: pointer;
                 padding: 0 8px;
+              }
+
+              .create-modal {
+                z-index: 1002;
               }
 
             `}</style>
