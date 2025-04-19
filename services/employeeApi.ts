@@ -53,3 +53,9 @@ export const updateEmployee = async (id: number, updatedData: Partial<Employee>)
     const response = await apiClient.put<Employee>(`/employees/${id}`, updatedData);
     return response.data;
 };
+
+export class fetchServices {
+}
+
+export class Services {
+}

@@ -14,9 +14,19 @@ export interface Services {
 }
 
 // Получение списка сотрудников
-export const fetchServices = async (): Promise<Services[]> => {
+/*export const fetchServices = async (): Promise<Services[]> => {
     const response = await apiClient.get<Services[]>("/services");
     return response.data;
+};*/
+
+export const fetchServices = async (): Promise<Services[]> => {
+    try {
+        const response = await apiClient.get<Services[]>("/services");
+        return response.data;
+    } catch (error) {
+        console.error("Ошибка при загрузке услуг:", error);
+        throw new Error("Не удалось загрузить услуги");
+    }
 };
 
 // Создание нового сотрудника
