@@ -1,4 +1,4 @@
-// services/employeeApi.ts
+// services/servicesApi.ts
 import apiClient from "./api";
 
 // Интерфейс для сотрудника
@@ -18,6 +18,23 @@ export interface Services {
     const response = await apiClient.get<Services[]>("/services");
     return response.data;
 };*/
+
+// Интерфейс для связи мастера и услуги
+export interface EmployeeService {
+    service_id: number;
+    individual_price: number;
+    duration_minutes: number;
+}
+
+// Ответ с назначенными услугами мастера (расширяем базовую услугу)
+export interface EmployeeServiceResponse extends Services {
+    pivot: {
+        employee_id: number;
+        service_id: number;
+        individual_price: number;
+        duration_minutes: number;
+    };
+}
 
 export const fetchServices = async (): Promise<Services[]> => {
     try {
@@ -44,4 +61,37 @@ export const deleteServices = async (id: number): Promise<void> => {
 export const updateServices = async (id: number, updatedData: Partial<Services>): Promise<Services> => {
     const response = await apiClient.put<Services>(`/services/${id}`, updatedData);
     return response.data;
+};
+
+
+// Синхронизация услуг мастера
+export const syncEmployeeServices = async (
+    employeeId: number,
+    services: EmployeeService[]
+): Promise<EmployeeServiceResponse[]> => {
+    try {
+        const response = await apiClient.post<EmployeeServiceResponse[]>(
+            `/employees/${employeeId}/services`,
+            { services }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Ошибка синхронизации услуг:", error);
+        throw new Error("Не удалось обновить услуги мастера");
+    }
+};
+
+// Получение услуг мастера
+export const fetchEmployeeServices = async (
+    employeeId: number
+): Promise<EmployeeServiceResponse[]> => {
+    try {
+        const response = await apiClient.get<EmployeeServiceResponse[]>(
+            `/employees/${employeeId}/services`
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Ошибка загрузки услуг мастера:", error);
+        throw new Error("Не удалось получить услуги мастера");
+    }
 };
