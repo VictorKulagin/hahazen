@@ -1,6 +1,13 @@
 // hooks/useServices.ts
-import { useQuery } from '@tanstack/react-query';
-import {fetchServices, Services} from "@/services/servicesApi";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+    fetchServices,
+    Services,
+    syncEmployeeServices,
+    fetchEmployeeServices,
+    EmployeeServiceResponse,
+    EmployeeService
+} from "@/services/servicesApi";
 //import { fetchServices, Services } from '@/services/employeeApi';
 
 
@@ -11,4 +18,52 @@ export const useServices = () => {
         staleTime: 5 * 60 * 1000
     });
     // useQuery автоматически возвращает isLoading
+};
+
+// Хук для услуг мастера
+export const useEmployeeServices = (employeeId: number | undefined) => {
+    return useQuery<EmployeeServiceResponse[], Error>({
+        queryKey: ['employeeServices', employeeId],
+        queryFn: () => {
+            if (!employeeId) {
+                return Promise.resolve([]);
+            }
+            return fetchEmployeeServices(employeeId);
+        },
+        enabled: !!employeeId
+    });
+};
+
+// Хук для синхронизации услуг мастера
+/*export const useSyncEmployeeServices = (employeeId: number) => {
+    const queryClient = useQueryClient();
+
+    return useMutation<EmployeeServiceResponse[], Error, EmployeeService[]>({
+        mutationFn: (services) => syncEmployeeServices(employeeId, services),
+        onSuccess: () => {
+            // Обновляем кэш после успешной синхронизации
+            queryClient.invalidateQueries({
+                queryKey: ['employeeServices', employeeId]
+            });
+        }
+    });
+};*/
+
+export const useSyncEmployeeServices = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+                               employeeId,
+                               services
+                           }: {
+            employeeId: number
+            services: EmployeeService[]
+        }) => {
+            await syncEmployeeServices(employeeId, services);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['employeeServices'] });
+        }
+    });
 };

@@ -29,12 +29,17 @@ import {
     fetchEmployeeScheduleByPeriod,
     updateEmployeeSchedule
 } from "@/services/еmployeeScheduleApi";
+import {useEmployeeServices, useSyncEmployeeServices, useServices} from "@/hooks/useServices";
+import {EmployeeService, EmployeeServiceResponse} from "@/services/servicesApi";
 
 const Page: React.FC = ( ) => {
 
 
     // Закрыть меню при клике на элемент
     const handleMenuItemClick = () => setIsMenuOpen(false);
+
+
+    // В компоненте мастера
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -69,6 +74,8 @@ const Page: React.FC = ( ) => {
     // Добавим состояние блокировки отправки
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    const [selectedServices, setSelectedServices] = useState<EmployeeService[]>([]);
+
     const router = useRouter();
 
     const {
@@ -81,6 +88,20 @@ const Page: React.FC = ( ) => {
 
     const [isScheduleLoading, setIsScheduleLoading] = useState(false);
 
+
+    const { data: allServices, isLoading: isLoadingAllServices } = useServices();
+
+    useEffect(() => {
+        console.log("Список услуг из API:", {
+            data: allServices,
+            loading: isLoadingAllServices, // Исправлено имя переменной
+            //error: error?.message
+        });
+    }, [allServices, isLoadingAllServices, error]); // Добавлены зависимости
+
+    useEffect(() => {
+        console.log("allServices:", JSON.stringify(allServices, null, 2));
+    }, [allServices]); // Добавляем allServices в зависимости
 
     const toggleFilModal = () => {
         setIsModalFilOpen((prev) => !prev);
@@ -267,6 +288,17 @@ const Page: React.FC = ( ) => {
         formData.end_date
     );
 
+    // Получение услуг мастера
+// Добавляем правильную инициализацию мутации
+    const { mutate: syncServices } = useSyncEmployeeServices();
+
+    // Синхронизация услуг
+// Добавляем хук для услуг сотрудника
+    const { data: currentEmployeeServices, isLoading: isEmployeeServicesLoading } = useEmployeeServices(
+        editingEmployee?.id
+    );
+
+
 
 
 
@@ -391,6 +423,14 @@ const Page: React.FC = ( ) => {
                 });
             }
 
+            // Синхронизируем услуги ТОЛЬКО после создания сотрудника
+            if (selectedServices.length > 0) {
+                await syncServices({
+                    employeeId: newEmployee.id,
+                    services: selectedServices
+                });
+            }
+
             // Обновление UI
             setEmployees(prev => [...prev, newEmployee]);
             setIsAddModalOpen(false);
@@ -401,6 +441,9 @@ const Page: React.FC = ( ) => {
             setIsSubmitting(false); // Разблокировка формы
         }
     };
+
+    // Добавляем реф для хранения выбранных услуг
+
 
     const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -420,6 +463,14 @@ const Page: React.FC = ( ) => {
                 periods: weeklyPeriods.map(p => [p.day, p.start, p.end]),
                 night_shift: 0
             };
+
+            // 2. Синхронизируем услуги
+            if (selectedServices.length > 0) { // Убрали .current
+                await syncServices({
+                    employeeId: editingEmployee.id,
+                    services: selectedServices
+                });
+            }
 
 
             const existingSchedules = schedules || [];
@@ -739,27 +790,43 @@ const Page: React.FC = ( ) => {
                     handleInputChange={handleInputChange}
                     title="Добавить сотрудника"
                     weeklyPeriods={weeklyPeriods}
-                    setWeeklyPeriods={setWeeklyPeriods} // Добавляем здесь
+                    setWeeklyPeriods={setWeeklyPeriods}
                     isSubmitting={isSubmitting}
                     setIsSubmitting={setIsSubmitting}
                     isScheduleLoading={isScheduleLoading}
+                    // Важные пропсы:
+                    availableServices={allServices || []}
+                    initialSelectedServices={[]}
+                    isServicesLoading={isLoadingAllServices}
+                    /*onServicesUpdate={(updatedServices) => {
+                        if (employeeId) {
+                            syncServices(updatedServices);
+                        }
+                    }}*/
+                    onServicesChange={(services) => selectedServices.current = services}
                 />
 
-                {/* Модальное окно редактирования */}
-                <EmployeeModal
-                    mode="edit"
-                    isOpen={isEditModalOpen}
-                    onClose={() => setIsEditModalOpen(false)}
-                    onSubmit={handleEditSubmit}
-                    formData={formData}
-                    handleInputChange={handleInputChange}
-                    title="Редактировать сотрудника"
-                    weeklyPeriods={weeklyPeriods} // Передаём текущие периоды
-                    setWeeklyPeriods={setWeeklyPeriods} // Передаём функцию обновления
-                    isSubmitting={isSubmitting}
-                    setIsSubmitting={setIsSubmitting}
-                    isScheduleLoading={isScheduleLoading}
-                />
+                {/*В рендере модального окна редактирования*/}
+                {isEditModalOpen && editingEmployee && (
+                    <EmployeeModal
+                        mode="edit"
+                        isOpen={isEditModalOpen}
+                        onClose={() => setIsEditModalOpen(false)}
+                        onSubmit={handleEditSubmit}
+                        formData={formData}
+                        handleInputChange={handleInputChange}
+                        title="Редактировать сотрудника"
+                        weeklyPeriods={weeklyPeriods}
+                        setWeeklyPeriods={setWeeklyPeriods}
+                        isSubmitting={isSubmitting}
+                        setIsSubmitting={setIsSubmitting}
+                        isScheduleLoading={isScheduleLoading}
+                        availableServices={allServices || []}
+                        initialSelectedServices={currentEmployeeServices || []}
+                        isServicesLoading={isEmployeeServicesLoading}
+                        onServicesChange={setSelectedServices}
+                    />
+                )}
             </main>
         </div>
     );
@@ -879,6 +946,9 @@ const daysOfWeek = [
     { key: "sun", label: "Вс" },
 ];
 
+class Service {
+}
+
 type EmployeeModalProps = {
     isOpen: boolean;
     onClose: () => void;
@@ -892,6 +962,15 @@ type EmployeeModalProps = {
     setIsSubmitting: React.Dispatch<React.SetStateAction<boolean>>; // Новый проп
     mode: 'create' | 'edit'; // Добавляем режим работы
     isScheduleLoading: boolean;
+
+    services?: EmployeeServiceResponse[];
+
+    // Критически важные пропсы:
+    availableServices: Service[]; // Убрали "?" чтобы сделать обязательным
+    initialSelectedServices?: EmployeeServiceResponse[];
+    //onServicesUpdate?: (services: EmployeeService[]) => void;
+    isServicesLoading: boolean; // Сделали обязательным
+    onServicesChange?: (services: EmployeeService[]) => void;
 };
 
 const EmployeeModal = ({
@@ -907,17 +986,58 @@ const EmployeeModal = ({
                            title,
                            mode, // Получаем mode из пропсов
                            isScheduleLoading,
+                           availableServices = [],
+                           initialSelectedServices = [], // Корректное имя
+                           //onServicesUpdate,
+                           onServicesChange,
+                           isServicesLoading = false,
+                           ...props
                        }: EmployeeModalProps) => {
     const nameInputRef = useRef<HTMLInputElement>(null);
     const [activeTab, setActiveTab] = useState("info");
     const [cyclePeriods, setCyclePeriods] = useState<any[]>([]);
+
+    const [localSelectedServices, setLocalSelectedServices] = useState<
+        Array<EmployeeService & { name: string }>
+    >(
+        initialSelectedServices.map(s => ({
+            service_id: s.id,
+            individual_price: s.pivot?.individual_price ?? s.base_price,
+            duration_minutes: s.pivot?.duration_minutes ?? s.duration_minutes,
+            name: s.name
+        }))
+    );
+    // Debug-логи
+    /*useEffect(() => {
+        console.log("Available Services in Modal (verified):", availableServices);
+        console.log("Selected Services:", selectedServices);
+    }, [availableServices, selectedServices]);
     const removeWeeklyPeriod = (index: number) => {
         setWeeklyPeriods(prev => prev.filter((_, i) => i !== index));
-    };
-
-    /*const removeCyclePeriod = (index: number) => {
-        setCyclePeriods(prev => prev.filter((_, i) => i !== index)); // Убрали 'cycle'
     };*/
+
+    // При изменении услуг вызываем колбэк
+    useEffect(() => {
+        if (onServicesChange) {
+            onServicesChange(localSelectedServices.map(({ service_id, individual_price, duration_minutes }) => ({
+                service_id,
+                individual_price,
+                duration_minutes
+            })));
+        }
+    }, [localSelectedServices]);
+
+// Обновляем преобразование initialSelectedServices
+    useEffect(() => {
+        const initialServices = initialSelectedServices?.map(s => ({
+            service_id: s.service_id, // Используем service_id из корня объекта
+            individual_price: s.individual_price,
+            duration_minutes: s.duration_minutes,
+            name: s.service.name // Берем название из вложенного объекта service
+        })) || [];
+
+        setLocalSelectedServices(initialServices);
+    }, [initialSelectedServices]);
 
     useEffect(() => {
         if (isOpen && mode === 'create') {
@@ -955,6 +1075,39 @@ const EmployeeModal = ({
         }
         updated[index][field] = value;
         setWeeklyPeriods(updated);
+    };
+
+
+    const handleServiceChange = (service: Service, isChecked: boolean) => {
+        setLocalSelectedServices(prev => {
+            if (isChecked) {
+                return [...prev, {
+                    service_id: service.id,
+                    individual_price: service.base_price,
+                    duration_minutes: service.duration_minutes,
+                    name: service.name
+                }];
+            }
+            return prev.filter(s => s.service_id !== service.id);
+        });
+    };
+
+    const handlePriceChange = (serviceId: number, value: number) => {
+        setLocalSelectedServices(prev =>
+            prev.map(s => s.service_id === serviceId
+                ? { ...s, individual_price: value }
+                : s
+            )
+        );
+    };
+
+    const handleDurationChange = (serviceId: number, value: number) => {
+        setLocalSelectedServices(prev =>
+            prev.map(s => s.service_id === serviceId
+                ? { ...s, duration_minutes: value }
+                : s
+            )
+        );
     };
 
     /*const addCyclePeriod = () => {
@@ -1004,6 +1157,14 @@ const EmployeeModal = ({
                         onClick={() => setActiveTab("schedule")}
                     >
                         График
+                    </button>
+                    <button
+                        className={`px-4 py-2 font-medium ${
+                            activeTab === "services" ? "border-b-2 border-blue-600" : "text-gray-500"
+                        }`}
+                        onClick={() => setActiveTab("services")}
+                    >
+                        Услуги
                     </button>
                 </div>
 
@@ -1232,6 +1393,50 @@ const EmployeeModal = ({
                         </div>
                     )}
 
+                    {/*}// 5. Реализация вкладки "Услуги":*/}
+                    {activeTab === "services" && (
+                        <div className="mb-4">
+                            <label className="block font-semibold mb-2">Доступные услуги</label>
+
+                            {props.isServicesLoading ? (
+                                <div className="text-center py-4">Загрузка услуг...</div>
+                            ) : availableServices.length === 0 ? (
+                                <div className="text-gray-500">Нет доступных услуг</div>
+                            ) : (
+                                <div className="space-y-2">
+                                    {availableServices.map(service => (
+                                        <div key={service.id} className="flex items-center gap-4 p-2 border rounded">
+                                            <input
+                                                type="checkbox"
+                                                checked={localSelectedServices.some(s => s.service_id === service.id)}
+                                                onChange={(e) => handleServiceChange(service, e.target.checked)}
+                                            />
+
+                                            <span className="flex-1">
+      {service.name} {/* Название из основного объекта услуги */}
+    </span>
+
+                                            {localSelectedServices.some(s => s.service_id === service.id) && (
+                                                <div className="flex gap-2">
+                                                    <input
+                                                        type="number"
+                                                        value={localSelectedServices.find(s => s.service_id === service.id)?.individual_price}
+                                                        onChange={(e) => handlePriceChange(service.id, Number(e.target.value))}
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        value={localSelectedServices.find(s => s.service_id === service.id)?.duration_minutes}
+                                                        onChange={(e) => handleDurationChange(service.id, Number(e.target.value))}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     <div className="flex justify-end mt-6">
                         <button
                             type="button"
@@ -1243,7 +1448,7 @@ const EmployeeModal = ({
                         <button
                             type="submit"
                             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || isServicesLoading}
                         >
                             {isSubmitting ? "Сохранение..." : "Сохранить"}
                         </button>
