@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Appointment } from '@/services/appointmentsApi';
+import { AppointmentRequest } from '@/services/appointmentsApi';
 import { useServices } from '@/hooks/useServices';
 
 interface EditEventModalProps {
-    event: Appointment;
-    onSave: (data: Appointment) => void;
+    event: AppointmentRequest;
+    onSave: (data: AppointmentRequest) => void;
     onClose: () => void;
 }
 
 export const EditEventModal = ({ event, onSave, onClose }: EditEventModalProps) => {
-    const [form, setForm] = useState<Appointment>({} as Appointment);
+    const [form, setForm] = useState<AppointmentRequest>({} as AppointmentRequest);
     const { data: services } = useServices();
 
     console.log('EditModal props:', { event, onSave, onClose });
