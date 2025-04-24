@@ -1,16 +1,22 @@
 import { useState, useEffect } from 'react';
 import { AppointmentRequest } from '@/services/appointmentsApi';
-import { useServices } from '@/hooks/useServices';
+import { useServices, useEmployeeServices } from '@/hooks/useServices';
+
 
 interface EditEventModalProps {
     event: AppointmentRequest;
     onSave: (data: AppointmentRequest) => void;
     onClose: () => void;
+    employeeId: number | null; // Добавить пропс
 }
 
-export const EditEventModal = ({ event, onSave, onClose }: EditEventModalProps) => {
+export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEventModalProps) => {
     const [form, setForm] = useState<AppointmentRequest>({} as AppointmentRequest);
     const { data: services } = useServices();
+    const {
+        data: employeeServices,
+        isLoading: isLoadingEmployeeServices
+    } = useEmployeeServices(employeeId || undefined);
 
     console.log('EditModal props:', { event, onSave, onClose });
 
@@ -24,10 +30,19 @@ export const EditEventModal = ({ event, onSave, onClose }: EditEventModalProps) 
             const client = event.client || {};
 
             // Преобразуем услуги
-            const convertedServices = event.services?.map(s => ({
+            /*const convertedServices = event.services?.map(s => ({
                 service_id: s.id,
                 qty: 1 // Замените на фактическое количество, если оно есть в данных
+            })) || [];*/
+
+
+            const convertedServices = event.services?.map(s => ({
+                service_id: s.id,
+                qty: s.qty || 1, // Используйте актуальное поле из данных
+                individual_price: s.individual_price,
+                duration_minutes: s.service_duration_minutes
             })) || [];
+
 
             setForm({
                 ...event,
@@ -126,8 +141,10 @@ export const EditEventModal = ({ event, onSave, onClose }: EditEventModalProps) 
                                 }}
                             >
                                 <option value={0}>Выберите услугу</option>
-                                {services?.map(svc => (
-                                    <option key={svc.id} value={svc.id}>{svc.name}</option>
+                                {employeeServices?.map(svc => ( // Используем employeeServices
+                                    <option key={svc.service_id} value={svc.service_id}>
+                                        {svc.service.name} ({svc.individual_price} руб.)
+                                    </option>
                                 ))}
                             </select>
                             <input

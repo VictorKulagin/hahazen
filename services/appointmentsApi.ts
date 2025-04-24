@@ -15,6 +15,8 @@ export interface AppointmentRequest {
     services: Array<{
         service_id: number;
         qty: number;
+        individual_price?: number; // Добавьте при необходимости
+        duration_minutes?: number;
     }>;
     comment?: string;
 }
