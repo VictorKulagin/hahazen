@@ -20,7 +20,7 @@ import {WeekNavigator} from "@/components/Calendar/WeekNavigator";
 import {durationToDays} from "@/components/Calendar/durationToDays";
 import {EmployeeSchedule} from "@/services/еmployeeScheduleApi"; // Импортируем useRouter
 
-import { useServices } from "@/hooks/useServices";
+import {useEmployeeServices, useServices} from "@/hooks/useServices";
 import {Services} from "@/services/servicesApi";
 import {EditEventModal} from "@/components/Calendar/EditEventModal";
 
@@ -379,7 +379,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
 // В компоненте Calendar.tsx обновляем handleAddEvent
 // 1. Исправляем обработчик создания события
-    const handleAddEvent = useCallback((data: Omit<Appointment, 'id'>) => {
+    const handleAddEvent = useCallback((data: Omit<AppointmentRequest, 'id'>) => {
         if (!branchId || !employeeId) {
             alert('Выберите филиал и сотрудника');
             return;
@@ -583,6 +583,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
             {modalData && (
                 <Modal
                     data={modalData}
+                    employeeId={employeeId} // Передаем employeeId
                     onSave={data => {
                         handleAddEvent({
                             ...data,
@@ -605,6 +606,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                         setIsEditModalOpen(false);
                     }}
                     onClose={() => setIsEditModalOpen(false)}
+                    employeeId={employeeId} // Передаем employeeId
                 />
             )}
 
@@ -1153,11 +1155,12 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
 interface ModalProps {
     data: { date: string; time: string };
+    employeeId: number | null; // Добавляем пропс
     editingEvent?: AppointmentRequest | null;
     onSave: (data: AppointmentRequest | Omit<AppointmentRequest, 'id'>) => void;
     onClose: () => void;
 }
-const Modal = ({ data, editingEvent, onSave, onClose }: ModalProps) => {
+const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) => {
 
     const [form, setForm] = useState<AppointmentRequest | Omit<AppointmentRequest, 'id'>>(
         editingEvent || {
@@ -1181,10 +1184,20 @@ const Modal = ({ data, editingEvent, onSave, onClose }: ModalProps) => {
         isError: isServicesError
     } = useServices();
 
+
+    const {
+        data: employeeServices,
+        isLoading: isLoadingEmployeeServices // ✅ Уникальное имя
+    } = useEmployeeServices(employeeId || undefined);
     const handleAddService = () => {
         setForm(prev => ({
             ...prev,
-            services: [...prev.services, {service_id: 0, qty: 1}]
+            services: [...prev.services, {
+                service_id: 0,
+                qty: 1,
+                individual_price: 0,
+                duration_minutes: 0
+            }]
         }));
     };
 
@@ -1270,15 +1283,21 @@ const Modal = ({ data, editingEvent, onSave, onClose }: ModalProps) => {
                             <select
                                 value={service.service_id}
                                 onChange={e => {
+                                    const selectedService = employeeServices?.find(s => s.service_id === Number(e.target.value));
                                     const newServices = [...form.services];
-                                    newServices[index].service_id = Number(e.target.value);
+                                    newServices[index] = {
+                                        ...service,
+                                        service_id: selectedService?.service_id || 0,
+                                        individual_price: selectedService?.individual_price || 0,
+                                        duration_minutes: selectedService?.duration_minutes || 0
+                                    };
                                     setForm({...form, services: newServices});
                                 }}
                             >
                                 <option value={0}>Выберите услугу</option>
-                                {services?.map(svc => (
-                                    <option key={svc.id} value={svc.id}>
-                                        {svc.name} ({svc.base_price} руб.)
+                                {employeeServices?.map(svc => (
+                                    <option key={svc.id} value={svc.service_id}>
+                                        {svc.service.name} ({svc.individual_price} руб.)
                                     </option>
                                 ))}
                             </select>
@@ -1307,9 +1326,9 @@ const Modal = ({ data, editingEvent, onSave, onClose }: ModalProps) => {
                     ))}
                     <button
                         onClick={handleAddService}
-                        disabled={!services?.length || isLoadingServices}
+                        disabled={!employeeServices?.length || isLoadingEmployeeServices}
                     >
-                        {isLoadingServices ? 'Загрузка услуг...' : 'Добавить услугу'}
+                        {isLoadingEmployeeServices ? 'Загрузка услуг...' : 'Добавить услугу'}
                     </button>
                 </div>
 
