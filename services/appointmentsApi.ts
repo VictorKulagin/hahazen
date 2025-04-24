@@ -2,8 +2,6 @@
 import apiClient from "./api";
 
 
-// В файле types/appointment.ts
-
 
 export interface AppointmentRequest {
     client_name: string;

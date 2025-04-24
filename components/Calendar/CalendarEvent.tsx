@@ -1,5 +1,5 @@
 // components/Calendar/CalendarEvent.tsx
-import {Appointment, AppointmentRequest} from "@/services/appointmentsApi";
+import { AppointmentRequest } from "@/services/appointmentsApi";
 
 // 1. Добавим тип для редактируемого события (в types/Appointment.ts)
 export interface Appointment extends AppointmentRequest {

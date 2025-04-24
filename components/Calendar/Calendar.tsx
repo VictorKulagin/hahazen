@@ -1,7 +1,7 @@
 //components/Calendar/Calendar.ts
 "use client";
 import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
-import {createAppointment, Appointment, Service, AppointmentRequest} from "@/services/appointmentsApi";
+import {createAppointment, /*Appointment,*/ Service, AppointmentRequest} from "@/services/appointmentsApi";
 import {useAppointments, DurationOption, useCreateAppointment, useUpdateAppointment} from "@/hooks/useAppointments"; // Добавляем импорт
 import {usePathname, useSearchParams} from 'next/navigation';
 import {useDeleteAppointment} from "@/hooks/useAppointments";
@@ -104,7 +104,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     } = useCreateAppointment();
 
 
-    const [editingEvent, setEditingEvent] = useState<Appointment | null>(null);
+    const [editingEvent, setEditingEvent] = useState<AppointmentRequest | null>(null);
 
     const { mutate: updateAppointment } = useUpdateAppointment();
 
@@ -164,7 +164,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-    const [selectedEvent, setSelectedEvent] = useState<Appointment | null>(null);
+    const [selectedEvent, setSelectedEvent] = useState<AppointmentRequest | null>(null);
 
 
 
@@ -432,7 +432,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     };*/
 
 
-    const handleEditEvent = (event: Appointment) => {
+    const handleEditEvent = (event: AppointmentRequest) => {
         console.log('Opening edit modal for event:', event.id, 'Data:', event);
         setSelectedEvent(event);
         setIsEditModalOpen(true); // Добавляем это!
@@ -586,7 +586,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                     onSave={data => {
                         handleAddEvent({
                             ...data,
-                            client_last_name: "",
                             employee_id: employeeId,
                             branch_id: branchId,
                             services: data.services || [],
@@ -1154,13 +1153,13 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
 interface ModalProps {
     data: { date: string; time: string };
-    editingEvent?: Appointment | null;
-    onSave: (data: Appointment | Omit<Appointment, 'id'>) => void;
+    editingEvent?: AppointmentRequest | null;
+    onSave: (data: AppointmentRequest | Omit<AppointmentRequest, 'id'>) => void;
     onClose: () => void;
 }
 const Modal = ({ data, editingEvent, onSave, onClose }: ModalProps) => {
 
-    const [form, setForm] = useState<Appointment | Omit<Appointment, 'id'>>(
+    const [form, setForm] = useState<AppointmentRequest | Omit<AppointmentRequest, 'id'>>(
         editingEvent || {
             client_name: "",
             client_last_name: "",
