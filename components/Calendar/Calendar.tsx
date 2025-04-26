@@ -1222,11 +1222,17 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
 
     return (
         <div className="modal-overlay">
-            <div className="modal">
-                <h3>New Appointment</h3>
+            <div className="modal relative">
+                <button
+                    onClick={onClose}
+                    className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                >
+                    ✖
+                </button>
+                <h2 className="text-xl font-bold mb-4">Новое назначение</h2>
 
                 <div className="form-group">
-                    <label>Client Name:</label>
+                    <label className="block font-semibold mb-1">Клиент: Имя</label>
                     <input
                         value={form.client_name}
                         onChange={e => setForm({...form, client_name: e.target.value})}
@@ -1234,7 +1240,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 </div>
 
                 <div className="form-group">
-                    <label>Client Last Name:</label>
+                    <label className="block font-semibold mb-1">Клиент: Фамилия</label>
                     <input
                         value={form.client_last_name}
                         onChange={e => setForm({...form, client_last_name: e.target.value})}
@@ -1242,7 +1248,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 </div>
 
                 <div className="form-group">
-                    <label>Phone:</label>
+                    <label className="block font-semibold mb-1">Телефон:</label>
                     <input
                         value={form.client_phone}
                         onChange={e => setForm({...form, client_phone: e.target.value})}
@@ -1250,7 +1256,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 </div>
 
                 <div className="form-group">
-                    <label>Comment:</label>
+                    <label className="block font-semibold mb-1">Комментарий:</label>
                     <textarea
                         value={form.comment}
                         onChange={e => setForm({...form, comment: e.target.value})}
@@ -1259,7 +1265,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
 
                 <div className="time-selection">
                     <div className="form-group">
-                        <label>Start Time:</label>
+                        <label className="block font-semibold mb-1">Начало:</label>
                         <input
                             type="time"
                             value={form.time_start}
@@ -1267,7 +1273,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                         />
                     </div>
                     <div className="form-group">
-                        <label>End Time:</label>
+                        <label className="block font-semibold mb-1">Окончание:</label>
                         <input
                             type="time"
                             value={form.time_end}
@@ -1277,7 +1283,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 </div>
 
                 <div className="services-section">
-                    <h4>Services:</h4>
+                    <h4>Услуги:</h4>
                     {form.services.map((service: ServiceItem, index: number) => (
                         <div key={index} className="service-item">
                             <select
@@ -1314,7 +1320,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                             />
 
                             <button
-                                className="delete-service"
+                                className="bg-red-500 text-white rounded-full /*w-6*/ h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
                                 onClick={() => {
                                     const newServices = form.services.filter((_, i) => i !== index);
                                     setForm({...form, services: newServices});
@@ -1325,16 +1331,28 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                         </div>
                     ))}
                     <button
+                        type="submit"
                         onClick={handleAddService}
                         disabled={!employeeServices?.length || isLoadingEmployeeServices}
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                     >
                         {isLoadingEmployeeServices ? 'Загрузка услуг...' : 'Добавить услугу'}
                     </button>
                 </div>
 
                 <div className="modal-actions">
-                    <button onClick={onClose}>Cancel</button>
-                    <button onClick={handleSubmit}>Save</button>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600"
+                    >Отмена
+                    </button>
+                    <button
+                        type="submit"
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                        onClick={handleSubmit}
+                    >Сохранить
+                    </button>
                 </div>
             </div>
 
@@ -1401,16 +1419,17 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 justify-content: flex-end;
                 gap: 8px;
               }
-
+              
               button {
                 padding: 8px 16px;
                 border: none;
                 border-radius: 4px;
                 cursor: pointer;
+                transition: all 0.2s;
               }
 
               button:last-child {
-                background: #007bff;
+                //background: #007bff;
                 color: white;
               }
 
@@ -1438,13 +1457,13 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 text-align: right;
               }
 
-              .delete-service {
+             /* .delete-service {
                 background: transparent;
                 border: none;
                 color: #ff4444;
                 cursor: pointer;
                 padding: 0 8px;
-              }
+              }*/
 
               .create-modal {
                 z-index: 1002;
