@@ -23,6 +23,7 @@ import {AxiosError} from "axios";
 import EmployeesList from "@/components/EmployeesList";
 import usePhoneInput from '@/hooks/usePhoneInput';
 import {useCreateEmployeeSchedule, useUpdateEmployeeSchedule, useEmployeeSchedules, useDeleteEmployeeSchedule} from "@/hooks/useEmployeeSchedules";
+import { UI_validatePhone, validateName } from '@/components/Validations';
 
 import {
     createEmployeeSchedule, EmployeeSchedule,
@@ -384,6 +385,13 @@ const Page: React.FC = ( ) => {
 // 2. Модифицируем обработчик отправки
     const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        // Добавить тут проверку
+        const errors = {
+            phone: UI_validatePhone(formData.phone),
+            name: validateName(formData.name),
+            //services: form.services.length === 0 ? 'Добавьте услуги' : ''
+        };
 
         if (isSubmitting) return; // Блокировка повторной отправки
         setIsSubmitting(true);
@@ -997,6 +1005,12 @@ const EmployeeModal = ({
     const [activeTab, setActiveTab] = useState("info");
     const [cyclePeriods, setCyclePeriods] = useState<any[]>([]);
 
+    const [validationErrors, setValidationErrors] = useState({
+        phone: '',
+        name: '',
+        services: ''
+    });
+
     const [localSelectedServices, setLocalSelectedServices] = useState<
         Array<EmployeeService & { name: string }>
     >(
@@ -1212,12 +1226,23 @@ const EmployeeModal = ({
                                 <input
                                     type="tel"
                                     name="phone"
+                                    //onChange={handleInputChange}
                                     value={formData.phone}
-                                    placeholder="+123456789012345"
-                                    onChange={handleInputChange}
-                                    className="w-full p-2 border rounded"
-                                    pattern="\+[0-9]{6,15}"
+                                    onChange={(e) => {
+                                        handleInputChange(e); // Стандартный обработчик
+                                        setValidationErrors(prev => ({
+                                            ...prev,
+                                            phone: UI_validatePhone(e.target.value)
+                                        }));
+                                    }}
+                                    placeholder="+1234567890"
+                                    className={`w-full p-2 border rounded ${
+                                        validationErrors.phone ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 />
+                                {validationErrors.phone && (
+                                    <div className="text-red-500 text-sm mt-1">{validationErrors.phone}</div>
+                                )}
                             </div>
                             <div className="mb-4">
                                 <label className="block font-semibold mb-1">Дата найма</label>
