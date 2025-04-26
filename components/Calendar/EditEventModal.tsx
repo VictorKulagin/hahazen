@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppointmentRequest } from '@/services/appointmentsApi';
 import { useServices, useEmployeeServices } from '@/hooks/useServices';
 
@@ -28,13 +28,6 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
 
             // Извлекаем данные клиента
             const client = event.client || {};
-
-            // Преобразуем услуги
-            /*const convertedServices = event.services?.map(s => ({
-                service_id: s.id,
-                qty: 1 // Замените на фактическое количество, если оно есть в данных
-            })) || [];*/
-
 
             const convertedServices = event.services?.map(s => ({
                 service_id: s.id,
@@ -80,31 +73,37 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
 
     return (
         <div className="modal-overlay">
-            <div className="modal">
-                <h3>Редактирование записи #{event.id}</h3>
+            <div className="modal relative">
+                <button
+                    onClick={onClose}
+                    className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+                >
+                    ✖
+                </button>
+                <h2 className="text-xl font-bold mb-4">Редактирование записи #{event.id}</h2>
                 <div className="form-group">
-                    <label>Имя клиента:</label>
+                    <label className="block font-semibold mb-1">Клиент: Имя</label>
                     <input
                         value={form.client_name || ''}
                         onChange={e => setForm({ ...form, client_name: e.target.value })}
                     />
                 </div>
                 <div className="form-group">
-                    <label>Фамилия клиента:</label>
+                    <label className="block font-semibold mb-1">Клиент: Фамилия</label>
                     <input
                         value={form.client_last_name || ''}
                         onChange={e => setForm({ ...form, client_last_name: e.target.value })}
                     />
                 </div>
                 <div className="form-group">
-                    <label>Телефон:</label>
+                    <label className="block font-semibold mb-1">Телефон:</label>
                     <input
                         value={form.client_phone || ''}
                         onChange={e => setForm({ ...form, client_phone: e.target.value })}
                     />
                 </div>
                 <div className="form-group">
-                    <label>Комментарий:</label>
+                    <label className="block font-semibold mb-1">Комментарий:</label>
                     <textarea
                         value={form.comment || ''}
                         onChange={e => setForm({ ...form, comment: e.target.value })}
@@ -112,7 +111,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                 </div>
                 <div className="time-selection">
                     <div className="form-group">
-                        <label>Начало:</label>
+                        <label className="block font-semibold mb-1">Начало:</label>
                         <input
                             type="time"
                             value={form.time_start}
@@ -120,7 +119,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                         />
                     </div>
                     <div className="form-group">
-                        <label>Окончание:</label>
+                        <label className="block font-semibold mb-1">Окончание:</label>
                         <input
                             type="time"
                             value={form.time_end}
@@ -158,7 +157,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                                 }}
                             />
                             <button
-                                className="delete-service"
+                                className="bg-red-500 text-white rounded-full /*w-6*/ h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
                                 onClick={() => {
                                     const newServices = form.services.filter((_, i) => i !== index);
                                     setForm({ ...form, services: newServices });
@@ -173,13 +172,22 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                             ...prev,
                             services: [...prev.services, { service_id: 0, qty: 1 }]
                         }))}
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                     >
                         Добавить услугу
                     </button>
                 </div>
                 <div className="modal-actions">
-                    <button onClick={onClose}>Отмена</button>
-                    <button onClick={handleSubmit}>Сохранить</button>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        className="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600"
+                    >Отмена</button>
+                    <button
+                        type="submit"
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                        onClick={handleSubmit}
+                    >Сохранить</button>
                 </div>
             </div>
 
@@ -207,7 +215,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   }
 
-  .form-group {
+ /* .form-group {
     margin-bottom: 1rem;
   }
 
@@ -224,7 +232,25 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
     border: 1px solid #e2e8f0;
     border-radius: 4px;
   }
+*/
 
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .form-group input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
   .modal-actions {
     margin-top: 1.5rem;
     display: flex;
@@ -232,8 +258,9 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
     justify-content: flex-end;
   }
 
+
   button {
-    padding: 0.5rem 1rem;
+    padding: 8px 16px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -241,11 +268,11 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
   }
 
   button[type="button"] {
-    background: #f0f0f0;
+    //background: #f0f0f0;
   }
 
   button[type="submit"] {
-    background: #3182ce;
+   // background: #3182ce;
     color: white;
   }
 
@@ -257,6 +284,13 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
 
   .edit-modal {
     z-index: 1001;
+  }
+
+
+  .time-selection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
   }
 `}</style>
 
