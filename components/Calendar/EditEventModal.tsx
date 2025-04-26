@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppointmentRequest } from '@/services/appointmentsApi';
 import { useServices, useEmployeeServices } from '@/hooks/useServices';
-
+import { validatePhone, validateName } from '@/components/Validations';
 
 interface EditEventModalProps {
     event: AppointmentRequest;
@@ -12,6 +12,12 @@ interface EditEventModalProps {
 
 export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEventModalProps) => {
     const [form, setForm] = useState<AppointmentRequest>({} as AppointmentRequest);
+    // Внутри компонента:
+    const [validationErrors, setValidationErrors] = useState({
+        phone: '',
+        name: '',
+        services: ''
+    });
     const { data: services } = useServices();
     const {
         data: employeeServices,
@@ -65,6 +71,14 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
         const end = new Date(`${form.date}T${form.time_end}`);
         const duration = (end.getTime() - start.getTime()) / 60000;
 
+
+        const errors = {
+            phone: validatePhone(form.client_phone),
+            name: validateName(form.client_name),
+            services: form.services.length === 0 ? 'Добавьте хотя бы одну услугу' : ''
+        };
+
+
         onSave({
             ...form,
             total_duration: duration
@@ -98,9 +112,24 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                 <div className="form-group">
                     <label className="block font-semibold mb-1">Телефон:</label>
                     <input
+                        type="tel"
                         value={form.client_phone || ''}
-                        onChange={e => setForm({ ...form, client_phone: e.target.value })}
+                        //onChange={e => setForm({ ...form, client_phone: e.target.value })}
+                        onChange={e => {
+                            setForm({...form, client_phone: e.target.value});
+                            setValidationErrors(prev => ({
+                                ...prev,
+                                phone: validatePhone(e.target.value)
+                            }));
+                        }}
+                        className={`w-full p-2 border rounded ${
+                            validationErrors.phone ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="+123456789012345"
                     />
+                    {validationErrors.phone && (
+                        <div className="text-red-500 text-sm mt-1">{validationErrors.phone}</div>
+                    )}
                 </div>
                 <div className="form-group">
                     <label className="block font-semibold mb-1">Комментарий:</label>

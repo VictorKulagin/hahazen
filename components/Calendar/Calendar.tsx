@@ -11,9 +11,7 @@ import { CurrentTimeIndicator } from "./CurrentTimeIndicator";
 import { CalendarEvent } from "./CalendarEvent";
 import { useEmployeeSchedules } from "@/hooks/useEmployeeSchedules";
 
-
 import { useQueryClient } from '@tanstack/react-query';
-
 
 import {useRouter} from "next/navigation";
 import {WeekNavigator} from "@/components/Calendar/WeekNavigator";
@@ -23,6 +21,8 @@ import {EmployeeSchedule} from "@/services/еmployeeScheduleApi"; // Импор�
 import {useEmployeeServices, useServices} from "@/hooks/useServices";
 import {Services} from "@/services/servicesApi";
 import {EditEventModal} from "@/components/Calendar/EditEventModal";
+import { validatePhone, validateName } from '@/components/Validations';
+
 
 
 
@@ -165,6 +165,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const [selectedEvent, setSelectedEvent] = useState<AppointmentRequest | null>(null);
+
 
 
 
@@ -1162,6 +1163,13 @@ interface ModalProps {
 }
 const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) => {
 
+    // Внутри компонента:
+    const [validationErrors, setValidationErrors] = useState({
+        phone: '',
+        name: '',
+        services: ''
+    });
+
     const [form, setForm] = useState<AppointmentRequest | Omit<AppointmentRequest, 'id'>>(
         editingEvent || {
             client_name: "",
@@ -1187,7 +1195,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
 
     const {
         data: employeeServices,
-        isLoading: isLoadingEmployeeServices // ✅ Уникальное имя
+        isLoading: isLoadingEmployeeServices
     } = useEmployeeServices(employeeId || undefined);
     const handleAddService = () => {
         setForm(prev => ({
@@ -1207,6 +1215,16 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
         const start = new Date(`${data.date}T${form.time_start}`);
         const end = new Date(`${data.date}T${form.time_end}`);
         const duration = (end.getTime() - start.getTime()) / 60000;
+
+        const errors = {
+            phone: validatePhone(form.client_phone),
+            name: validateName(form.client_name),
+            services: form.services.length === 0 ? 'Добавьте хотя бы одну услугу' : ''
+        };
+
+        setValidationErrors(errors);
+
+        if (Object.values(errors).some(error => error)) return;
 
         onSave({
             ...form,
@@ -1250,9 +1268,24 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 <div className="form-group">
                     <label className="block font-semibold mb-1">Телефон:</label>
                     <input
+                        type="tel"
                         value={form.client_phone}
-                        onChange={e => setForm({...form, client_phone: e.target.value})}
+                        //onChange={e => setForm({...form, client_phone: e.target.value})}
+                        onChange={e => {
+                            setForm({...form, client_phone: e.target.value});
+                            setValidationErrors(prev => ({
+                                ...prev,
+                                phone: validatePhone(e.target.value)
+                            }));
+                        }}
+                        className={`w-full p-2 border rounded ${
+                            validationErrors.phone ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="+123456789012345"
                     />
+                    {validationErrors.phone && (
+                        <div className="text-red-500 text-sm mt-1">{validationErrors.phone}</div>
+                    )}
                 </div>
 
                 <div className="form-group">
