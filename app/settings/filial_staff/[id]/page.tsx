@@ -389,7 +389,7 @@ const Page: React.FC = ( ) => {
         // Добавить тут проверку
         const errors = {
             phone: UI_validatePhone(formData.phone),
-            name: validateName(formData.name),
+            name: validateName(formData.phone),
             //services: form.services.length === 0 ? 'Добавьте услуги' : ''
         };
 
@@ -795,6 +795,7 @@ const Page: React.FC = ( ) => {
                     }}
                     onSubmit={handleAddSubmit}
                     formData={formData}
+                    setFormData={setFormData}
                     handleInputChange={handleInputChange}
                     title="Добавить сотрудника"
                     weeklyPeriods={weeklyPeriods}
@@ -822,6 +823,7 @@ const Page: React.FC = ( ) => {
                         onClose={() => setIsEditModalOpen(false)}
                         onSubmit={handleEditSubmit}
                         formData={formData}
+                        setFormData={setFormData}
                         handleInputChange={handleInputChange}
                         title="Редактировать сотрудника"
                         weeklyPeriods={weeklyPeriods}
@@ -926,7 +928,7 @@ interface FormData {
     email: string;
     phone: string;
     hire_date: string;
-    schedule_type: 'weekly' /*| 'cycle'*/; // Убрали 'cycle'
+    schedule_type: 'weekly'; /*| 'cycle'*/// Убрали 'cycle'
     start_date: string;
     end_date: string;
 }
@@ -961,7 +963,8 @@ type EmployeeModalProps = {
     isOpen: boolean;
     onClose: () => void;
     onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-    formData: any;
+    formData: FormData;
+    setFormData: React.Dispatch<React.SetStateAction<FormData>>;
     handleInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
     title: string;
     weeklyPeriods: { day: string; start: string; end: string }[];
@@ -990,6 +993,7 @@ const EmployeeModal = ({
                            onClose,
                            onSubmit,
                            formData,
+                           setFormData,
                            handleInputChange,
                            title,
                            mode, // Получаем mode из пропсов
@@ -1226,16 +1230,40 @@ const EmployeeModal = ({
                                 <input
                                     type="tel"
                                     name="phone"
-                                    //onChange={handleInputChange}
-                                    value={formData.phone}
+                                    value={formData.phone} // Исправлено с form на formData
                                     onChange={(e) => {
-                                        handleInputChange(e); // Стандартный обработчик
+                                        const input = e.target;
+                                        const cursorPosition = input.selectionStart;
+                                        let value = input.value;
+
+                                        // Автоматическое добавление '+'
+                                        if (!value.startsWith('+')) {
+                                            value = '+' + value.replace(/\D/g, '');
+                                        } else {
+                                            value = value.replace(/\D/g, '').replace(/^\+/, '+');
+                                        }
+
+                                        // Ограничение длины
+                                        value = value.slice(0, 16);
+
+                                        // Обновление состояния
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            phone: value
+                                        }));
+
+                                        // Валидация
                                         setValidationErrors(prev => ({
                                             ...prev,
-                                            phone: UI_validatePhone(e.target.value)
+                                            phone: value ? UI_validatePhone(value) : ''
                                         }));
+
+                                        // Восстановление позиции курсора
+                                        setTimeout(() => {
+                                            input.setSelectionRange(cursorPosition, cursorPosition);
+                                        }, 0);
                                     }}
-                                    placeholder="+1234567890"
+                                    placeholder="+71234567890 (необязательно)"
                                     className={`w-full p-2 border rounded ${
                                         validationErrors.phone ? 'border-red-500' : 'border-gray-300'
                                     }`}

@@ -1,12 +1,22 @@
 //validations.ts
+
+
+/*export const validatePhone = (phone: string): string => {
+    if (phone === '+') return 'Введите номер';
+    if (phone.length < 7) return 'Минимум 6 цифр';
+    if (!/^\+[0-9]+$/.test(phone)) return 'Только цифры после +';
+    return '';
+};*/
+
 export const validatePhone = (phone: string): string => {
-    return /^\+[0-9]{6,15}$/.test(phone)
-        ? ''
-        : 'Неверный формат (+ и 6-15 цифр)';
+    if (phone === '+') return 'Введите номер после +';
+    if (phone.length < 7) return 'Минимум 6 цифр';
+    if (!/^\+[0-9]{6,15}$/.test(phone)) return 'Допустимы только цифры после +';
+    return '';
 };
 
-export const UI_validatePhone = (phone: string) => {
-    if (!phone) return ''; // Не показываем ошибку если поле пустое
+export const UI_validatePhone = (phone: string): string => {
+    if (!phone) return ''; // Необязательное поле
     return /^\+[0-9]{6,15}$/.test(phone)
         ? ''
         : 'Неверный формат (+ и 6-15 цифр)';

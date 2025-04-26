@@ -1270,18 +1270,24 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                     <input
                         type="tel"
                         value={form.client_phone}
-                        //onChange={e => setForm({...form, client_phone: e.target.value})}
-                        onChange={e => {
-                            setForm({...form, client_phone: e.target.value});
+                        onChange={(e) => {
+                            const inputValue = e.target.value;
+                            // Форматирование
+                            let filteredValue = inputValue
+                                .replace(/[^\d+]/g, '')
+                                .replace(/^\+?/, '+')
+                                .slice(0, 16);
+
+                            setForm({ ...form, client_phone: filteredValue });
                             setValidationErrors(prev => ({
                                 ...prev,
-                                phone: validatePhone(e.target.value)
+                                phone: validatePhone(filteredValue)
                             }));
                         }}
                         className={`w-full p-2 border rounded ${
                             validationErrors.phone ? 'border-red-500' : 'border-gray-300'
                         }`}
-                        placeholder="+123456789012345"
+                        placeholder="+71234567890"
                     />
                     {validationErrors.phone && (
                         <div className="text-red-500 text-sm mt-1">{validationErrors.phone}</div>

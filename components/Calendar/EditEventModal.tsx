@@ -115,11 +115,18 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                         type="tel"
                         value={form.client_phone || ''}
                         //onChange={e => setForm({ ...form, client_phone: e.target.value })}
-                        onChange={e => {
-                            setForm({...form, client_phone: e.target.value});
+                        onChange={(e) => {
+                            const inputValue = e.target.value;
+                            // Форматирование
+                            let filteredValue = inputValue
+                                .replace(/[^\d+]/g, '')
+                                .replace(/^\+?/, '+')
+                                .slice(0, 16);
+
+                            setForm({ ...form, client_phone: filteredValue });
                             setValidationErrors(prev => ({
                                 ...prev,
-                                phone: validatePhone(e.target.value)
+                                phone: validatePhone(filteredValue)
                             }));
                         }}
                         className={`w-full p-2 border rounded ${
