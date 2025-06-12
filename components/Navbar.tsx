@@ -73,22 +73,33 @@ const Navbar = () => {
             {/* Мобильное меню */}
             {menuOpen && (
                 <div className="flex flex-col items-start mt-3 md:hidden space-y-2">
-                    <Link href="/about" className="hover:bg-gray-100 px-4 py-2 rounded-md transition-all duration-300 w-full">
+                    <Link
+                        href="/about"
+                        className="hover:bg-gray-100 px-4 py-2 rounded-md transition-all duration-300 w-full"
+                    >
                         О нас
                     </Link>
-                    <Link href="/features" className="hover:bg-gray-100 px-4 py-2 rounded-md transition-all duration-300 w-full">
+                    <Link
+                        href="/features"
+                        className="hover:bg-gray-100 px-4 py-2 rounded-md transition-all duration-300 w-full"
+                    >
                         Преимущества
                     </Link>
-                    <Link href="/contact" className="hover:bg-gray-100 px-4 py-2 rounded-md transition-all duration-300 w-full">
+                    <Link
+                        href="/contact"
+                        className="hover:bg-gray-100 px-4 py-2 rounded-md transition-all duration-300 w-full"
+                    >
                         Контакты
                     </Link>
-                    <button
-                        type="button"
-                        className="px-4 py-2 bg-white text-gray-800 rounded-lg hover:bg-gray-200 transition-all duration-300"
-                        onClick={() => setMenuOpen(false)}
-                    >
-                        Login
-                    </button>
+                    <Link href="/signin" className="w-full">
+                        <button
+                            type="button"
+                            onClick={() => setMenuOpen(false)}
+                            className="w-full px-4 py-2 bg-gray-50 text-gray-900 rounded-md border hover:bg-gray-100 shadow-sm transition-all duration-300"
+                        >
+                            Логин
+                        </button>
+                    </Link>
                 </div>
             )}
         </header>
