@@ -79,11 +79,13 @@ const Page: React.FC = ( ) => {
 
     const router = useRouter();
 
-    const {
+    /*const {
         mutateAsync: createSchedule,
         isPending: isCreating // Используем isPending вместо isLoading
     } = useCreateEmployeeSchedule();
-    const updateSchedule = useUpdateEmployeeSchedule();
+    const updateSchedule = useUpdateEmployeeSchedule();*/
+    const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
+    const { mutateAsync: updateSchedule } = useUpdateEmployeeSchedule();
 
     const { mutateAsync: deleteSchedule } = useDeleteEmployeeSchedule();
 
@@ -484,11 +486,18 @@ const Page: React.FC = ( ) => {
             const existingSchedules = schedules || [];
 
             // 4. Использование React Query мутаций
-            if (existingSchedules.length > 0) {
+            /*if (existingSchedules.length > 0) {
                 scheduleData.id = existingSchedules[0].id;
                 await updateSchedule.mutateAsync(scheduleData);
             } else {
                 await createSchedule.mutateAsync(scheduleData);
+            }*/
+
+            if (existingSchedules.length > 0) {
+                scheduleData.id = existingSchedules[0].id;
+                await updateSchedule(scheduleData); // Убрали .mutateAsync
+            } else {
+                await createSchedule(scheduleData); // Убрали .mutateAsync
             }
 
             // 5. Обновление состояния
@@ -621,9 +630,14 @@ const Page: React.FC = ( ) => {
             )}
 
             {/* Уведомление о загрузке */}
-            {isCreating && (
+            {/*{isCreating && (
                 <div className="fixed top-0 left-0 right-0 bg-blue-500 text-white p-2 text-center z-50">
                     Создание расписания...
+                </div>
+            )}*/}
+            {isSubmitting && (
+                <div className="fixed top-0 left-0 right-0 bg-green-500 text-white p-2 text-center z-50">
+                    Сохранение...
                 </div>
             )}
 
