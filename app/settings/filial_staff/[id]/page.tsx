@@ -94,6 +94,7 @@ const Page: React.FC = ( ) => {
 
     const { data: allServices, isLoading: isLoadingAllServices } = useServices();
 
+
     useEffect(() => {
         console.log("Список услуг из API:", {
             data: allServices,
@@ -1047,6 +1048,10 @@ const EmployeeModal = ({
     const removeWeeklyPeriod = (index: number) => {
         setWeeklyPeriods(prev => prev.filter((_, i) => i !== index));
     };*/
+
+    const removeWeeklyPeriod = (index: number) => {
+        setWeeklyPeriods(prev => prev.filter((_, i) => i !== index));
+    };
 
     // При изменении услуг вызываем колбэк
     useEffect(() => {
