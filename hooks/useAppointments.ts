@@ -84,7 +84,7 @@ const groupAppointments = (appointments: AppointmentResponse[]): GroupedAppointm
 };
 
 // Обновляем хук useAppointments
-export const useAppointments = (
+/*export const useAppointments = (
     branchId?: number,
     employeeId?: number,
     duration: DurationOption = 'week'
@@ -123,6 +123,59 @@ export const useAppointments = (
         select: groupAppointments,
         staleTime: 600000
     });
+};*/
+
+
+export const useAppointments = (
+    branchId?: number,
+    employeeId?: number,
+    duration: DurationOption = '1-day',
+    currentStartDate: Date = new Date()  // Добавляем параметр currentStartDate
+) => {
+    // Функция для расчета диапазона дат на основе currentStartDate
+    const getDateRange = (): { start: string; end: string } => {
+        const startDate = new Date(currentStartDate);
+        startDate.setHours(0, 0, 0, 0); // Начало дня
+
+        const endDate = new Date(startDate);
+        const daysToAdd = durationToDays(duration) - 1; // Количество дней, которые нужно добавить к начальной дате
+
+        endDate.setDate(startDate.getDate() + daysToAdd);
+        endDate.setHours(23, 59, 59, 999); // Конец дня
+
+        return {
+            start: formatDate(startDate),
+            end: formatDate(endDate)
+        };
+    };
+
+    // Получаем start и end на основе currentStartDate и duration
+    const { start, end } = getDateRange();
+
+    return useQuery<AppointmentResponse[], Error, GroupedAppointments>({
+        queryKey: ['appointments', branchId, employeeId, start, end],
+        queryFn: () => {
+            if (!branchId || !employeeId) return [];
+            return fetchAppointments(branchId, employeeId, start, end);
+        },
+        enabled: !!branchId && !!employeeId,
+        select: groupAppointments,
+        staleTime: 600000
+    });
+};
+
+
+// Выносим функцию преобразования длительности в дни
+export const durationToDays = (duration: DurationOption): number => {
+    return {
+        '1-day': 1,
+        '2-days': 2,
+        '3-days': 3,
+        '4-days': 4,
+        '5-days': 5,
+        '6-days': 6,
+        'week': 7
+    }[duration];
 };
 
 

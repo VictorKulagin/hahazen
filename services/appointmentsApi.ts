@@ -20,7 +20,7 @@ export interface AppointmentRequest {
     }>;
     comment?: string;
 }
-
+debugger;
 export const fetchAppointments = (
     branchId: number,
     employeeId: number,

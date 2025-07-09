@@ -116,6 +116,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
 
     const {mutate: deleteAppointment} = useDeleteAppointment(/*id*/);
+    const [currentStartDate, setCurrentStartDate] = useState(new Date());
 
     // 3. Запрос данных
 // Внутри компонента Calendar:
@@ -130,7 +131,8 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     } = useAppointments(
         branchId || undefined,
         employeeId || undefined,
-        selectedDuration // Добавляем параметр длительности
+        selectedDuration, // Добавляем параметр длительности
+        currentStartDate // Передаем актуальную дату
     );
 
     console.log('Данные из API:', groupedAppointments);
@@ -158,7 +160,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
     const [modalData, setModalData] = useState<{ date: string; time: string } | null>(null);
 
-    const [currentStartDate, setCurrentStartDate] = useState(new Date());
+
 
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 
@@ -290,7 +292,9 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     }, [refetch, getEmployeeIdFromHash]);
 
 
-
+    /*useEffect(() => {
+        console.log("currentStartDate updated:", currentStartDate.toISOString().split('T')[0]);
+    }, [currentStartDate]);*/
 
 
     useEffect(() => {
@@ -367,12 +371,22 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     };
 
 
-    const handleWeekChange = (direction: 'prev' | 'next') => {
+    /*const handleWeekChange = (direction: 'prev' | 'next') => {
         setCurrentStartDate(prev => {
             const newDate = new Date(prev);
             const days = durationToDays(selectedDuration);
             newDate.setDate(prev.getDate() + (direction === 'prev' ? -1 : days));
             refetch(); // Добавляем обновление данных
+            return newDate;
+        });
+    };*/
+
+    const handleWeekChange = (direction: 'prev' | 'next') => {
+        setCurrentStartDate(prev => {
+            const newDate = new Date(prev);
+            const step = durationToDays(selectedDuration); // Используем длительность как шаг
+            const offset = direction === 'prev' ? -step : step;
+            newDate.setDate(prev.getDate() + offset);
             return newDate;
         });
     };
