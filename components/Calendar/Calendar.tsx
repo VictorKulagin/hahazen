@@ -23,8 +23,9 @@ import {Services} from "@/services/servicesApi";
 import {EditEventModal} from "@/components/Calendar/EditEventModal";
 import { validatePhone, validateName } from '@/components/Validations';
 
+import Spinner from "@/components/Spinner";
 
-
+import { useIsFetching } from '@tanstack/react-query';
 
 
 
@@ -121,6 +122,8 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     // 3. Запрос данных
 // Внутри компонента Calendar:
     const [selectedDuration, setSelectedDuration] = useState<DurationOption>('1-day');
+
+
 // Обновите вызов хука useAppointments
     const {
         data: groupedAppointments,
@@ -158,6 +161,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         }
     }, [groupedAppointments, isLoadingAppointments]); // Используем переименованную переменную
 
+
     const [modalData, setModalData] = useState<{ date: string; time: string } | null>(null);
 
 
@@ -167,6 +171,8 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const [selectedEvent, setSelectedEvent] = useState<AppointmentRequest | null>(null);
+
+    const isFetchingAppointments = useIsFetching(['appointments']);
 
 
 
@@ -489,6 +495,54 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         }
     };
 
+
+    // ===== ДОБАВЛЯЕМ ЭТОТ БЛОК =====
+// Обработка состояния загрузки
+    if (isLoadingAppointments) {
+        return (
+            <div className="fullscreen-spinner">
+                <Spinner />
+                <style jsx>{`
+        .fullscreen-spinner {
+          height: 100vh;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      `}</style>
+            </div>
+        );
+    }
+
+// Обработка ошибок
+    if (isAppointmentsError) {
+        return (
+            <div className="error-message">
+                Ошибка загрузки данных: {error?.message}
+                <button onClick={() => refetch()}>Повторить</button>
+                <style jsx>{`
+        .error-message {
+          padding: 40px;
+          text-align: center;
+          font-size: 1.2rem;
+          color: #dc3545;
+        }
+        button {
+          margin-top: 20px;
+          padding: 10px 20px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        }
+      `}</style>
+            </div>
+        );
+    }
+// ===== КОНЕЦ ДОБАВЛЕННОГО БЛОКА =====
+
+
     return (
         <div className="calendar-container" ref={calendarRef}>
 
@@ -501,8 +555,14 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                     </button>
                 </div>
             )}
-
             {/* === Конец блока уведомления === */}
+
+            {/* В рендере заменяем индикатор */}
+            {isFetchingAppointments > 0 && (
+                <div className="loading-overlay">
+                    <Spinner />
+                </div>
+            )}
 
 
             {/* Навигация */}
@@ -626,6 +686,25 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
             )}
 
             <style jsx>{`
+              .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255, 255, 255, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                opacity: 0;
+                animation: fadeIn 0.3s ease forwards;
+              }
+
+              @keyframes fadeIn {
+                to { opacity: 1; }
+              }
+              
               .day-content {
                 position: relative;
                 height: 1440px; /* 24 часа */
