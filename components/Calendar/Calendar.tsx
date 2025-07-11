@@ -1241,6 +1241,66 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
               }
 
 
+              /* Основные изменения для мобильной версии */
+              @media (max-width: 480px) {
+                .calendar-container {
+                  padding: 8px 4px; /* Уменьшаем боковые отступы */
+                }
+
+                .calendar-grid {
+                  grid-template-columns: 36px repeat(auto-fit, minmax(90px, 1fr)); /* Более узкая сетка */
+                  gap: 2px; /* Уменьшаем промежутки */
+                }
+
+                .day-column {
+                  min-width: 90px; /* Узкие колонки дней */
+                }
+
+                .day-header {
+                  padding: 6px 2px; /* Меньше отступы в заголовке */
+                  font-size: 0.9em; /* Меньший размер шрифта */
+                }
+
+                .hour-marker {
+                  font-size: 1em; /* Увеличиваем цифры часов */
+                  font-weight: 500; /* Делаем более жирными */
+                  left: 2px; /* Сдвигаем ближе к краю */
+                }
+
+                .half-hour-line {
+                  display: none; /* Скрываем на очень маленьких экранах */
+                }
+
+                .time-slot {
+                  height: 50px; /* Уменьшаем высоту слотов */
+                }
+              }
+
+              /* Дополнительные оптимизации для самых маленьких экранов */
+              @media (max-width: 360px) {
+                .calendar-container {
+                  padding: 8px 2px; /* Минимальные отступы */
+                }
+
+                .calendar-grid {
+                  grid-template-columns: 30px repeat(auto-fit, minmax(80px, 1fr));
+                }
+
+                .day-column {
+                  min-width: 80px;
+                }
+
+                .hour-marker {
+                  font-size: 0.9em; /* Оптимальный размер для 360px */
+                }
+              }
+
+              /* Улучшения для текущей временной линии */
+              .current-time {
+                height: 3px; /* Делаем более заметной */
+              }
+
+
             `}</style>
         </div>
     );

@@ -351,17 +351,17 @@ const Page: React.FC = () => {
 
                 {/* Заголовок */}
                 <header className="mb-6">
-                    <h1 className="text-2xl font-bold mb-2">Настройки</h1>
+                    <h1 className="text-2xl font-bold mb-2">Календарь событий</h1>
                 </header>
 
                 {/* Контент: две колонки */}
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                     {/* Первая колонка */}
                     <section className="bg-white text-black p-4 rounded shadow">
-                        <h2 className="text-lg font-semibold mb-2">Первая колонка</h2>
-                        <p>Контент первой колонки. Здесь можно разместить информацию о пользователях или другие параметры.</p>
+                        <h2 className="text-lg font-semibold mb-2">Календарь событий</h2>
+                        <p>Просмотр и управление записями. Календарь отображает занятость сотрудников
+                            цветовой индикацией. Для новой записи выберите свободный слот.</p>
                         <div className="container mx-auto p-4">
-                            <h1 className="text-3xl font-bold mb-4">Календарь событий</h1>
                             {id !== null && employeeId !== undefined && (
                                 <Calendar
                                     branchId={id}
