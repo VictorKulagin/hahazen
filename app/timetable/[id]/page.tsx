@@ -198,7 +198,7 @@ const Page: React.FC = () => {
                     Онлайн-запись
                 </Link>
             ),
-            icon: <GlobeAltIcon className="h-8 w-8 text-gray-200" />,
+            icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
         },
         {
             label: (
@@ -239,7 +239,7 @@ const Page: React.FC = () => {
     ];
 
     return (
-        <div className="relative h-screen md:grid md:grid-cols-[15%_85%]">
+        <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div

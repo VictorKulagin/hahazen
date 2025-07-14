@@ -204,7 +204,7 @@ const Page: React.FC = () => {
                     Онлайн-запись
                 </Link>
             ),
-            icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
+            icon: <GlobeAltIcon className="h-8 w-8 text-gray-200" />,
         },
         {
             label: (

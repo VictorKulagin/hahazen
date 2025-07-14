@@ -181,7 +181,7 @@ const Page: React.FC = () => {
         },
         {
             label: "Клиенты", // Новый пункт "Клиенты"
-            icon: <UsersIcon className="h-8 w-8 text-gray-400" />,
+            icon: <UsersIcon className="h-8 w-8 text-gray-200" />,
             content: (
                 <div className="ml-10 mt-2">
                     {clients.map((client) => (  // Список клиентов, аналогично сотрудникам
