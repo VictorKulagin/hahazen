@@ -40,7 +40,7 @@ export default function Page() {
 
     console.log(companyId);
 
-    const handleRegister = async (e) => {
+    const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setIsLoading(true);
 
