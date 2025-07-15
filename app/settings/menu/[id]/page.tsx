@@ -85,8 +85,12 @@ const Page: React.FC = () => {
                 const data = await branchesList(companyId);
                 console.log("response.data setBranchesData", data);
                 setBranchesData(data);
-            } catch (err) {
-                setError(`Ошибка: ${err?.message || "Неизвестная ошибка"}`);
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    setError(`Ошибка: ${err.message}`);
+                } else {
+                    setError("Неизвестная ошибка");
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -110,9 +114,13 @@ const Page: React.FC = () => {
                 const data = await companiesList();
                 console.log("response.data companiesList", data);
                 setCompaniesData(data); // Сохраняем данные пользователя
-            } catch (err) {
-                setError(`Ошибка: ${err?.data?.message || "Неизвестная ошибка"}`);
-            } finally {
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    setError(`Ошибка: ${err.message}`);
+                } else {
+                    setError("Неизвестная ошибка");
+                }
+            }finally {
                 setIsLoading(false);
             }
         };
