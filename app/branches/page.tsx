@@ -27,9 +27,11 @@ export default function Page() {
     const [companyId, setCompanyId] = useState<number | null>(null);
 
     useEffect(() => {
-        const companyIdParam = searchParams.get("companyId"); // Получаем параметр companyId из URL
-        if (companyIdParam) {
-            setCompanyId(Number(companyIdParam));
+        if (typeof window !== 'undefined') {
+            const companyIdParam = searchParams.get("companyId"); // Получаем параметр companyId из URL
+            if (companyIdParam) {
+                setCompanyId(Number(companyIdParam));
+            }
         }
     }, [searchParams]);
 
