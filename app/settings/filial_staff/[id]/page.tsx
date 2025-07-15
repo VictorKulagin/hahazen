@@ -420,6 +420,12 @@ const Page: React.FC = ( ) => {
                 online_booking: 1,
                 email: formData.email || null,
                 phone: formData.phone || null,
+                // Добавляем обязательные поля со значениями null
+                description: null,
+                gender: null,
+                last_name: null,
+                patronymic: null,
+                photo: null
             });
 
             // Создание расписания
@@ -468,7 +474,8 @@ const Page: React.FC = ( ) => {
             const scheduleData: EmployeeSchedule = {
                 id: 0, // Временное значение для TypeScript
                 employee_id: editingEmployee.id,
-                schedule_type: formData.schedule_type,
+                //schedule_type: formData.schedule_type,
+                schedule_type: "weekly",
                 start_date: formData.start_date,
                 end_date: formData.end_date,
                 periods: weeklyPeriods.map(p => [p.day, p.start, p.end]),
@@ -510,8 +517,9 @@ const Page: React.FC = ( ) => {
             setIsEditModalOpen(false);
 
         } catch (error) {
-            console.error('Ошибка:', error);
-            alert(error.response?.data?.message || 'Ошибка сохранения');
+            const err = error as AxiosError<any>;
+            console.error('Ошибка:', err);
+            alert(err.response?.data?.message || 'Ошибка сохранения');
         } finally {
             setIsSubmitting(false); // Добавляем сброс состояния
         }
@@ -810,7 +818,7 @@ const Page: React.FC = ( ) => {
                     }}
                     onSubmit={handleAddSubmit}
                     formData={formData}
-                    setFormData={setFormData}
+                    setFormData={setFormData} // Теперь типы совпадают
                     handleInputChange={handleInputChange}
                     title="Добавить сотрудника"
                     weeklyPeriods={weeklyPeriods}
