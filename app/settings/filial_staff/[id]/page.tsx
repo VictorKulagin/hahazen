@@ -1,3 +1,4 @@
+//staff/[id]/page.tsx
 "use client";
 import React, {useEffect, useState, useRef} from "react";
 import Image from "next/image";
@@ -276,7 +277,7 @@ const Page: React.FC = ( ) => {
         email: "",
         phone: "",
         hire_date: "",
-        schedule_type: "weekly", // Добавляем поле по умолчанию
+        schedule_type: "weekly" as "weekly", // Добавляем поле по умолчанию
         start_date: "",
         end_date: "",
     });
@@ -432,7 +433,7 @@ const Page: React.FC = ( ) => {
             if (formData.schedule_type) {
                 await createSchedule({ // Используем createSchedule
                     employee_id: newEmployee.id,
-                    schedule_type: formData.schedule_type as 'weekly' | 'cycle', // Явное приведение типа
+                    schedule_type: formData.schedule_type as 'weekly' /*| 'cycle'*/, // Явное приведение типа
                     start_date: formData.start_date,
                     end_date: formData.end_date,
                     night_shift: 0,
