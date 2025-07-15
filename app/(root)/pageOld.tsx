@@ -1,8 +1,6 @@
 import Image from "next/image";
 import SearchForm from "@/components/SearchForm";
 import StartupCard from "@/components/StartupCard";
-import {client} from "@/sanity/lib/client";
-import {STARTUPS_QUERY} from "@/sanity/lib/queries";
 
 
 export default async function Home( { searchParams }: { searchParams: Promise<{ query?: string }> } ) {
