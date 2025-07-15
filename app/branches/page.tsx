@@ -64,11 +64,12 @@ export default function Page() {
             setError("");
             setTimeout(() => router.push("/cabinet"), 2000);
         } catch (error) {
-            // Обработка ошибок
-            setError(
-                error.response?.data?.message ||
-                "Ошибка при регистрации. Убедитесь, что данные корректны."
-            );
+            if (typeof error === "object" && error !== null && "response" in error) {
+                // @ts-ignore
+                setError(error.response?.data?.message || "Ошибка при регистрации.");
+            } else {
+                setError("Неизвестная ошибка.");
+            }
             setSuccess("");
         } finally {
             // Сброс состояния загрузки
