@@ -13,15 +13,14 @@ export const useEmployees = (branchId?: number) => {
 
     const query = useQuery<Employee[], Error>({
         queryKey: ["employees", branchId],
-
         queryFn: () => fetchEmployees(branchId!),
         staleTime: 1000 * 60 * 5,
         enabled: !!branchId,
         retry: 2,
         retryDelay: 1000,
         // Используем актуальные названия опций
-        onSuccess: (data) => console.log('Query data set:', data),
-        onError: (err) => console.error('Query error:', err)
+        /*onSuccess: (data) => console.log('Query data set:', data),
+        onError: (err) => console.error('Query error:', err)*/
     });
 
     debugger;
@@ -62,7 +61,12 @@ export const useEmployees = (branchId?: number) => {
         };
 
         const handleSSEError = (error: Event) => {
-            console.error("SSE Connection Error:", error);
+            console.error("SSE Connection Error:", {
+                type: error.type,
+                target: error.target,
+                currentTarget: error.currentTarget,
+                eventPhase: error.eventPhase,
+            });
             setIsConnected(false);
             scheduleReconnect();
         };
@@ -71,15 +75,18 @@ export const useEmployees = (branchId?: number) => {
             setIsConnected(true);
             console.log('SSE connection established');
         };
-
+        // @ts-ignore
         newEventSource.addEventListener("message", handleSSEMessage);
+        // @ts-ignore
         newEventSource.addEventListener("error", handleSSEError);
         newEventSource.addEventListener("open", handleSSEOpen);
 
         eventSourceRef.current = newEventSource;
 
         return () => {
+            // @ts-ignore
             newEventSource.removeEventListener("message", handleSSEMessage);
+            // @ts-ignore
             newEventSource.removeEventListener("error", handleSSEError);
             newEventSource.removeEventListener("open", handleSSEOpen);
             newEventSource.close();
@@ -88,10 +95,19 @@ export const useEmployees = (branchId?: number) => {
         };
     }, [branchId, queryClient]);
 
-    const scheduleReconnect = () => {
+    /*const scheduleReconnect = () => {
         if (!branchId) return;
         setTimeout(() => {
             queryClient.invalidateQueries(["employees", branchId]);
+        }, 5000);
+    };*/
+    const scheduleReconnect = () => {
+        if (!branchId) return;
+
+        setTimeout(() => {
+            queryClient.invalidateQueries({
+                queryKey: ["employees", branchId],
+            });
         }, 5000);
     };
 
