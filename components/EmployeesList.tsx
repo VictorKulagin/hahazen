@@ -23,9 +23,12 @@ export default function EmployeesList({ branchId }: EmployeesListProps) {
                 <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
                 {isConnected ? 'Онлайн-обновления' : 'Обновления приостановлены'}
             </div>
-            {console.log(employees + " employees " + finalBranchId)}
-
+            {(() => {
+                console.log(employees + " employees " + finalBranchId);
+                return null; // так как нужно вернуть JSX, но у нас тут только лог
+            })()}
             {// @ts-ignore
+
                 employees.map((employee) => (
                 <Link
                     key={employee.id}
