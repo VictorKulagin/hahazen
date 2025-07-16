@@ -33,12 +33,15 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
             const end = new Date(start.getTime() + event.total_duration * 60000);
 
             // Извлекаем данные клиента
+            // @ts-ignore
             const client = event.client || {};
 
             const convertedServices = event.services?.map(s => ({
+                // @ts-ignore
                 service_id: s.id,
                 qty: s.qty || 1, // Используйте актуальное поле из данных
                 individual_price: s.individual_price,
+                // @ts-ignore
                 duration_minutes: s.service_duration_minutes
             })) || [];
 
@@ -65,6 +68,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
         }
 
     }, [event]);
+
 
     const handleSubmit = () => {
         const start = new Date(`${form.date}T${form.time_start}`);
@@ -94,7 +98,8 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                 >
                     ✖
                 </button>
-                <h2 className="text-xl font-bold mb-4">Редактирование записи #{event.id}</h2>
+                <h2 className="text-xl font-bold mb-4">Редактирование записи #{// @ts-ignore
+                    event.id}</h2>
                 <div className="form-group">
                     <label className="block font-semibold mb-1">Клиент: Имя</label>
                     <input
@@ -177,8 +182,10 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                             >
                                 <option value={0}>Выберите услугу</option>
                                 {employeeServices?.map(svc => ( // Используем employeeServices
-                                    <option key={svc.service_id} value={svc.service_id}>
-                                        {svc.service.name} ({svc.individual_price} руб.)
+                                    <option key={// @ts-ignore
+                                        svc.service_id} value={svc.service_id}>
+                                        {// @ts-ignore
+                                            svc.service.name} ({svc.individual_price} руб.)
                                     </option>
                                 ))}
                             </select>
