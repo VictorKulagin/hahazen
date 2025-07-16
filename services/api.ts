@@ -36,9 +36,11 @@ export const createSSEConnection = (path: string): EventSourcePolyfill => {
         },
         withCredentials: false,
         heartbeatTimeout: 120000, // 2 минуты
+        //@ts-ignore
         connectionTimeout: 20000,
         retryInterval: retryStrategy,
         withEventSource: {
+            //@ts-ignore
             errorHandler: (error) => {
                 console.log('[SSE] Protocol Error:', error);
             }
