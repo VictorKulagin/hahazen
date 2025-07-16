@@ -87,10 +87,12 @@ export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) =
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                         <div className="flex flex-col">
                             <div className="font-semibold text-gray-900 text-base">
-                                {event.client.name} {event.client_last_name}
+                                {// @ts-ignore
+                                    event.client.name} {event.client_last_name}
                             </div>
                             <div className="text-xs text-gray-500 flex items-center gap-1">
-                                📞 {event.client.phone}
+                                📞 {// @ts-ignore
+                                event.client.phone}
                             </div>
                         </div>
                         <div className="text-sm text-blue-600 whitespace-nowrap">
@@ -99,8 +101,10 @@ export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) =
                             {event.services?.length > 0 && (
                                 <div className="border-t border-gray-100 pt-1 space-y-1">
                                     {event.services.map(service => (
-                                        <div key={service.id} className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-900">{service.name}</span>
+                                        <div key={// @ts-ignore
+                                            service.id} className="flex justify-between items-center text-sm">
+                                            <span className="text-gray-900">{// @ts-ignore
+                                                service.name}</span>
                                             <span className="text-green-600 font-semibold">
                         💰 {service.individual_price} ₽
                     </span>

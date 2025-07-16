@@ -12,6 +12,8 @@ export interface AppointmentRequest {
     date: string;
     time_start: string;
     time_end: string;
+    appointment_datetime: string;
+    total_duration: number;
     services: Array<{
         service_id: number;
         qty: number;
