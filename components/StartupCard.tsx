@@ -3,6 +3,7 @@ import {formatDate} from "@/lib/utils";
 import {EyeIcon} from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+// @ts-ignore
 import {StartupTypeCard} from "@/types";
 import {Button} from "@/components/ui/button";
 
