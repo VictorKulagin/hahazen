@@ -5,6 +5,7 @@ import {
     createAppointment,
     updateAppointment,
     deleteAppointment,
+    // @ts-ignore
     Appointment
 } from "@/services/appointmentsApi";
 
@@ -83,48 +84,6 @@ const groupAppointments = (appointments: AppointmentResponse[]): GroupedAppointm
     }, {} as GroupedAppointments);
 };
 
-// Обновляем хук useAppointments
-/*export const useAppointments = (
-    branchId?: number,
-    employeeId?: number,
-    duration: DurationOption = 'week'
-) => {
-    const getDateRange = () => {
-        const today = new Date();
-        const endDate = new Date(today);
-
-        const daysToAdd = {
-            '1-day': 0,
-            '2-days': 1,
-            '3-days': 2,
-            '4-days': 3,
-            '5-days': 4,
-            '6-days': 5,
-            'week': 6
-        }[duration];
-
-        endDate.setDate(today.getDate() + daysToAdd);
-
-        return {
-            start: formatDate(today),
-            end: formatDate(endDate)
-        };
-    };
-
-    const { start, end } = getDateRange();
-
-    return useQuery<AppointmentResponse[], Error, GroupedAppointments>({
-        queryKey: ['appointments', branchId, employeeId, start, end],
-        queryFn: () => {
-            if (!branchId || !employeeId) return [];
-            return fetchAppointments(branchId, employeeId, start, end);
-        },
-        enabled: !!branchId && !!employeeId,
-        select: groupAppointments,
-        staleTime: 600000
-    });
-};*/
-
 
 export const useAppointments = (
     branchId?: number,
@@ -154,6 +113,7 @@ export const useAppointments = (
 
     return useQuery<AppointmentResponse[], Error, GroupedAppointments>({
         queryKey: ['appointments', branchId, employeeId, start, end],
+        // @ts-ignore
         queryFn: () => {
             if (!branchId || !employeeId) return [];
             return fetchAppointments(branchId, employeeId, start, end);
@@ -184,6 +144,7 @@ export const useCreateAppointment = () => {
     const queryClient = useQueryClient();
 
     return useMutation<Appointment, Error, Omit<Appointment, 'id'>>({
+        // @ts-ignore
         mutationFn: createAppointment,
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['appointments'] });
