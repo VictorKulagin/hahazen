@@ -5,7 +5,6 @@ import {AppointmentRequest} from "@/services/appointmentsApi";
 import {useAppointments, DurationOption, useCreateAppointment, useUpdateAppointment} from "@/hooks/useAppointments"; // Добавляем импорт
 import {usePathname, useSearchParams} from 'next/navigation';
 import {useDeleteAppointment} from "@/hooks/useAppointments";
-import {useMutation} from '@tanstack/react-query';
 import { add30Minutes, generateWeekDates, generateTimeSlots, getWeekRange } from "./utils";
 import { CurrentTimeIndicator } from "./CurrentTimeIndicator";
 import { CalendarEvent } from "./CalendarEvent";
@@ -16,10 +15,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import {useRouter} from "next/navigation";
 import {WeekNavigator} from "@/components/Calendar/WeekNavigator";
 import {durationToDays} from "@/components/Calendar/durationToDays";
-import {EmployeeSchedule} from "@/services/еmployeeScheduleApi"; // Импортируем useRouter
 
 import {useEmployeeServices, useServices} from "@/hooks/useServices";
-import {Services} from "@/services/servicesApi";
 import {EditEventModal} from "@/components/Calendar/EditEventModal";
 import { validatePhone, validateName } from '@/components/Validations';
 
@@ -415,6 +412,8 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
             date: data.date,
             time_start: data.time_start,
             time_end: data.time_end,
+            appointment_datetime: data.appointment_datetime,
+            total_duration: data.total_duration,
             services: data.services.map(s => ({
                 service_id: s.service_id,
                 qty: s.qty
@@ -1326,7 +1325,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
         services: ''
     });
 
-    const [form, setForm] = useState<AppointmentRequest | Omit<AppointmentRequest, 'id'>>(
+    /*const [form, setForm] = useState<AppointmentRequest | Omit<AppointmentRequest, 'id'>>(
         editingEvent || {
             client_name: "",
             client_last_name: "",
@@ -1340,7 +1339,23 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
             comment: "",
             // @ts-ignore
             total_duration: 30
-        });
+        });*/
+    const [form, setForm] = useState<AppointmentRequest>(
+        editingEvent || {
+            client_name: "",
+            client_last_name: "",
+            client_phone: "",
+            employee_id: 0,
+            branch_id: 0,
+            date: data.date,
+            time_start: data.time,
+            time_end: add30Minutes(data.time),
+            appointment_datetime: `${data.date}T${data.time}`,
+            total_duration: 30,
+            services: [],
+            comment: ""
+        }
+    );
 
 
     const {
