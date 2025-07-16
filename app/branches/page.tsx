@@ -1,16 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import {useRouter} from "next/navigation";
+import { useRouter } from "next/navigation";
 import { branchesAddForm } from "@/hooks/branchesAddForm";
 import { Addbranches } from "@/services/branchesApi";
 import { AddCompanies } from "@/services/companiesApi";
-import {companiesAddForm} from "@/hooks/companiesAddForm";
+import { companiesAddForm } from "@/hooks/companiesAddForm";
 
-
-export default function Page() {
-
+function BranchesContent() {
     const {
         formState: { name, address, phone, email },
         handleInputChange,
@@ -23,7 +21,7 @@ export default function Page() {
     } = branchesAddForm();
 
     const router = useRouter();
-    const searchParams = useSearchParams(); // Получаем параметры из URL
+    const searchParams = useSearchParams();
     const [companyId, setCompanyId] = useState<number | null>(null);
 
     useEffect(() => {
@@ -32,13 +30,6 @@ export default function Page() {
             setCompanyId(Number(companyIdParam));
         }
     }, [searchParams]);
-
-    if (!companyId) {
-        return <p>Загрузка...</p>;
-    }
-
-
-    console.log(companyId);
 
     const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -49,30 +40,28 @@ export default function Page() {
                 throw new Error("Ошибка: Не найден company_id. Пожалуйста, выберите компанию.");
             }
 
-
-            // Создание филиала
             const newBranches = await Addbranches({
-                company_id: Number(companyId), // Используем ID из URL
-                name: name, // Имя филиала
-                address: address, // Адрес филиала
-                phone: phone, // Телефон филиала
-                email: email, // Email филиала
+                company_id: Number(companyId),
+                name: name,
+                address: address,
+                phone: phone,
+                email: email,
             });
 
-            // Успех
             setSuccess("Филиал успешно создан!");
             setError("");
             setTimeout(() => router.push("/cabinet"), 2000);
         } catch (error) {
             if (typeof error === "object" && error !== null && "response" in error) {
-                // @ts-ignore
-                setError(error.response?.data?.message || "Ошибка при регистрации.");
+                setError(
+                    // @ts-ignore
+                    error.response?.data?.message || "Ошибка при регистрации."
+                );
             } else {
                 setError("Неизвестная ошибка.");
             }
             setSuccess("");
         } finally {
-            // Сброс состояния загрузки
             setIsLoading(false);
         }
     };
@@ -82,7 +71,9 @@ export default function Page() {
             <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
                 <div className="flex flex-col items-center">
                     <img src="/logo.png" alt="Logo" className="w-24 h-24 mb-4" />
-                    <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Создание Филиала Компании</h2>
+                    <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+                        Создание Филиала Компании
+                    </h2>
                 </div>
                 {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                 {success && <p className="text-green-500 text-sm mb-4">{success}</p>}
@@ -162,6 +153,24 @@ export default function Page() {
                         </a>
                     </p>
                 </div>
+            </div>
+        </div>
+    );
+}
+
+export default function Page() {
+    return (
+        <Suspense fallback={<LoadingScreen />}>
+            <BranchesContent />
+        </Suspense>
+    );
+}
+
+function LoadingScreen() {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-100">
+            <div className="text-center">
+                <p>Загрузка данных компании...</p>
             </div>
         </div>
     );
