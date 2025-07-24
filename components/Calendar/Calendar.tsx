@@ -81,15 +81,28 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const router = useRouter();
 
     // 1. Получение masterId из хэша
+    /*const getEmployeeIdFromHash = useCallback((): number | null => {
+        const hash = window.location.hash;
+        const match = hash.match(/(?:#|&)master=(\d+)/);
+        return match ? parseInt(match[1], 10) : null;
+    }, []);*/
+
+    // 2. Состояние для принудительного обновления
+    const [forceUpdateKey, setForceUpdateKey] = useState(0);
+   // const employeeId = getEmployeeIdFromHash();
+
+    const [employeeId, setEmployeeId] = useState<number | null>(null);
+
     const getEmployeeIdFromHash = useCallback((): number | null => {
         const hash = window.location.hash;
         const match = hash.match(/(?:#|&)master=(\d+)/);
         return match ? parseInt(match[1], 10) : null;
     }, []);
 
-    // 2. Состояние для принудительного обновления
-    const [forceUpdateKey, setForceUpdateKey] = useState(0);
-    const employeeId = getEmployeeIdFromHash();
+
+    useEffect(() => {
+        setEmployeeId(getEmployeeIdFromHash());
+    }, []);
 
 
     //const {mutate: createAppointment, isPending, isError, error} = useCreateAppointment();
@@ -288,11 +301,17 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     console.log(employeeId + " EmployeeId ID");
 
     // 4. Обработчик изменений хэша
-    const handleHashChange = useCallback(() => {
+    /*const handleHashChange = useCallback(() => {
         const newId = getEmployeeIdFromHash();
         setForceUpdateKey(prev => prev + 1); // Принудительное обновление
         refetch();
-    }, [refetch, getEmployeeIdFromHash]);
+    }, [refetch, getEmployeeIdFromHash]);*/
+    const handleHashChange = useCallback(() => {
+        const newId = getEmployeeIdFromHash();
+        setEmployeeId(newId);
+        setForceUpdateKey(prev => prev + 1);
+        refetch();
+    }, [getEmployeeIdFromHash, refetch]);
 
 
     /*useEffect(() => {
@@ -333,9 +352,14 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     }, [isError, error]); // Добавляем зависимости
 
     // 5. Эффекты для отслеживания изменений
-    useEffect(() => {
+    /*useEffect(() => {
         window.addEventListener("hashchange", handleHashChange);
         return () => window.removeEventListener("hashchange", handleHashChange);
+    }, [handleHashChange]);*/
+
+    useEffect(() => {
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
     }, [handleHashChange]);
 
     useEffect(() => {
