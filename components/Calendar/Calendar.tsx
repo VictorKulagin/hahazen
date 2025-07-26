@@ -285,7 +285,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     }, [scheduleMap]);
 
     console.log(branchId + " Branch ID");
-    debugger;
     console.log(employeeId + " EmployeeId ID");
 
     // 4. Обработчик изменений хэша

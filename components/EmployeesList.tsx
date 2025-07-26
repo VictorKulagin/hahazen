@@ -21,7 +21,7 @@ export default function EmployeesList({ branchId }: EmployeesListProps) {
         <div className="ml-10 mt-2 flex flex-col gap-2">
             <div className="flex items-center gap-2 mb-2 text-sm text-gray-400">
                 <div className={`h-2 w-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-                {isConnected ? 'Онлайн-обновления' : 'Обновления приостановлены'}
+                {isConnected ? 'Онлайн-обновления-' : 'Обновления приостановлены'}
             </div>
             {(() => {
                 console.log(employees + " employees " + finalBranchId);
@@ -33,6 +33,11 @@ export default function EmployeesList({ branchId }: EmployeesListProps) {
                     <Link
                         key={employee.id}
                         href={`/timetable/${employee.branch_id}#master=${employee.id}`}
+                        onClick={() => {
+                            console.log("Clicked employee:", employee.id);
+                            console.log("Generated URL:", `/timetable/${branchId}?master=${employee.id}`);
+                        }}
+
                         className="w-full px-4 py-2 bg-gray-700/30 rounded-lg text-gray-300 hover:bg-gray-600 hover:text-white transition-colors duration-200"
                     >
                         {employee.name}
