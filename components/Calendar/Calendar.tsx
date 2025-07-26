@@ -80,17 +80,26 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    // 1. Получение masterId из хэша
+// 2. Функция получения ID из хэша (объявляем ДО useState)
     const getEmployeeIdFromHash = useCallback((): number | null => {
+        if (typeof window === 'undefined') return null;
         const hash = window.location.hash;
         const match = hash.match(/(?:#|&)master=(\d+)/);
         return match ? parseInt(match[1], 10) : null;
     }, []);
 
+
+    // 3. Инициализируем employeeId при монтировании
+    useEffect(() => {
+        setEmployeeId(getEmployeeIdFromHash());
+    }, [getEmployeeIdFromHash]);
+
     // 2. Состояние для принудительного обновления
     const [forceUpdateKey, setForceUpdateKey] = useState(0);
-    const employeeId = getEmployeeIdFromHash();
+    //const employeeId = getEmployeeIdFromHash();
 
+// 1. Создаем состояние для employeeId
+    const [employeeId, setEmployeeId] = useState<number | null>(null);
 
     //const {mutate: createAppointment, isPending, isError, error} = useCreateAppointment();
 
@@ -124,15 +133,15 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 // Обновите вызов хука useAppointments
     const {
         data: groupedAppointments,
-        refetch,
+        refetch: refetchAppointments,
         isLoading: isLoadingAppointments,
         isError: isAppointmentsError,
-        error // Добавляем получение ошибки
+        error: appointmentsError  // ← переименовываем для ясности
     } = useAppointments(
         branchId || undefined,
         employeeId || undefined,
-        selectedDuration, // Добавляем параметр длительности
-        currentStartDate // Передаем актуальную дату
+        selectedDuration,
+        currentStartDate
     );
 
     console.log('Данные из API:', groupedAppointments);
@@ -287,12 +296,13 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     console.log(branchId + " Branch ID");
     console.log(employeeId + " EmployeeId ID");
 
-    // 4. Обработчик изменений хэша
+    // 4. Обновляем handleHashChange
     const handleHashChange = useCallback(() => {
         const newId = getEmployeeIdFromHash();
-        setForceUpdateKey(prev => prev + 1); // Принудительное обновление
-        refetch();
-    }, [refetch, getEmployeeIdFromHash]);
+        setEmployeeId(newId); // ← обновляем состояние!
+        setForceUpdateKey(prev => prev + 1);
+        refetchAppointments();
+    }, [getEmployeeIdFromHash, refetchAppointments]);
 
 
     /*useEffect(() => {
@@ -324,22 +334,27 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         });
     }, [groupedAppointments, dates]);
     /*Важная отладочная информация не удалять*/
+// Исправляем useEffect:
     useEffect(() => {
-        if (isError && error) {
-            console.error('Ошибка загрузки данных:', error);
-            // showNotification('Ошибка загрузки расписания', 'error');
-            alert(`Ошибка: ${error.message}`);
+        if (isAppointmentsError && appointmentsError) {
+            console.error('Ошибка загрузки данных:', appointmentsError);
+            alert(`Ошибка: ${appointmentsError.message || 'Неизвестная ошибка'}`);
         }
-    }, [isError, error]); // Добавляем зависимости
+    }, [isAppointmentsError, appointmentsError]); // ← используем правильные переменные
 
-    // 5. Эффекты для отслеживания изменений
+// 5. Подписываемся на изменения хэша
     useEffect(() => {
-        window.addEventListener("hashchange", handleHashChange);
-        return () => window.removeEventListener("hashchange", handleHashChange);
+        const handler = () => handleHashChange();
+
+        window.addEventListener('hashchange', handler);
+        return () => window.removeEventListener('hashchange', handler);
     }, [handleHashChange]);
 
+// 6. Вызываем при изменении маршрута
     useEffect(() => {
-        handleHashChange();
+        if (typeof window !== 'undefined') {
+            handleHashChange();
+        }
     }, [pathname, searchParams, handleHashChange]);
 
     useEffect(() => {
@@ -440,7 +455,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     }
 
     if (isError) {
-        return <div>Ошибка: {error?.message}</div>;
+        return <div>Ошибка: {appointmentsError?.message}</div>;
     }
 
 // Обновим обработчик открытия модалки
@@ -519,8 +534,8 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     if (isAppointmentsError) {
         return (
             <div className="error-message">
-                Ошибка загрузки данных: {error?.message}
-                <button onClick={() => refetch()}>Повторить</button>
+                Ошибка загрузки данных: {appointmentsError?.message}
+                <button onClick={() => refetchAppointments()}>Повторить</button>
                 <style jsx>{`
         .error-message {
           padding: 40px;
