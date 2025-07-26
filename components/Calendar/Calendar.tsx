@@ -55,10 +55,10 @@ const convertTimeToMinutes = (time?: string | null): number => {
     return hours * 60 + minutes;
 };
 
-    interface CalendarProps {
-        branchId: number | null;
-        // employeeId?: number; // Опциональный параметр, если потребуется
-    }
+interface CalendarProps {
+    branchId: number | null;
+    // employeeId?: number; // Опциональный параметр, если потребуется
+}
 
 const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
@@ -81,28 +81,16 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const router = useRouter();
 
     // 1. Получение masterId из хэша
-    /*const getEmployeeIdFromHash = useCallback((): number | null => {
-        const hash = window.location.hash;
-        const match = hash.match(/(?:#|&)master=(\d+)/);
-        return match ? parseInt(match[1], 10) : null;
-    }, []);*/
-
-    // 2. Состояние для принудительного обновления
-    const [forceUpdateKey, setForceUpdateKey] = useState(0);
-   // const employeeId = getEmployeeIdFromHash();
-
-    const [employeeId, setEmployeeId] = useState<number | null>(null);
-
     const getEmployeeIdFromHash = useCallback((): number | null => {
         const hash = window.location.hash;
         const match = hash.match(/(?:#|&)master=(\d+)/);
         return match ? parseInt(match[1], 10) : null;
     }, []);
 
+    // 2. Состояние для принудительного обновления
+    const [forceUpdateKey, setForceUpdateKey] = useState(0);
+    const employeeId = getEmployeeIdFromHash();
 
-    useEffect(() => {
-        setEmployeeId(getEmployeeIdFromHash());
-    }, []);
 
 
     //const {mutate: createAppointment, isPending, isError, error} = useCreateAppointment();
@@ -119,11 +107,11 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
     const { mutate: updateAppointment } = useUpdateAppointment();
 
-   /* const {
-        data: services,
-        isLoading, // <-- Добавьте эту строку
-        isError
-    } = useServices();*/
+    /* const {
+         data: services,
+         isLoading, // <-- Добавьте эту строку
+         isError
+     } = useServices();*/
 
 
     const {mutate: deleteAppointment} = useDeleteAppointment(/*id*/);
@@ -301,17 +289,12 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     console.log(employeeId + " EmployeeId ID");
 
     // 4. Обработчик изменений хэша
-    /*const handleHashChange = useCallback(() => {
+    const handleHashChange = useCallback(() => {
         const newId = getEmployeeIdFromHash();
         setForceUpdateKey(prev => prev + 1); // Принудительное обновление
         refetch();
-    }, [refetch, getEmployeeIdFromHash]);*/
-    const handleHashChange = useCallback(() => {
-        const newId = getEmployeeIdFromHash();
-        setEmployeeId(newId);
-        setForceUpdateKey(prev => prev + 1);
-        refetch();
-    }, [getEmployeeIdFromHash, refetch]);
+    }, [refetch, getEmployeeIdFromHash]);
+
 
 
     /*useEffect(() => {
@@ -1718,4 +1701,4 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
 
 
 
-    export default Calendar;
+export default Calendar;

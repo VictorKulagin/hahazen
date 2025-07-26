@@ -30,14 +30,14 @@ export default function EmployeesList({ branchId }: EmployeesListProps) {
             {// @ts-ignore
 
                 employees.map((employee) => (
-                <Link
-                    key={employee.id}
-                    href={`/timetable/${employee.branch_id}#master=${employee.id}`}
-                    className="w-full px-4 py-2 bg-gray-700/30 rounded-lg text-gray-300 hover:bg-gray-600 hover:text-white transition-colors duration-200"
-                >
-                    {employee.name}
-                </Link>
-            ))}
+                    <Link
+                        key={employee.id}
+                        href={`/timetable/${employee.branch_id}#master=${employee.id}`}
+                        className="w-full px-4 py-2 bg-gray-700/30 rounded-lg text-gray-300 hover:bg-gray-600 hover:text-white transition-colors duration-200"
+                    >
+                        {employee.name}
+                    </Link>
+                ))}
         </div>
     );
 }
