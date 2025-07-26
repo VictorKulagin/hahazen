@@ -92,7 +92,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const employeeId = getEmployeeIdFromHash();
 
 
-
     //const {mutate: createAppointment, isPending, isError, error} = useCreateAppointment();
 
 
@@ -286,6 +285,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     }, [scheduleMap]);
 
     console.log(branchId + " Branch ID");
+    debugger;
     console.log(employeeId + " EmployeeId ID");
 
     // 4. Обработчик изменений хэша
@@ -294,7 +294,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         setForceUpdateKey(prev => prev + 1); // Принудительное обновление
         refetch();
     }, [refetch, getEmployeeIdFromHash]);
-
 
 
     /*useEffect(() => {
@@ -335,14 +334,9 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     }, [isError, error]); // Добавляем зависимости
 
     // 5. Эффекты для отслеживания изменений
-    /*useEffect(() => {
+    useEffect(() => {
         window.addEventListener("hashchange", handleHashChange);
         return () => window.removeEventListener("hashchange", handleHashChange);
-    }, [handleHashChange]);*/
-
-    useEffect(() => {
-        window.addEventListener('hashchange', handleHashChange);
-        return () => window.removeEventListener('hashchange', handleHashChange);
     }, [handleHashChange]);
 
     useEffect(() => {
