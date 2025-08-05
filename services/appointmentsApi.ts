@@ -4,6 +4,7 @@ import apiClient from "./api";
 
 
 export interface AppointmentRequest {
+    id?: number; // Добавляем опциональное поле id
     client_name: string;
     client_last_name: string;
     client_phone: string;

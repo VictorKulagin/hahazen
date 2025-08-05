@@ -17,7 +17,6 @@ import EmployeesList from "@/components/EmployeesList";
 import {companiesList} from "@/services/companiesList";
 import {useParams, useRouter} from "next/navigation";
 
-
 const Page: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAccordionOpenEmployees, setIsAccordionOpenEmployees] = useState(false);
@@ -375,4 +374,5 @@ const Page: React.FC = () => {
         </div>
     );
 };
+
 export default withAuth(Page);

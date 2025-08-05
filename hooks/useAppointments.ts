@@ -120,7 +120,7 @@ export const useAppointments = (
         },
         enabled: !!branchId && !!employeeId,
         select: groupAppointments,
-        staleTime: 600000
+        staleTime: 600000,
     });
 };
 

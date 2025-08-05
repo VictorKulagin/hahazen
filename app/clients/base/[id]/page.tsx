@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { cabinetDashboard } from "@/services/cabinetDashboard";
 import { companiesList } from "@/services/companiesList";
+import { useClients } from '@/hooks/useClient';
 
 import {
     UserGroupIcon,
@@ -28,7 +29,19 @@ interface ApiError extends Error {
         message?: string;
     };
 }
+
+interface PageProps {
+    search?: string;
+    pagination?: {
+        page: number;
+        perPage: number;
+    };
+}
 const Page: React.FC = () => {
+
+    const search = ""; // или useState
+    const pagination = { page: 1, perPage: 10 };
+
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAccordionOpenEmployees, setIsAccordionOpenEmployees] = useState(false);
     const [isAccordionOpenClients, setIsAccordionOpenClients] = useState(false);
@@ -39,6 +52,8 @@ const Page: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
 
+
+    const { data: fetchedClients, isLoading: isClientsLoading } = useClients(search, pagination);
 
     const [isModalFilOpen, setIsModalFilOpen] = useState(false);
 
@@ -362,7 +377,7 @@ const Page: React.FC = () => {
                 </header>
 
                 {/* Контент: две колонки */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                     {/* Первая колонка */}
                     <section className="bg-white text-black p-4 rounded shadow">
                         <div className="flex items-center mb-2">
@@ -373,6 +388,14 @@ const Page: React.FC = () => {
 
                             <div className="space-y-3">
                                 <p className="text-2xl font-bold">Привет, {userData?.name}! Раздел ещё в режиме разработки</p>
+                                <ul>
+                                    {fetchedClients?.map(client => (
+                                        <li key={client.id}>
+                                            <p>Имя: {client.name}</p>
+                                            <p>Телефон: {client.phone}</p>
+                                        </li>
+                                    )) ?? <p>Нет данных о клиентах</p>}
+                                </ul>
 
                                 <p>ID: {userData?.id}</p>
 
@@ -396,12 +419,12 @@ const Page: React.FC = () => {
                     </section>
 
                     {/* Вторая колонка */}
-                    <section className="bg-white text-black p-4 rounded shadow">
+                    {/*<section className="bg-white text-black p-4 rounded shadow">
                         <div className="flex items-center mb-2">
                             <h2 className="text-lg font-semibold mb-2">Настройки</h2>
                         </div>
                         <p>Настройки филиала</p>
-                    </section>
+                    </section>*/}
                 </div>
             </main>
         </div>
