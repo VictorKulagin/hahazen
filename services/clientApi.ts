@@ -10,8 +10,14 @@ export interface Client {
 }
 
 // Тип ответа API
-interface ClientsApiResponse {
-    _links?: Record<string, unknown>;
+// Тип ответа API - ДОБАВЬТЕ export ЗДЕСЬ:
+export interface ClientsApiResponse { // ← Добавлено export
+    _links?: {
+        next?: { href: string };
+        prev?: { href: string };
+        first?: { href: string };
+        last?: { href: string };
+    };
     data: Client[];
 }
 
@@ -21,13 +27,12 @@ export const fetchClients = async (params?: {
     search?: string;
     page?: number;
     per_page?: number;
-}): Promise<Client[]> => {
+}): Promise<ClientsApiResponse> => { // ← Изменено с Client[] на ClientsApiResponse
     try {
         const response = await apiClient.get<ClientsApiResponse>("/clients", {
             params,
         });
-        //return response.data;
-        return response.data.data ?? [];
+        return response.data; // ← Возвращаем полный объект (не только response.data.data)
     } catch (error) {
         console.error("Error fetching clients:", error);
         throw error;

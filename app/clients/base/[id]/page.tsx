@@ -53,9 +53,18 @@ const Page: React.FC = () => {
     const [error, setError] = useState<string>("");
 
 
-    const { data: fetchedClients, isLoading: isClientsLoading } = useClients(search, pagination);
 
     const [isModalFilOpen, setIsModalFilOpen] = useState(false);
+
+    const [page, setPage] = useState(1);
+    const [perPage] = useState(10);
+    const [searchQuery, setSearchQuery] = useState(""); // Для поиска в будущем
+    // ЕДИНСТВЕННЫЙ ВЫЗОВ useClients (с переименованным error):
+    const { data: clientsData, isLoading: isClientsLoading, error: clientsError } = useClients(searchQuery, {
+        page,
+        perPage
+    });
+
 
     // Функция для открытия/закрытия модального окна
     const toggleFilModal = () => {
@@ -256,6 +265,109 @@ const Page: React.FC = () => {
         }
     ];
 
+    // Компонент пагинации
+    const Pagination = () => {
+        if (!clientsData?.pagination || clientsData.pagination.totalPages <= 1) return null;
+
+        const {
+            currentPage,
+            totalPages,
+            hasPrevPage,
+            hasNextPage,
+            prevPage,
+            nextPage
+        } = clientsData.pagination;
+
+        // Генерируем номера страниц с эллипсами
+        const getPageNumbers = () => {
+            const pages = [];
+            const maxVisiblePages = window.innerWidth < 768 ? 3 : 5;
+
+            if (totalPages <= maxVisiblePages) {
+                for (let i = 1; i <= totalPages; i++) pages.push(i);
+            } else {
+                pages.push(1);
+
+                if (currentPage > 3) pages.push(-1); // Эллипс
+
+                const start = Math.max(2, currentPage - 1);
+                const end = Math.min(totalPages - 1, currentPage + 1);
+
+                for (let i = start; i <= end; i++) pages.push(i);
+
+                if (currentPage < totalPages - 2) pages.push(-1); // Эллипс
+
+                pages.push(totalPages);
+            }
+
+            return pages;
+        };
+
+        return (
+            <nav className="flex justify-center mt-6" aria-label="Pagination">
+                <ul className="inline-flex items-center -space-x-px">
+                    {/* Кнопка "Назад" */}
+                    <li>
+                        <button
+                            onClick={() => hasPrevPage && prevPage && setPage(prevPage)}
+                            disabled={!hasPrevPage}
+                            className={`flex items-center justify-center px-3 h-8 
+                ${!hasPrevPage
+                                ? 'text-gray-400 bg-gray-700'
+                                : 'text-gray-300 bg-gray-800 hover:bg-gray-700'} 
+                rounded-l-lg border border-gray-600`}
+                        >
+                            <span className="sr-only">Previous</span>
+                            <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5H1m0 0 4 4M1 5l4-4"/>
+                            </svg>
+                        </button>
+                    </li>
+
+                    {/* Номера страниц */}
+                    {getPageNumbers().map((pageNum, index) => (
+                        pageNum === -1 ? (
+                            <li key={`ellipsis-${index}`}>
+                                <span className="flex items-center justify-center px-3 h-8 text-gray-500">...</span>
+                            </li>
+                        ) : (
+                            <li key={`page-${pageNum}`}>
+                                <button
+                                    onClick={() => setPage(pageNum)}
+                                    className={`flex items-center justify-center px-3 h-8 
+                    ${currentPage === pageNum
+                                        ? 'text-blue-500 bg-blue-500/20 border-blue-500'
+                                        : 'text-gray-300 bg-gray-800 border-gray-600 hover:bg-gray-700'}
+                    border`}
+                                >
+                                    {pageNum}
+                                </button>
+                            </li>
+                        )
+                    ))}
+
+                    {/* Кнопка "Вперед" */}
+                    <li>
+                        <button
+                            onClick={() => hasNextPage && nextPage && setPage(nextPage)}
+                            disabled={!hasNextPage}
+                            className={`flex items-center justify-center px-3 h-8 
+                ${!hasNextPage
+                                ? 'text-gray-400 bg-gray-700'
+                                : 'text-gray-300 bg-gray-800 hover:bg-gray-700'} 
+                rounded-r-lg border border-gray-600`}
+                        >
+                            <span className="sr-only">Next</span>
+                            <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
+                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                            </svg>
+                        </button>
+                    </li>
+                </ul>
+            </nav>
+        );
+    };
+
     return (
         <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
             {/* Подложка для клика вне меню */}
@@ -388,18 +500,34 @@ const Page: React.FC = () => {
 
                             <div className="space-y-3">
                                 <p className="text-2xl font-bold">Привет, {userData?.name}! Раздел ещё в режиме разработки</p>
-                                <ul>
-                                    {Array.isArray(fetchedClients) && fetchedClients.length > 0 ? (
-                                        fetchedClients.map(client => (
-                                            <li key={client.id}>
-                                                <p>Имя: {client.name}</p>
-                                                <p>Телефон: {client.phone}</p>
-                                            </li>
-                                        ))
+                                <section className="bg-white text-black p-4 rounded shadow">
+                                    <div className="flex items-center mb-2">
+                                        <h2 className="text-lg font-semibold mb-2">Клиенты</h2>
+                                    </div>
+
+                                    {isClientsLoading ? (
+                                        <div className="text-center py-4">Загрузка данных...</div>
+                                    ) : error ? (
+                                        <div className="text-red-500 text-center py-4">Ошибка загрузки клиентов</div>
+                                    ) : clientsData?.clients && clientsData.clients.length > 0 ? (
+                                        <ul className="space-y-3">
+                                            {clientsData.clients.map(client => (
+                                                <li key={client.id} className="border-b border-gray-200 pb-3">
+                                                    <p className="text-lg font-medium">{client.name}</p>
+                                                    <p className="text-gray-600">Телефон: {client.phone}</p>
+                                                    {client.email && (
+                                                        <p className="text-gray-600">Email: {client.email}</p>
+                                                    )}
+                                                </li>
+                                            ))}
+                                        </ul>
                                     ) : (
-                                        <p>Нет данных о клиентах</p>
+                                        <p className="text-center py-4 text-gray-500">Клиенты не найдены</p>
                                     )}
-                                </ul>
+
+                                    {/* Добавляем пагинацию здесь */}
+                                    <Pagination />
+                                </section>
 
                                 <p>ID: {userData?.id}</p>
 
