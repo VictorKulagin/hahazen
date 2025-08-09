@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cabinetDashboard } from "@/services/cabinetDashboard";
 import { companiesList } from "@/services/companiesList";
 import { useClients } from '@/hooks/useClient';
+import Pagination from '@/components/Pagination';
 
 import {
     UserGroupIcon,
@@ -23,6 +24,8 @@ import {useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
 import EmployeesList from "@/components/EmployeesList";
+import {useQueryClient} from "@tanstack/react-query";
+import {fetchClients} from "@/services/clientApi";
 
 interface ApiError extends Error {
     data?: {
@@ -65,6 +68,21 @@ const Page: React.FC = () => {
         perPage
     });
 
+
+    const queryClient = useQueryClient(); // Импортируйте из @tanstack/react-query
+
+    // Функция предзагрузки
+    const prefetchPage = (targetPage: number) => {
+        queryClient.prefetchQuery({
+            queryKey: ['clients', searchQuery, targetPage, perPage],
+            queryFn: () => fetchClients({
+                search: searchQuery,
+                page: targetPage,
+                per_page: perPage,
+            }),
+            staleTime: 60_000,
+        });
+    };
 
     // Функция для открытия/закрытия модального окна
     const toggleFilModal = () => {
@@ -265,61 +283,94 @@ const Page: React.FC = () => {
         }
     ];
 
-    // Компонент пагинации
+// Обновленный компонент Pagination с плавными анимациями
+    // В компоненте Page добавьте функции:
+
     const Pagination = () => {
         if (!clientsData?.pagination || clientsData.pagination.totalPages <= 1) return null;
 
-        const {
-            currentPage,
-            totalPages,
-            hasPrevPage,
-            hasNextPage,
-            prevPage,
-            nextPage
-        } = clientsData.pagination;
+        const { currentPage, totalPages, hasPrevPage, hasNextPage, prevPage, nextPage } = clientsData.pagination;
+        // Определяем размер экрана
+        const [isMobile, setIsMobile] = useState(false);
 
-        // Генерируем номера страниц с эллипсами
+        useEffect(() => {
+            const checkScreenSize = () => {
+                setIsMobile(window.innerWidth < 768);
+            };
+
+            checkScreenSize(); // Проверяем при загрузке
+            window.addEventListener('resize', checkScreenSize);
+
+            return () => window.removeEventListener('resize', checkScreenSize);
+        }, []);
+
+
+        // Умная генерация номеров страниц
+        // 🎯 Адаптивная генерация страниц
         const getPageNumbers = () => {
             const pages = [];
-            const maxVisiblePages = window.innerWidth < 768 ? 3 : 5;
+            const maxVisiblePages = isMobile ? 3 : 7; // Мобиле: 3, Десктоп: 7
 
             if (totalPages <= maxVisiblePages) {
-                for (let i = 1; i <= totalPages; i++) pages.push(i);
+                // Простая пагинация: [1] [2] [3]
+                for (let i = 1; i <= totalPages; i++) {
+                    pages.push(i);
+                }
             } else {
-                pages.push(1);
+                if (isMobile) {
+                    // 📱 МОБИЛЬНАЯ версия: только текущая и соседние
+                    // Результат: [...] [5] [6] [7] [...] ИЛИ [1] [2] [3] [...] ИЛИ [...] [18] [19] [20]
 
-                if (currentPage > 3) pages.push(-1); // Эллипс
+                    if (currentPage <= 2) {
+                        // В начале: [1] [2] [3] [...]
+                        pages.push(1, 2, 3, -1);
+                    } else if (currentPage >= totalPages - 1) {
+                        // В конце: [...] [18] [19] [20]
+                        pages.push(-1, totalPages - 2, totalPages - 1, totalPages);
+                    } else {
+                        // В середине: [...] [5] [6] [7] [...]
+                        pages.push(-1, currentPage - 1, currentPage, currentPage + 1, -1);
+                    }
+                } else {
+                    // 🖥️ ДЕСКТОПНАЯ версия (как было)
+                    pages.push(1);
 
-                const start = Math.max(2, currentPage - 1);
-                const end = Math.min(totalPages - 1, currentPage + 1);
+                    const startPage = Math.max(2, currentPage - 2);
+                    const endPage = Math.min(totalPages - 1, currentPage + 2);
 
-                for (let i = start; i <= end; i++) pages.push(i);
+                    if (startPage > 2) pages.push(-1);
 
-                if (currentPage < totalPages - 2) pages.push(-1); // Эллипс
+                    for (let i = startPage; i <= endPage; i++) {
+                        if (i !== 1 && i !== totalPages) pages.push(i);
+                    }
 
-                pages.push(totalPages);
+                    if (endPage < totalPages - 1) pages.push(-1);
+                    if (totalPages > 1) pages.push(totalPages);
+                }
             }
 
             return pages;
         };
 
         return (
-            <nav className="flex justify-center mt-6" aria-label="Pagination">
-                <ul className="inline-flex items-center -space-x-px">
-                    {/* Кнопка "Назад" */}
+            <nav className="flex justify-center mt-8 mb-4" aria-label="Pagination">
+                <ul className="inline-flex items-center space-x-1 bg-gray-900/50 rounded-xl p-2 backdrop-blur-sm">
                     <li>
                         <button
-                            onClick={() => hasPrevPage && prevPage && setPage(prevPage)}
-                            disabled={!hasPrevPage}
-                            className={`flex items-center justify-center px-3 h-8 
-                ${!hasPrevPage
-                                ? 'text-gray-400 bg-gray-700'
-                                : 'text-gray-300 bg-gray-800 hover:bg-gray-700'} 
-                rounded-l-lg border border-gray-600`}
+                            onClick={() => hasPrevPage && setPage(page - 1)}
+                            disabled={!hasPrevPage || isClientsLoading}
+                            className={`
+                            flex items-center justify-center rounded-lg
+                            transition-all duration-200 ease-in-out transform
+                            ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}  // Меньше на мобиле
+                            ${!hasPrevPage || isClientsLoading
+                                ? 'text-gray-500 bg-gray-800 cursor-not-allowed'
+                                : 'text-white bg-green-600 hover:bg-green-500 hover:scale-105'
+                            }
+                        `}
                         >
-                            <span className="sr-only">Previous</span>
-                            <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5H1m0 0 4 4M1 5l4-4"/>
+                            <svg className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
                     </li>
@@ -327,20 +378,37 @@ const Page: React.FC = () => {
                     {/* Номера страниц */}
                     {getPageNumbers().map((pageNum, index) => (
                         pageNum === -1 ? (
+                            // Эллипс
                             <li key={`ellipsis-${index}`}>
-                                <span className="flex items-center justify-center px-3 h-8 text-gray-500">...</span>
+                            <span className={`flex items-center justify-center text-gray-400 ${
+                                isMobile ? 'px-1 h-8 text-xs' : 'px-3 h-10 text-sm'
+                            }`}>
+                                ...
+                            </span>
                             </li>
                         ) : (
+                            // Номер страницы
                             <li key={`page-${pageNum}`}>
                                 <button
                                     onClick={() => setPage(pageNum)}
-                                    className={`flex items-center justify-center px-3 h-8 
-                    ${currentPage === pageNum
-                                        ? 'text-blue-500 bg-blue-500/20 border-blue-500'
-                                        : 'text-gray-300 bg-gray-800 border-gray-600 hover:bg-gray-700'}
-                    border`}
+                                    disabled={isClientsLoading}
+                                    className={`
+                                    flex items-center justify-center rounded-lg font-semibold
+                                    transition-all duration-200 ease-in-out
+                                    ${isMobile ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm'}
+                                    ${page === pageNum
+                                        ? 'text-white bg-green-500 scale-105 shadow-lg shadow-green-500/30'
+                                        : isClientsLoading
+                                            ? 'text-gray-400 bg-gray-800'
+                                            : 'text-gray-300 bg-gray-700 hover:bg-green-600'
+                                    }
+                                `}
                                 >
-                                    {pageNum}
+                                    {isClientsLoading && page === pageNum ? (
+                                        <div className={`border-2 border-white border-t-transparent rounded-full animate-spin ${
+                                            isMobile ? 'w-3 h-3' : 'w-4 h-4'
+                                        }`}></div>
+                                    ) : pageNum}
                                 </button>
                             </li>
                         )
@@ -349,21 +417,33 @@ const Page: React.FC = () => {
                     {/* Кнопка "Вперед" */}
                     <li>
                         <button
-                            onClick={() => hasNextPage && nextPage && setPage(nextPage)}
-                            disabled={!hasNextPage}
-                            className={`flex items-center justify-center px-3 h-8 
-                ${!hasNextPage
-                                ? 'text-gray-400 bg-gray-700'
-                                : 'text-gray-300 bg-gray-800 hover:bg-gray-700'} 
-                rounded-r-lg border border-gray-600`}
+                            onClick={() => hasNextPage && setPage(page + 1)}
+                            disabled={!hasNextPage || isClientsLoading}
+                            className={`
+                            flex items-center justify-center rounded-lg
+                            transition-all duration-200 ease-in-out transform
+                            ${isMobile ? 'w-8 h-8' : 'w-10 h-10'}
+                            ${!hasNextPage || isClientsLoading
+                                ? 'text-gray-500 bg-gray-800 cursor-not-allowed'
+                                : 'text-white bg-green-600 hover:bg-green-500 hover:scale-105'
+                            }
+                        `}
                         >
-                            <span className="sr-only">Next</span>
-                            <svg className="w-3.5 h-3.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                                <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                            <svg className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
                         </button>
                     </li>
                 </ul>
+
+                {/* Информация - скрываем на мобиле или делаем компактнее */}
+                <div className={`flex items-center text-gray-400 ${
+                    isMobile ? 'ml-2 text-xs' : 'ml-4 text-sm'
+                }`}>
+                <span className="bg-gray-800 px-2 py-1 rounded-lg">
+                    {isMobile ? `${currentPage}/${totalPages}` : `Страница ${currentPage} из ${totalPages}`}
+                </span>
+                </div>
             </nav>
         );
     };
@@ -506,27 +586,38 @@ const Page: React.FC = () => {
                                     </div>
 
                                     {isClientsLoading ? (
-                                        <div className="text-center py-4">Загрузка данных...</div>
-                                    ) : error ? (
-                                        <div className="text-red-500 text-center py-4">Ошибка загрузки клиентов</div>
+                                        <div className="text-center py-4">
+                                            <div className="flex items-center justify-center space-x-2">
+                                                <div className="w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                                                <span>Загрузка клиентов...</span>
+                                            </div>
+                                        </div>
+                                    ) : clientsError ? (
+                                        <div className="text-red-500 text-center py-4">
+                                            Ошибка: {clientsError.message}
+                                        </div>
                                     ) : clientsData?.clients && clientsData.clients.length > 0 ? (
-                                        <ul className="space-y-3">
-                                            {clientsData.clients.map(client => (
-                                                <li key={client.id} className="border-b border-gray-200 pb-3">
-                                                    <p className="text-lg font-medium">{client.name}</p>
-                                                    <p className="text-gray-600">Телефон: {client.phone}</p>
-                                                    {client.email && (
-                                                        <p className="text-gray-600">Email: {client.email}</p>
-                                                    )}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p className="text-center py-4 text-gray-500">Клиенты не найдены</p>
-                                    )}
+                                        <>
+                                            <ul className="space-y-3">
+                                                {clientsData.clients.map(client => (
+                                                    <li key={client.id} className="border-b border-gray-200 pb-3">
+                                                        <p className="text-lg font-medium">Имя: {client.name}</p>
+                                                        <p className="text-gray-600">Телефон: {client.phone}</p>
+                                                        {client.email && (
+                                                            <p className="text-gray-600">Email: {client.email}</p>
+                                                        )}
+                                                    </li>
+                                                ))}
+                                            </ul>
 
-                                    {/* Добавляем пагинацию здесь */}
-                                    <Pagination />
+                                            {/* ВАЖНО: Пагинация показывается даже во время загрузки */}
+                                            <Pagination />
+                                        </>
+                                    ) : (
+                                        <div className="text-center py-4 text-gray-500">
+                                            Клиенты не найдены на странице {page}
+                                        </div>
+                                    )}
                                 </section>
 
                                 <p>ID: {userData?.id}</p>

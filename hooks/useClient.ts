@@ -49,6 +49,10 @@ export const useClients = (
                 }
             };
         },
-        staleTime: 60_000
+        staleTime: 60_000,
+        gcTime: 5 * 60 * 1000, // 5 минут - храним в памяти
+        retry: 2, // 2 попытки при ошибке
+        refetchOnWindowFocus: false, // Не обновлять при фокусе окна
+        placeholderData: (previousData) => previousData, // Показываем старые данные во время
     });
 };
