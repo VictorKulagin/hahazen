@@ -389,12 +389,16 @@ const Page: React.FC = () => {
                             <div className="space-y-3">
                                 <p className="text-2xl font-bold">Привет, {userData?.name}! Раздел ещё в режиме разработки</p>
                                 <ul>
-                                    {fetchedClients?.map(client => (
-                                        <li key={client.id}>
-                                            <p>Имя: {client.name}</p>
-                                            <p>Телефон: {client.phone}</p>
-                                        </li>
-                                    )) ?? <p>Нет данных о клиентах</p>}
+                                    {Array.isArray(fetchedClients) && fetchedClients.length > 0 ? (
+                                        fetchedClients.map(client => (
+                                            <li key={client.id}>
+                                                <p>Имя: {client.name}</p>
+                                                <p>Телефон: {client.phone}</p>
+                                            </li>
+                                        ))
+                                    ) : (
+                                        <p>Нет данных о клиентах</p>
+                                    )}
                                 </ul>
 
                                 <p>ID: {userData?.id}</p>
