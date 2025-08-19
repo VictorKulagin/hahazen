@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signinApi } from "@/services/signinApi";
 
 export default function Page() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
     const router = useRouter();
@@ -18,7 +18,7 @@ export default function Page() {
 
             try {
                 const newSignin = await signinApi({
-                    username,
+                    email,
                     password
                 });
 
@@ -60,9 +60,9 @@ export default function Page() {
                         <input
                             /*type="email"*/
                             type="text"
-                            id="username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
+                            id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                             placeholder="example@mail.com"
                             required

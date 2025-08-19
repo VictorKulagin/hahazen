@@ -3,7 +3,7 @@ import apiClient from "./api";
 
 // Интерфейс для данных, отправляемых на сервер
 interface SigninPayload {
-    username: string;
+    email: string;
     password: string;
 }
 
