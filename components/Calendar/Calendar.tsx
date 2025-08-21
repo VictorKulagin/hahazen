@@ -1210,6 +1210,11 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                     <textarea
                         value={form.comment}
                         onChange={e => setForm({...form, comment: e.target.value})}
+                        style={{
+                            border: "1px solid #ddd", // black solid border
+                            borderRadius: "5px",      // rounded corners
+                            padding: "8px"            // padding inside textarea
+                        }}
                     />
                 </div>
 

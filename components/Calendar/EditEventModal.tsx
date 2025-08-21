@@ -148,6 +148,11 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                     <textarea
                         value={form.comment || ''}
                         onChange={e => setForm({ ...form, comment: e.target.value })}
+                        style={{
+                            border: "1px solid #ddd", // black solid border
+                            borderRadius: "5px",      // rounded corners
+                            padding: "8px"            // padding inside textarea
+                        }}
                     />
                 </div>
                 <div className="time-selection">
@@ -155,7 +160,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                         <label className="block font-semibold mb-1">Начало:</label>
                         <input
                             type="time"
-                            value={form.time_start}
+                            value={form.time_start || ''}
                             onChange={e => setForm({ ...form, time_start: e.target.value })}
                         />
                     </div>
@@ -163,7 +168,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                         <label className="block font-semibold mb-1">Окончание:</label>
                         <input
                             type="time"
-                            value={form.time_end}
+                            value={form.time_end || ''}
                             onChange={e => setForm({ ...form, time_end: e.target.value })}
                         />
                     </div>

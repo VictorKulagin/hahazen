@@ -1,12 +1,31 @@
 // services/clientApi.ts
 import apiClient from "./api";
 // Тип одной записи клиента
-export interface Client {
+/*export interface Client {
     id: number;
     name: string;
     phone: string;
     email?: string;
     registration_date?: string;
+}*/
+
+export interface Client {
+    id?: number;
+    user_id?: number;
+    company_id?: number;
+    name: string;
+    last_name?: string;
+    patronymic?: string;
+    phone?: string;
+    email?: string;
+    gender?: "male" | "female";
+    vip?: 0 | 1;
+    discount?: number;
+    card_number?: string;
+    birth_date?: string;
+    forbid_online_booking?: 0 | 1;
+    comment?: string;
+    photo?: string | null;
 }
 
 // Тип ответа API
@@ -38,3 +57,27 @@ export const fetchClients = async (params?: {
         throw error;
     }
 };
+
+
+export const fetchClientById = (id: number): Promise<Client> => {
+    return apiClient
+        .get(`/clients/${id}`)
+        .then((response) => response.data as Client);
+};
+
+/*export const createClient = async (data: Client): Promise<Client> => {
+    const response = await apiClient.post<Client>("/clients", data);
+    return response.data;
+};*/
+
+export const updateClient = async (
+    id: number,
+    data: Client
+): Promise<Client> => {
+    const response = await apiClient.put<Client>(`/clients/${id}`, data);
+    return response.data;
+};
+
+/*export const deleteClient = async (id: number): Promise<void> => {
+    await apiClient.delete(`/clients/${id}`);
+};*/

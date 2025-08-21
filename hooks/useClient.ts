@@ -1,7 +1,6 @@
 // hooks/useClient.ts
-import {useMutation, useQuery} from "@tanstack/react-query";
-import { Client, fetchClients, ClientsApiResponse } from '@/services/clientApi';
-
+import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
+import { Client, fetchClients, ClientsApiResponse,   fetchClientById,  updateClient} from '@/services/clientApi';
 // Добавляем хук для клиентов с пагинацией и фильтрацией
 
 export interface PaginatedClients {
@@ -54,5 +53,28 @@ export const useClients = (
         retry: 2, // 2 попытки при ошибке
         refetchOnWindowFocus: false, // Не обновлять при фокусе окна
         placeholderData: (previousData) => previousData, // Показываем старые данные во время
+    });
+};
+
+// Один клиент по id
+export const useClient = (id?: number) => {
+    return useQuery<Client, Error>({
+        queryKey: ["client", id],
+        queryFn: () => fetchClientById(id!),
+        enabled: !!id,
+    });
+};
+
+// Обновление клиента
+export const useUpdateClient = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Client }) =>
+            updateClient(id, data),
+        onSuccess: (_, { id }) => {
+            queryClient.invalidateQueries({ queryKey: ["clients"] });
+            queryClient.invalidateQueries({ queryKey: ["client", id] });
+        },
     });
 };
