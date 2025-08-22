@@ -519,16 +519,18 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                 )
                                             ) : (
                                                 <>
-                                                    <ul className="space-y-3">
+                                                    <ul className="space-y-4">
                                                         {clientsData.clients.map(client => (
                                                             <li
                                                                 key={client.id}
                                                                 onClick={() => setSelectedClientId(client.id ?? null)}
-                                                                className="border-b border-gray-200 pb-3 cursor-pointer"
+                                                                className="bg-white shadow-md rounded-2xl p-4 cursor-pointer hover:shadow-lg hover:bg-gray-50 transition"
                                                             >
-                                                                <p className="text-lg font-medium">Имя: {client.name}</p>
-                                                                <p className="text-gray-600">Телефон: {client.phone}</p>
-                                                                {client.email && <p className="text-gray-600">Email: {client.email}</p>}
+                                                                <p className="text-lg font-semibold text-gray-800">
+                                                                    {client.name} {client.last_name && client.last_name}
+                                                                </p>
+                                                                <p className="text-gray-600">📞 {client.phone}</p>
+                                                                {client.email && <p className="text-gray-500">✉️ {client.email}</p>}
                                                             </li>
                                                         ))}
                                                     </ul>
