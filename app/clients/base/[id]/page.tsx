@@ -61,8 +61,13 @@ const Page: React.FC = () => {
     const [userData, setUserData] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
-
-
+    const [filters, setFilters] = useState({
+        name: '',
+        phone: '',
+        last_name: '',
+        gender: '',
+        vip: '',
+    });
 
     const [isModalFilOpen, setIsModalFilOpen] = useState(false);
 
@@ -71,10 +76,12 @@ const Page: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState(""); // Для поиска в будущем
     // ЕДИНСТВЕННЫЙ ВЫЗОВ useClients (с переименованным error):
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
-    const { data: clientsData, isLoading: isClientsLoading, error: clientsError } = useClients(searchQuery, {
+    /*const { data: clientsData, isLoading: isClientsLoading, error: clientsError } = useClients(searchQuery, {
         page,
         perPage
-    });
+    });*/
+
+    const { data: clientsData, isLoading: isClientsLoading, error: clientsError } = useClients(filters, { page, perPage });
 
     const { data: selectedClient, isLoading: isClientLoading, error: clientError } = useClient(selectedClientId ?? undefined);
 
@@ -104,7 +111,12 @@ const Page: React.FC = () => {
 
 
 
-
+    const serializeFilters = (filters: { [key: string]: string }) => {
+        return Object.entries(filters)
+            .filter(([_, value]) => value.trim() !== '')
+            .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
+            .join('&');
+    };
 
 const queryClient = useQueryClient(); // Импортируйте из @tanstack/react-query
 
@@ -440,6 +452,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                     <h1 className="text-2xl font-bold mb-2">Клиентская база (раздел в разработке)</h1>
                 </header>
 
+
                 {/* Контент: две колонки */}
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                     {/* Первая колонка */}
@@ -456,6 +469,58 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                     <div className="flex items-center mb-2">
                                         <h2 className="text-lg font-semibold mb-2">Клиенты</h2>
                                     </div>
+
+                                    <form
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            setPage(1); // сброс на первую страницу при новом фильтре
+                                            setSearchQuery(serializeFilters(filters));
+                                        }}
+                                        className="space-y-2 mb-4"
+                                    >
+                                        <input
+                                            type="text"
+                                            placeholder="Имя"
+                                            value={filters.name}
+                                            onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                                            className="border p-2 rounded w-full"
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Телефон"
+                                            value={filters.phone}
+                                            onChange={(e) => setFilters({ ...filters, phone: e.target.value })}
+                                            className="border p-2 rounded w-full"
+                                        />
+                                        <input
+                                            type="text"
+                                            placeholder="Фамилия"
+                                            value={filters.last_name}
+                                            onChange={(e) => setFilters({ ...filters, last_name: e.target.value })}
+                                            className="border p-2 rounded w-full"
+                                        />
+                                        <select
+                                            value={filters.gender}
+                                            onChange={(e) => setFilters({ ...filters, gender: e.target.value })}
+                                            className="border p-2 rounded w-full"
+                                        >
+                                            <option value="">Пол (все)</option>
+                                            <option value="male">Мужской</option>
+                                            <option value="female">Женский</option>
+                                        </select>
+                                        <select
+                                            value={filters.vip}
+                                            onChange={(e) => setFilters({ ...filters, vip: e.target.value })}
+                                            className="border p-2 rounded w-full"
+                                        >
+                                            <option value="">VIP (все)</option>
+                                            <option value="1">Да</option>
+                                            <option value="0">Нет</option>
+                                        </select>
+                                        <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                                            Поиск
+                                        </button>
+                                    </form>
 
                                     {isClientsLoading ? (
                                         <div className="text-center py-4">

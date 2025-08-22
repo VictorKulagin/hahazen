@@ -15,21 +15,20 @@ export interface PaginatedClients {
     };
 }
 export const useClients = (
-    searchQuery?: string,
+    filters: { [key: string]: string },
     pagination: { page: number; perPage: number } = { page: 1, perPage: 10 }
 ) => {
     const params = {
-        search: searchQuery,
+        ...filters,
         page: pagination.page,
         per_page: pagination.perPage,
     };
 
     return useQuery<PaginatedClients, Error>({
-        queryKey: ['clients', searchQuery, pagination.page, pagination.perPage],
+        queryKey: ['clients', filters, pagination.page, pagination.perPage],
         queryFn: async () => {
             const response: ClientsApiResponse = await fetchClients(params);
 
-            // Парсим номера страниц из ссылок
             const getPageFromUrl = (url?: string): number | null => {
                 if (!url) return null;
                 const match = url.match(/page=(\d+)/);
@@ -45,16 +44,18 @@ export const useClients = (
                     hasPrevPage: !!response._links?.prev,
                     nextPage: getPageFromUrl(response._links?.next?.href),
                     prevPage: getPageFromUrl(response._links?.prev?.href),
-                }
+                },
             };
         },
-        staleTime: 60_000,
-        gcTime: 5 * 60 * 1000, // 5 минут - храним в памяти
-        retry: 2, // 2 попытки при ошибке
-        refetchOnWindowFocus: false, // Не обновлять при фокусе окна
-        placeholderData: (previousData) => previousData, // Показываем старые данные во время
+        staleTime: 60000,
+        gcTime: 5 * 60 * 1000,
+        retry: 2,
+        refetchOnWindowFocus: false,
+        placeholderData: (previousData) => previousData,
     });
 };
+
+
 
 // Один клиент по id
 export const useClient = (id?: number) => {
