@@ -37,8 +37,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
             const client = event.client || {};
 
             const convertedServices = event.services?.map(s => ({
-                // @ts-ignore
-                service_id: s.id,
+                service_id: s.id ?? 0,  // если ид отсутствует, ставим 0 (или выбросьте ошибку),
                 qty: s.qty || 1, // Используйте актуальное поле из данных
                 individual_price: s.individual_price,
                 // @ts-ignore
