@@ -82,45 +82,59 @@ export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) =
 
 
 
-                <div className="bg-white rounded-xl shadow-sm p-1 space-y-3">
-                    {/* Заголовок события */}
+                {/* 📱 Мобильная версия */}
+                <div className="block sm:hidden bg-white rounded-lg shadow-sm p-2">
+                    <div className="flex flex-col">
+                        {/* Имя и телефон в одну строку */}
+                        <div className="flex justify-between items-center">
+      <span className="font-semibold text-base text-gray-900 truncate">
+        {event.client.name} {event.client_last_name}
+      </span>
+                            <span className="text-sm text-gray-700 ml-2 truncate">
+        📞 {event.client.phone}
+      </span>
+                        </div>
+
+                        {/* Комментарий (если есть) */}
+                        {event.comment && (
+                            <div className="text-xs text-gray-500 mt-1 truncate">
+                                💬 {event.comment}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* 🖥 Десктопная версия */}
+                <div className="hidden sm:block bg-white rounded-xl shadow-sm p-0 -m-2">
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                         <div className="flex flex-col">
-                            <div className="font-semibold text-gray-900 text-base">
-                                {// @ts-ignore
-                                    event.client.name} {event.client_last_name}
+                            <div className="font-semibold text-gray-900 text-base truncate">
+                                {event.client.name} {event.client_last_name}
                             </div>
-                            <div className="text-xs text-gray-500 flex items-center gap-1">
-                                📞 {// @ts-ignore
-                                event.client.phone}
+                            <div className="text-sm text-gray-700 flex items-center gap-1 truncate max-w-xs">
+                                📞 {event.client.phone}
                             </div>
+                            {event.comment && (
+                                <div className="text-sm text-gray-500 mt-1 truncate">
+                                    💬 {event.comment}
+                                </div>
+                            )}
                         </div>
-                        <div className="text-sm text-blue-600 whitespace-nowrap">
+                        <div className="text-sm text-blue-600 whitespace-nowrap mt-2 sm:mt-0">
                             🕒 {localStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {localEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            {/* Список услуг */}
                             {event.services?.length > 0 && (
-                                <div className="border-t border-gray-100 pt-1 space-y-1">
+                                <div className="border-t border-gray-100 pt-1 space-y-1 max-w-xs">
                                     {event.services.map(service => (
-                                        <div key={// @ts-ignore
-                                            service.id} className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-900">{// @ts-ignore
-                                                service.name}</span>
-                                            <span className="text-green-600 font-semibold">
-                        💰 {service.individual_price} ₽
-                    </span>
+                                        // @ts-ignore
+                                        <div key={service.id} className="flex justify-between items-center text-sm">
+                                            <span className="text-gray-900 truncate max-w-[140px]">{service.name}</span>
+                                            <span className="text-green-600 font-semibold">💰 {service.individual_price} ₽</span>
                                         </div>
                                     ))}
                                 </div>
                             )}
                         </div>
                     </div>
-
-                    {/* Комментарий */}
-                    {/*event.comment && (
-                        <div className="text-xs text-gray-600 bg-gray-50 rounded-md p-2">
-                            📝 {event.comment}
-                        </div>
-                    )*/}
                 </div>
             </div>
         );

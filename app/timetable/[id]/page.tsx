@@ -360,7 +360,7 @@ const Page: React.FC = () => {
                         <h2 className="text-lg font-semibold mb-2">Календарь событий</h2>
                         <p>Просмотр и управление записями. Календарь отображает занятость сотрудников
                             цветовой индикацией. Для новой записи выберите свободный слот.</p>
-                        <div className="container mx-auto p-4">
+                        <div className="container mx-auto p-0">
                             {id !== null && employeeId !== undefined && (
                                 <Calendar
                                     branchId={id}

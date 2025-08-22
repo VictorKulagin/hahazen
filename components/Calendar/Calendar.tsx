@@ -214,7 +214,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
             alert('Выберите филиал и сотрудника');
             return;
         }
-
+//@ts-ignore
         const appointmentData: AppointmentRequest = {
             client_name: data.client_name,
             client_last_name: data.client_last_name,
@@ -426,9 +426,11 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 <div className="time-column">
                     {times.map((time) => {
                         const [hours] = time.split(':').map(Number);
+                        // Форматируем часы в "HH:00"
+                        const formattedHour = hours.toString().padStart(2, '0') + ":00";
                         return (
                             <div key={time} className="hour-slot">
-                                <span className="hour-marker">{hours}</span>
+                                <span className="hour-marker">{formattedHour}</span>
                                 <div className="half-hour-line"></div>
                             </div>
                         );
@@ -455,7 +457,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                                     weekday: 'short',
                                     day: 'numeric'
                                 })}
-                                {!isWorkingDay && <span className="day-off-badge">Day off</span>}
+                                {!isWorkingDay && <span className="day-off-badge">Day off (Выходной)</span>}
                             </div>
                             <div className="day-content">
                                 {times.map(time => {
@@ -944,6 +946,52 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 padding: 0;
               }
 
+              @media (max-width: 768px) {
+                .calendar-grid {
+                  display: flex !important;
+                  overflow-x: auto;
+                  width: 100%;
+                  scroll-snap-type: x mandatory;
+                  -webkit-overflow-scrolling: touch;
+                }
+
+                .time-column {
+                  position: sticky;
+                  left: 0;
+                  z-index: 10; /* выше остальных, чтобы не перекрывалось */
+                  background: #f8f9fa; /* такой же фон, чтобы не было перекрытий */
+                  flex: 0 0 60px;
+                  min-width: 60px;
+                  max-width: 60px;
+                  scroll-snap-align: start;
+                }
+
+                .day-column {
+                  flex: 0 0 70vw;
+                  min-width: 70vw;
+                  max-width: 70vw;
+                  scroll-snap-align: start;
+                  transition: width 0.3s ease;
+                }
+
+                /* По желанию — скрыть полосы прокрутки на определенных устройствах */
+                .calendar-grid::-webkit-scrollbar {
+                  display: none;
+                }
+                .calendar-grid {
+                  -ms-overflow-style: none;  /* IE и Edge */
+                  scrollbar-width: none;  /* Firefox */
+                }
+
+                .container {
+                  padding-left: 0 !important;
+                  padding-right: 0 !important;
+                  margin-left: 0 !important;
+                  margin-right: 0 !important;
+                  max-width: 100% !important;
+                }
+              }
+
               /* Мобильная версия */
               @media (max-width: 768px) {
                 .calendar-container {
@@ -974,7 +1022,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
               /* Основные изменения для мобильной версии */
               @media (max-width: 480px) {
                 .calendar-container {
-                  padding: 8px 4px;
+                  padding: 8px 0px;
                 }
 
                 .calendar-grid {
@@ -992,7 +1040,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 }
 
                 .hour-marker {
-                  font-size: 1em;
+                  font-size: 1.2em;
                   font-weight: 500;
                   left: 2px;
                 }
@@ -1076,7 +1124,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
             // @ts-ignore
             total_duration: 30
         });*/
-    const [form, setForm] = useState<AppointmentRequest>(
+    const [form, setForm] = useState<AppointmentRequest>(// @ts-ignore
         editingEvent || {
             client_name: "",
             client_last_name: "",

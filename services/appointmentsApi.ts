@@ -5,6 +5,11 @@ import apiClient from "./api";
 
 export interface AppointmentRequest {
     id?: number; // Добавляем опциональное поле id
+    client: {
+        name: string;
+        last_name: string;
+        phone: string;
+    };
     client_name: string;
     client_last_name: string;
     client_phone: string;
@@ -20,6 +25,8 @@ export interface AppointmentRequest {
         qty: number;
         individual_price?: number; // Добавьте при необходимости
         duration_minutes?: number;
+        name?: string;
+        id?: number;
     }>;
     comment?: string;
 }
