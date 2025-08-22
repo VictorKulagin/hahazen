@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useState } from "react";
 import { Client } from "@/services/clientApi";
 import { useUpdateClient } from "@/hooks/useClient";
@@ -13,9 +11,20 @@ const ClientCardEditable: React.FC<Props> = ({ selectedClient, onCancel }) => {
     const [formData, setFormData] = useState<Client>({ ...selectedClient });
     const updateMutation = useUpdateClient();
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+    const handleChange = (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    ) => {
+        const { name, value, type } = e.target;
+
+        if (type === "checkbox") {
+            // Приводим к HTMLInputElement, чтобы получить checked
+            const target = e.target as HTMLInputElement;
+            setFormData(prev => ({ ...prev, [name]: target.checked ? 1 : 0 }));
+        } else if (type === "number") {
+            setFormData(prev => ({ ...prev, [name]: Number(value) || undefined }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -43,7 +52,6 @@ const ClientCardEditable: React.FC<Props> = ({ selectedClient, onCancel }) => {
                 Имя
                 <input name="name" value={formData.name || ""} onChange={handleChange} required className="w-full border p-2 rounded" />
             </label>
-            {/* Другие поля по аналогии */}
 
             <label className="block mb-2">
                 Фамилия
@@ -57,47 +65,59 @@ const ClientCardEditable: React.FC<Props> = ({ selectedClient, onCancel }) => {
 
             <label className="block mb-2">
                 Email
-                <input name="phone" value={formData.email || ""} onChange={handleChange} className="w-full border p-2 rounded" />
+                <input name="email" value={formData.email || ""} onChange={handleChange} className="w-full border p-2 rounded" />
             </label>
 
             <label className="block mb-2">
                 Пол
-                <input name="phone" value={formData.gender || ""} onChange={handleChange} className="w-full border p-2 rounded" />
+                <select name="gender" value={formData.gender || ""} onChange={handleChange} className="w-full border p-2 rounded">
+                    <option value="">Выберите пол</option>
+                    <option value="male">Мужской</option>
+                    <option value="female">Женский</option>
+                </select>
+            </label>
+
+            <label className="block mb-2 flex items-center space-x-2">
+                <input
+                    type="checkbox"
+                    name="vip"
+                    checked={!!formData.vip}
+                    onChange={handleChange}
+                />
+                <span>VIP</span>
             </label>
 
             <label className="block mb-2">
-                VIP
-                <input name="phone" value={formData.vip || ""} onChange={handleChange} className="w-full border p-2 rounded" />
+                Скидка, %
+                <input
+                    type="number"
+                    name="discount"
+                    value={formData.discount ?? ""}
+                    onChange={handleChange}
+                    min={0}
+                    max={100}
+                    className="w-full border p-2 rounded"
+                />
             </label>
 
-            <label className="block mb-2">
-                Скидка
-                <input name="phone" value={formData.discount || ""} onChange={handleChange} className="w-full border p-2 rounded" />
-            </label>
-
-            <label className="block mb-2">
-                Номер карты
-                <input name="phone" value={formData.card_number || ""} onChange={handleChange} className="w-full border p-2 rounded" />
-            </label>
-
-            <label className="block mb-2">
-                День рождения
-                <input name="phone" value={formData.birth_date || ""} onChange={handleChange} className="w-full border p-2 rounded" />
-            </label>
-
-            <label className="block mb-2">
-                Запретить онлайн бронирование
-                <input name="phone" value={formData.forbid_online_booking || ""} onChange={handleChange} className="w-full border p-2 rounded" />
+            <label className="block mb-2 flex items-center space-x-2">
+                <input
+                    type="checkbox"
+                    name="forbid_online_booking"
+                    checked={!!formData.forbid_online_booking}
+                    onChange={handleChange}
+                />
+                <span>Запретить онлайн бронирование</span>
             </label>
 
             <label className="block mb-2">
                 Комментарий
-                <input name="comment" value={formData.comment || ""} onChange={handleChange} className="w-full border p-2 rounded" />
+                <textarea name="comment" value={formData.comment || ""} onChange={handleChange} className="w-full border p-2 rounded" />
             </label>
 
             <label className="block mb-2">
-                Фото
-                <input name="comment" value={formData.photo || ""} onChange={handleChange} className="w-full border p-2 rounded" />
+                Фото (URL)
+                <input name="photo" value={formData.photo || ""} onChange={handleChange} className="w-full border p-2 rounded" />
             </label>
 
             <button
