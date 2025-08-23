@@ -14,6 +14,8 @@ import {
     ChevronDownIcon,
     ChevronUpIcon, ArrowRightOnRectangleIcon,
     CalendarIcon,
+    ClockIcon,
+    PhoneIcon
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
@@ -54,6 +56,13 @@ const Page: React.FC = () => {
         router.push("/signin"); // Перенаправляем на страницу логина
     };
 
+
+
+    const appointments = [
+        { id: 1, start: "10:00", end: "11:00", client: "Иван Петров", service: "Массаж спины", phone: "+77771234567" },
+        { id: 2, start: "12:00", end: "13:30", client: "Анна Сидорова", service: "SPA программа", phone: "+77779876543" },
+        { id: 3, start: "15:00", end: "15:30", client: "Сергей К.", service: "Консультация", phone: "+77770000000" },
+    ];
 
 
     useEffect(() => {
@@ -434,6 +443,43 @@ const Page: React.FC = () => {
                         <div className="flex items-center">
                             <p>Лист: {""}</p>
                         </div>
+                        <div className="space-y-4 p-4">
+                            <h2 className="text-xl font-bold text-gray-200">Расписание на сегодня</h2>
+
+                            {appointments.length === 0 ? (
+                                <p className="text-gray-400">Нет записей на сегодня</p>
+                            ) : (
+                                appointments.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className="bg-gray-800 rounded-xl p-4 shadow-md flex justify-between items-center hover:bg-gray-700 transition"
+                                    >
+                                        {/* Левая часть */}
+                                        <div>
+                                            <div className="flex items-center space-x-2 text-gray-200">
+                                                <ClockIcon className="h-5 w-5 text-indigo-400" />
+                                                <span className="font-medium">
+                  {item.start} – {item.end}
+                </span>
+                                            </div>
+                                            <p className="text-lg font-semibold">{item.client}</p>
+                                            <p className="text-sm text-gray-400">{item.service}</p>
+                                        </div>
+
+                                        {/* Правая часть */}
+                                        <div className="flex items-center space-x-2">
+                                            <a
+                                                href={`tel:${item.phone}`}
+                                                className="p-2 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white transition"
+                                            >
+                                                <PhoneIcon className="h-5 w-5" />
+                                            </a>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                        );
 
 
                     </section>
