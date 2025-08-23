@@ -10,7 +10,7 @@ import {
     GlobeAltIcon,
     Cog8ToothIcon,
     ChevronUpIcon,
-    ChevronDownIcon, ArrowRightOnRectangleIcon
+    ChevronDownIcon, ArrowRightOnRectangleIcon, CalendarIcon
 } from "@heroicons/react/24/outline";
 import {branchesList} from "@/services/branchesList";
 import EmployeesList from "@/components/EmployeesList";
@@ -198,6 +198,14 @@ const Page: React.FC = () => {
                 </Link>
             ),
             icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
+        },
+        {
+            label: (
+                <Link href={`/schedule/${id}`} className="flex items-center">
+                    Расписание
+                </Link>
+            ),
+            icon: <CalendarIcon className="h-8 w-8 text-gray-400" />
         },
         {
             label: (

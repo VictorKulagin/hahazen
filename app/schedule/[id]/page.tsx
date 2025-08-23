@@ -1,63 +1,75 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
+import { useEffect } from 'react';
 import { withAuth } from "@/hoc/withAuth";
 import Image from "next/image";
 import Link from "next/link";
-import { cabinetDashboard } from "@/services/cabinetDashboard";
-import { companiesList } from "@/services/companiesList";
-
 import {
     UserGroupIcon,
     UsersIcon,
     GlobeAltIcon,
     Cog8ToothIcon,
+    WrenchIcon,
+    BuildingStorefrontIcon,
     ChevronDownIcon,
-    ChevronUpIcon,
-    UserIcon,
-    ArrowRightOnRectangleIcon,
-    AtSymbolIcon,
-    PhoneIcon, CalendarIcon
+    ChevronUpIcon, ArrowRightOnRectangleIcon,
+    CalendarIcon,
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
+import {cabinetDashboard} from "@/services/cabinetDashboard";
+import {companiesList} from "@/services/companiesList";
 import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
+import {Employee, fetchEmployees} from "@/services/employeeApi";
+//import { useEmployees } from '@/contexts/EmployeesContext_';
 import EmployeesList from "@/components/EmployeesList";
 
-interface ApiError extends Error {
-    data?: {
-        message?: string;
-    };
-}
+
 const Page: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAccordionOpenEmployees, setIsAccordionOpenEmployees] = useState(false);
     const [isAccordionOpenClients, setIsAccordionOpenClients] = useState(false);
 
-    const [branchesData, setBranchesData] = useState<any>(null);
-    const [companiesData, setCompaniesData] = useState<any>(null);
+    const [employeesList, setEmployeesList] = useState<Employee[]>([]);
+
     const [userData, setUserData] = useState<any>(null);
+    const [branchesData, setBranchesData] = useState<any>(null);
+
+
+    const [companiesData, setCompaniesData] = useState<any>(null);
+    const [isModalFilOpen, setIsModalFilOpen] = useState(false);
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
 
+   // const { employees } = useEmployees();
 
-    const [isModalFilOpen, setIsModalFilOpen] = useState(false);
+    const router = useRouter();
 
-    // Функция для открытия/закрытия модального окна
     const toggleFilModal = () => {
         setIsModalFilOpen((prev) => !prev);
     };
-
-
-    //const [isLoading, setIsLoading] = useState(true);
-    const router = useRouter();
-
-
-
     const handleLogout = () => {
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
     };
 
+
+
+    useEffect(() => {
+        const loadEmployees = async () => {
+            try {
+                const employees = await fetchEmployees();
+                setEmployeesList(employees);
+            } catch (err) {
+                setError("Ошибка при загрузке сотрудников.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadEmployees();
+    }, []);
 
 
     useEffect(() => {
@@ -75,8 +87,11 @@ const Page: React.FC = () => {
                 console.log("response.data setBranchesData", data);
                 setBranchesData(data);
             } catch (err: unknown) {
-                // @ts-ignore
-                setError(`Ошибка: ${err?.message || "Неизвестная ошибка"}`);
+                if (err instanceof Error) {
+                    setError(`Ошибка: ${err.message}`);
+                } else {
+                    setError("Неизвестная ошибка");
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -84,6 +99,7 @@ const Page: React.FC = () => {
 
         fetchUserData();
     }, [companiesData]);
+
 
     useEffect(() => {
         const token = localStorage.getItem("access_token"); // Или брать из cookie
@@ -100,50 +116,49 @@ const Page: React.FC = () => {
                 console.log("response.data companiesList", data);
                 setCompaniesData(data); // Сохраняем данные пользователя
             } catch (err: unknown) {
-                // @ts-ignore
-                setError(`Ошибка: ${err.response?.data?.message || err.message || "Неизвестная ошибка"}`);
-            } finally {
+                if (err instanceof Error) {
+                    setError(`Ошибка: ${err.message}`);
+                } else {
+                    setError("Неизвестная ошибка");
+                }
+            }finally {
                 setIsLoading(false);
             }
         };
 
         fetchUserData();
     }, []);
+
 
     useEffect(() => {
-        const token = localStorage.getItem("access_token"); // Или брать из cookie
-
-        if (!token) {
-            setError("Токен не найден.");
-            setIsLoading(false);
-            return;
-        }
-
-        const fetchUserData = async () => {
-            try {
-                const data = await cabinetDashboard();
-                console.log("response.data", data);
-                setUserData(data); // Сохраняем данные пользователя
-            } catch (err: unknown) {
-                // @ts-ignore
-                setError(`Ошибка: ${err.data?.message || err.message || "Неизвестная ошибка"}`);
-            } finally {
+        if (typeof window !== "undefined") {
+            const token = localStorage.getItem("access_token");
+            if (!token) {
+                setError("Токен не найден.");
                 setIsLoading(false);
+                return;
             }
-        };
 
-        fetchUserData();
+            const fetchUserData = async () => {
+                try {
+                    const data = await cabinetDashboard();
+                    console.log("Данные пользователя:", data);
+                    setUserData(data);
+                } catch (err: any) {
+                    console.error("Ошибка API:", err);
+                    setError(err.response?.data?.message || "Ошибка при загрузке данных.");
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            fetchUserData();
+        }
     }, []);
 
-    //const id = branchesData?.[0]?.company_id ?? null;
 
 
-    const getCompanyId = (data: any[]): number | null => {
-        return data?.[0]?.id ?? null;
-    };
-// Использование:
-    const id = getCompanyId(branchesData);
-
+    const id = branchesData?.[0]?.id ?? null;
     const params = useParams();
     //const idFromUrl = params.id as string || null;
     let idFromUrl: string | null = null;
@@ -154,19 +169,60 @@ const Page: React.FC = () => {
     console.log("ID из данных филиала:", id);
     console.log("ID из URL:", idFromUrl);
 
-    useEffect(() => {
+    /*useEffect(() => {
         if (!idFromUrl || !id) return;
         if (String(idFromUrl) !== String(id)) {
             console.warn(`Редирект на 404: idFromUrl (${idFromUrl}) !== id (${id})`);
             router.replace("/404");
         }
+    }, [idFromUrl, id]);*/
+    const [isNotFound, setIsNotFound] = useState(false);
+    useEffect(() => {
+        if (!idFromUrl || !id) return;
+        if (String(idFromUrl) !== String(id)) {
+            console.warn(`Несоответствие ID: idFromUrl (${idFromUrl}) !== id (${id})`);
+            setIsNotFound(true);
+        }
     }, [idFromUrl, id]);
+
+    useEffect(() => {
+        // Изменяем заголовок страницы
+        document.title = isNotFound ? "404 - Страница не найдена" : "Название вашей страницы";
+    }, [isNotFound]);
+
+    if (isNotFound) {
+        return (
+            <div className="text-center py-10">
+                <h1 className="text-2xl font-bold mb-4">404 - Страница не найдена</h1>
+                <p className="mb-2">Такой страницы нет</p>
+                <p>Проверьте ссылку — возможно, в ней ошибка.</p>
+            </div>
+        );
+    }
+
+
+    if (isLoading) return <p>Загрузка...</p>;
+    if (error) return <p style={{ color: "red" }}>{error}</p>;
+
+    if (isLoading) {
+        return <div>Загрузка...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
+    }
+
+
+    //const id = "565";
+
+    //const id = branchesData?.[0]?.company_id; // Получаем ID компании из данных филиала
+    //const id = branchesData?.[0]?.company_id || "unknown";
+
 
     // Пример клиентов
     const clients = [
         { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
     ];
-
 
     // Элементы меню
     const menuItems = [
@@ -175,7 +231,7 @@ const Page: React.FC = () => {
             icon: <UserGroupIcon className="h-8 w-8 text-gray-400" />,
             content: (
                 <div className="ml-10 mt-2">
-                    <EmployeesList branchId={id as number | undefined}/>
+                    <EmployeesList branchId={id}/>
                 </div>
             ),
         },
@@ -183,7 +239,7 @@ const Page: React.FC = () => {
             label: "Клиенты", // Новый пункт "Клиенты"
             icon: <UsersIcon className="h-8 w-8 text-gray-400" />,
             content: (
-                <div className="ml-10 mt-2">
+                <div  className="ml-10 mt-2 flex flex-col gap-2">
                     {clients.map((client) => (  // Список клиентов, аналогично сотрудникам
                         <Link
                             key={client.id}
@@ -202,7 +258,7 @@ const Page: React.FC = () => {
                     Онлайн-запись
                 </Link>
             ),
-            icon: <GlobeAltIcon className="h-8 w-8 text-gray-200" />, isActive: true
+            icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
         },
         {
             label: (
@@ -210,7 +266,7 @@ const Page: React.FC = () => {
                     Расписание
                 </Link>
             ),
-            icon: <CalendarIcon className="h-8 w-8 text-gray-400" />
+            icon: <CalendarIcon className="h-8 w-8 text-gray-200" />, isActive: true
         },
         {
             label: (
@@ -218,7 +274,7 @@ const Page: React.FC = () => {
                     Настройки
                 </Link>
             ),
-            icon: <Cog8ToothIcon className="h-8 w-8 text-gray-400" />
+            icon: <Cog8ToothIcon className="h-8 w-8 text-gray-200" />
         },
 
         { label: <hr className="border-gray-700 my-2" />, icon: null }, // Разделитель
@@ -247,6 +303,9 @@ const Page: React.FC = () => {
         }
     ];
 
+    if (isLoading) return <p>Загрузка сотрудников...</p>;
+    if (error) return <p style={{ color: "red" }}>{error}</p>;
+
     return (
         <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
             {/* Подложка для клика вне меню */}
@@ -257,18 +316,15 @@ const Page: React.FC = () => {
                 ></div>
             )}
 
-
             {/* Левая колонка (меню) */}
             <aside
                 className={`bg-darkBlue text-white p-4 fixed z-20 h-full transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
-
-                {/* Шапка с логотипом */}
-                <div
-                    className="border-b border-gray-400 p-2 flex items-center cursor-pointer"
-                    onClick={toggleFilModal} // Обработчик клика
+                {/* Логотип */}
+                <div className="border-b border-gray-400 p-2 flex items-center"
+                     onClick={toggleFilModal} // Обработчик клика
                 >
                     <Image
                         src="/logo.png"
@@ -302,12 +358,12 @@ const Page: React.FC = () => {
                                         <span className="ml-auto text-white">
                                     {item.label === "Сотрудники"
                                         ? isAccordionOpenEmployees
-                                            ? <ChevronUpIcon className="h-5 w-5 inline"/>
-                                            : <ChevronDownIcon className="h-5 w-5 inline"/>
+                                            ? <ChevronUpIcon className="h-5 w-5 inline" />
+                                            : <ChevronDownIcon className="h-5 w-5 inline" />
                                         : item.label === "Клиенты" && (isAccordionOpenClients
-                                        ? <ChevronUpIcon className="h-5 w-5 inline"/>
-                                        : <ChevronDownIcon className="h-5 w-5 inline"/>)
-                                    }
+                                        ? <ChevronUpIcon className="h-5 w-5 inline" />
+                                        : <ChevronDownIcon className="h-5 w-5 inline" />)
+                                            }
                                 </span>
                                     )}
                                 </div>
@@ -364,7 +420,7 @@ const Page: React.FC = () => {
 
                 {/* Заголовок */}
                 <header className="mb-6">
-                    <h1 className="text-2xl font-bold mb-2">Онлайн-запись (раздел в разработке)</h1>
+                    <h1 className="text-2xl font-bold mb-2">Расписание (Раздел в разработке)</h1>
                 </header>
 
                 {/* Контент: две колонки */}
@@ -372,39 +428,21 @@ const Page: React.FC = () => {
                     {/* Первая колонка */}
                     <section className="bg-white text-black p-4 rounded shadow">
                         <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2">Личные данные</h2>
+                            <WrenchIcon className="h-6 w-6 text-black mr-2" />
+                            <h2 className="text-lg font-semibold mb-2">Расписание заявок</h2>
                         </div>
-                        {/* Ссылка с динамическим путем */}
-                        <div className="mb-2">
-
-                            <div className="space-y-3">
-                                <p className="text-2xl font-bold">Привет, {userData?.name}! Раздел ещё в режиме разработки</p>
-
-                                <p>ID: {userData?.id}</p>
-
-                            </div>
-
+                        <div className="flex items-center">
+                            <p>Лист: {""}</p>
                         </div>
-                        {/*{Boolean(id) && (
-                            <div className="mb-2">
-                                <Link href={`/settings/service_categories/${id}`} className="hover:underline">
-                                    Услуги
-                                </Link>
-                            </div>
-                        )}
-                        {Boolean(id) && (
-                            <div className="mb-2">
-                                <Link href={`/settings/filial_staff/${id}`} className="hover:underline">
-                                    Сотрудники
-                                </Link>
-                            </div>
-                        )}*/}
+
+
                     </section>
 
                     {/* Вторая колонка */}
                     <section className="bg-white text-black p-4 rounded shadow">
                         <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2">Настройки</h2>
+                            <BuildingStorefrontIcon className="h-6 w-6 text-black mr-2" />
+                            <h2 className="text-lg font-semibold mb-2">Мой филиал</h2>
                         </div>
                         <p>Настройки филиала</p>
                     </section>

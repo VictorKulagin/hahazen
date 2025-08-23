@@ -18,7 +18,7 @@ import {
     UserIcon,
     ArrowRightOnRectangleIcon,
     AtSymbolIcon,
-    PhoneIcon
+    PhoneIcon, CalendarIcon
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
@@ -272,15 +272,13 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
         },
         {
             label: "Клиенты", // Новый пункт "Клиенты"
-            icon: <UsersIcon className="h-8 w-8 text-gray-200" />,
+            icon: <UsersIcon className="h-8 w-8 text-gray-200" />, isActive: true,
             content: (
                 <div className="ml-10 mt-2">
                     {clients.map((client) => (  // Список клиентов, аналогично сотрудникам
                         <Link
                             key={client.id}
                             href={client.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
                             className="block text-gray-300 hover:text-white transition"
                         >
                             {client.name}
@@ -299,11 +297,19 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
         },
         {
             label: (
+                <Link href={`/schedule/${id}`} className="flex items-center">
+                    Расписание
+                </Link>
+            ),
+            icon: <CalendarIcon className="h-8 w-8 text-gray-400" />
+        },
+        {
+            label: (
                 <Link href={`/settings/menu/${id}`} className="flex items-center">
                     Настройки
                 </Link>
             ),
-            icon: <Cog8ToothIcon className="h-8 w-8 text-gray-400" />, isActive: false
+            icon: <Cog8ToothIcon className="h-8 w-8 text-gray-400" />
         },
 
         { label: <hr className="border-gray-700 my-2" />, icon: null }, // Разделитель
