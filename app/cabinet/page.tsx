@@ -15,7 +15,7 @@ import {
     UserIcon,
     ArrowRightOnRectangleIcon,
     AtSymbolIcon,
-    PhoneIcon
+    PhoneIcon, CalendarIcon
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { branchesList } from "@/services/branchesList";
@@ -167,6 +167,14 @@ const Page: React.FC = () => {
                 </Link>
             ),
             icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
+        },
+        {
+            label: (
+                <Link href={`/schedule/${id}`} className="flex items-center">
+                    Расписание
+                </Link>
+            ),
+            icon: <CalendarIcon className="h-8 w-8 text-gray-400" />
         },
         {
             label: (
