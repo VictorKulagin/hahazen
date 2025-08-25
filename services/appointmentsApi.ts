@@ -2,7 +2,12 @@
 import apiClient from "./api";
 
 
-
+export interface BookedDaysResponse {
+    year: number;
+    month: number;
+    branch_id: number | null;
+    days: number[];
+}
 export interface AppointmentRequest {
     id?: number; // Добавляем опциональное поле id
     client: {
@@ -66,4 +71,25 @@ debugger;
 export const deleteAppointment = async (id: number): Promise<void> => {
     //debugger;
     await apiClient.delete(`/appointments/${id}`);
+};
+
+export const fetchBookedDays = async (
+    year: number,
+    month: number,
+    branch_id?: number | null
+): Promise<BookedDaysResponse> => {
+    try {
+        const params: Record<string, any> = { year, month };
+        if (branch_id !== undefined) {
+            params.branch_id = branch_id;
+        }
+        const response = await apiClient.get<BookedDaysResponse>(
+            "/appointments/booked-days",
+            { params }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching booked days:", error);
+        throw error;
+    }
 };

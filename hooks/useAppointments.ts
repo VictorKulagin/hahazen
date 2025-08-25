@@ -9,7 +9,7 @@ import {
     Appointment
 } from "@/services/appointmentsApi";
 
-
+import { fetchBookedDays, BookedDaysResponse } from "@/services/appointmentsApi";
 
 export type DurationOption =
     | '1-day'
@@ -196,5 +196,14 @@ export const useDeleteAppointment = () => {
         onSettled: () => {
             queryClient.invalidateQueries({ queryKey: ['appointments'] });
         }
+    });
+};
+
+export const useBookedDays = (year: number, month: number, branch_id?: number | null) => {
+    return useQuery<BookedDaysResponse, Error>({
+        queryKey: ["bookedDays", year, month, branch_id],
+        queryFn: () => fetchBookedDays(year, month, branch_id),
+        staleTime: 5 * 60 * 1000,  // 5 минут кэш
+        refetchOnWindowFocus: false,
     });
 };

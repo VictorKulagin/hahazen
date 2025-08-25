@@ -25,6 +25,9 @@ import { useParams } from 'next/navigation';
 import {Employee, fetchEmployees} from "@/services/employeeApi";
 //import { useEmployees } from '@/contexts/EmployeesContext_';
 import EmployeesList from "@/components/EmployeesList";
+import {useBookedDays} from "@/hooks/useAppointments";
+import CustomCalendar from "@/components/CustomCalendar";
+import ScheduleModule from "@/components/ScheduleModule";
 
 
 const Page: React.FC = () => {
@@ -55,6 +58,10 @@ const Page: React.FC = () => {
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
     };
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
 
 
 
@@ -177,6 +184,8 @@ const Page: React.FC = () => {
 
     console.log("ID из данных филиала:", id);
     console.log("ID из URL:", idFromUrl);
+
+    const { data: bookedDaysData, error: bookedDaysError, isLoading: isBookedDaysLoading } = useBookedDays(year, month, id);
 
     /*useEffect(() => {
         if (!idFromUrl || !id) return;
@@ -312,6 +321,10 @@ const Page: React.FC = () => {
         }
     ];
 
+    const handleDateSelect = (date: Date) => {
+        alert(`Выбрана дата: ${date.toLocaleDateString()}`);
+    };
+
     if (isLoading) return <p>Загрузка сотрудников...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
@@ -432,20 +445,24 @@ const Page: React.FC = () => {
                     <h1 className="text-2xl font-bold mb-2">Расписание (Раздел в разработке)</h1>
                 </header>
 
-                {/* Контент: две колонки */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Первая колонка */}
-                    <section className="bg-white text-black p-4 rounded shadow">
-                        <div className="flex items-center mb-2">
-                            <WrenchIcon className="h-6 w-6 text-black mr-2" />
-                            <h2 className="text-lg font-semibold mb-2">Расписание заявок</h2>
-                        </div>
-                        <div className="flex items-center">
-                            <p>Лист: {""}</p>
-                        </div>
-                        <div className="space-y-4 p-4">
-                            <h2 className="text-xl font-bold text-gray-200">Расписание на сегодня</h2>
 
+
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    {/* Левая колонка: 20%, на мобильных flex с центровкой */}
+                    <section className="col-span-4 md:col-span-1 bg-white text-black flex justify-center ">
+                        <CustomCalendar
+                            year={year}
+                            month={month}
+                            daysWithAppointments={bookedDaysData?.days ?? []}
+                            onDateSelect={handleDateSelect}
+                        />
+                    </section>
+
+                    {/* Правая колонка: 80% */}
+                    <section className="col-span-4 bg-white text-black p-4 rounded shadow">
+
+                        {/*<div className="space-y-4 p-4">
+                            <h2 className="text-xl font-bold text-gray-200">Расписание на сегодня</h2>
                             {appointments.length === 0 ? (
                                 <p className="text-gray-400">Нет записей на сегодня</p>
                             ) : (
@@ -454,7 +471,6 @@ const Page: React.FC = () => {
                                         key={item.id}
                                         className="bg-gray-800 rounded-xl p-4 shadow-md flex justify-between items-center hover:bg-gray-700 transition"
                                     >
-                                        {/* Левая часть */}
                                         <div>
                                             <div className="flex items-center space-x-2 text-gray-200">
                                                 <ClockIcon className="h-5 w-5 text-indigo-400" />
@@ -466,7 +482,6 @@ const Page: React.FC = () => {
                                             <p className="text-sm text-gray-400">{item.service}</p>
                                         </div>
 
-                                        {/* Правая часть */}
                                         <div className="flex items-center space-x-2">
                                             <a
                                                 href={`tel:${item.phone}`}
@@ -478,21 +493,14 @@ const Page: React.FC = () => {
                                     </div>
                                 ))
                             )}
-                        </div>
-                        );
-
-
-                    </section>
-
-                    {/* Вторая колонка */}
-                    <section className="bg-white text-black p-4 rounded shadow">
-                        <div className="flex items-center mb-2">
-                            <BuildingStorefrontIcon className="h-6 w-6 text-black mr-2" />
-                            <h2 className="text-lg font-semibold mb-2">Мой филиал</h2>
-                        </div>
-                        <p>Настройки филиала</p>
+                        </div>*/}
+                        <ScheduleModule />
                     </section>
                 </div>
+
+
+
+
             </main>
         </div>
     );
