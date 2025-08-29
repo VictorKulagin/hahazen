@@ -7,17 +7,22 @@ interface CustomCalendarProps {
     month: number; // 1-12
     daysWithAppointments: number[];
     onDateSelect?: (date: Date) => void;
+    onPrevMonth?: () => void;
+    onNextMonth?: () => void;
 }
 
 const CustomCalendar: React.FC<CustomCalendarProps> = ({
-                                                           year: initialYear,
-                                                           month: initialMonth,
+                                                           year,
+                                                           month,
                                                            daysWithAppointments,
                                                            onDateSelect,
+                                                           onPrevMonth,
+                                                           onNextMonth,
                                                        }) => {
-    const [year, setYear] = useState(initialYear);
-    const [month, setMonth] = useState(initialMonth); // 1-12
     const [selectedDay, setSelectedDay] = useState<number | null>(null);
+    /*const [year, setYear] = useState(initialYear);
+    const [month, setMonth] = useState(initialMonth); // 1-12
+    const [selectedDay, setSelectedDay] = useState<number | null>(null);*/
 
     const daysInMonth = new Date(year, month, 0).getDate();
     const firstDayWeek = new Date(year, month - 1, 1).getDay();
@@ -33,7 +38,8 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({
         onDateSelect?.(new Date(year, month - 1, day));
     };
 
-    const prevMonth = () => {
+
+    /*const prevMonth = () => {
         if (month === 1) {
             setMonth(12);
             setYear(year - 1);
@@ -51,16 +57,16 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({
             setMonth(month + 1);
         }
         setSelectedDay(null);
-    };
+    };*/
 
     return (
         <div style={{ width: 280 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                <button onClick={prevMonth}>← Назад</button>
+                <button onClick={onPrevMonth}>← Назад</button>
                 <div>
                     {year} - {month.toString().padStart(2, '0')}
                 </div>
-                <button onClick={nextMonth}>Вперёд →</button>
+                <button onClick={onNextMonth}>Вперёд →</button>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>

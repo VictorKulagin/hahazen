@@ -60,8 +60,9 @@ const Page: React.FC = () => {
     };
 
     const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
+    const [year, setYear] = useState(today.getFullYear());
+    const [month, setMonth] = useState(today.getMonth() + 1);
+    const [daysWithAppointments, setDaysWithAppointments] = useState<number[]>([]);
 
 
 
@@ -321,6 +322,25 @@ const Page: React.FC = () => {
         }
     ];
 
+
+    const handlePrevMonth = () => {
+        if (month === 1) {
+            setMonth(12);
+            setYear(y => y - 1);
+        } else {
+            setMonth(m => m - 1);
+        }
+    };
+
+    const handleNextMonth = () => {
+        if (month === 12) {
+            setMonth(1);
+            setYear(y => y + 1);
+        } else {
+            setMonth(m => m + 1);
+        }
+    };
+
     const handleDateSelect = (date: Date) => {
         alert(`Выбрана дата: ${date.toLocaleDateString()}`);
     };
@@ -455,6 +475,8 @@ const Page: React.FC = () => {
                             month={month}
                             daysWithAppointments={bookedDaysData?.days ?? []}
                             onDateSelect={handleDateSelect}
+                            onPrevMonth={handlePrevMonth}
+                            onNextMonth={handleNextMonth}
                         />
                     </section>
 
