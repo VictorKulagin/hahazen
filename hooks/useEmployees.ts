@@ -23,7 +23,7 @@ export const useEmployees = (branchId?: number) => {
         onError: (err) => console.error('Query error:', err)*/
     });
 
-    debugger;
+    //debugger;
 
     useEffect(() => {
         if (query.data) {

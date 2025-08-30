@@ -1,5 +1,6 @@
 // services/appointmentsApi.ts
 import apiClient from "./api";
+import {AppointmentResponse} from "@/hooks/useAppointments";
 
 
 export interface BookedDaysResponse {
@@ -35,6 +36,14 @@ export interface AppointmentRequest {
     }>;
     comment?: string;
 }
+
+// Интерфейс для параметров запроса к appointments по филиалу и дате
+export interface AppointmentsByBranchAndDateParams {
+    branchId: number;
+    startDate: string;
+    endDate: string;
+}
+
 debugger;
 export const fetchAppointments = (
     branchId: number,
@@ -92,4 +101,22 @@ export const fetchBookedDays = async (
         console.error("Error fetching booked days:", error);
         throw error;
     }
+};
+
+
+
+
+// Функция для получения данных по новому интерфейсу
+export const fetchAppointmentsByBranchAndDate = (
+    params: AppointmentsByBranchAndDateParams
+): Promise<AppointmentResponse[]> => {
+    const { branchId, startDate, endDate } = params;
+
+    return apiClient.get("/appointments", {
+        params: {
+            branch_id: branchId,
+            date_start: startDate,
+            date_end: endDate,
+        },
+    }).then(response => response.data as AppointmentResponse[]);
 };

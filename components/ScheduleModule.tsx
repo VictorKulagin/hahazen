@@ -1,5 +1,6 @@
 "use client";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {Employee} from "@/services/employeeApi";
 
 // =============================
 // ScheduleModule — Step 1
@@ -8,15 +9,21 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "re
 // - без модалок, без drag&drop (появятся на шагах 2+)
 // =============================
 
-export type ScheduleEvent = {
+export interface ScheduleEvent {
     id: string;
-    start: string; // HH:MM
-    end: string;   // HH:MM
+    start: string;
+    end: string;
     text: string;
-    master: number; // индекс мастера
-};
+    master: number;
+}
+
 
 export type ScheduleModuleProps = {
+    employees: Employee[];
+    appointments: ScheduleEvent[];
+    selectedDate: Date;
+    onDateSelect: React.Dispatch<React.SetStateAction<Date>>;
+
     masters?: string[];
     startHour?: number; // 8 → 08:00
     endHour?: number;   // 20 → 20:00
@@ -27,14 +34,15 @@ export type ScheduleModuleProps = {
     onEventClick?: (event: ScheduleEvent) => void;                      // зарезервировано для шага 3
 };
 
-const defaultMasters = [
+
+/*const defaultMasters = [
     "Мастер A",
     "Мастер B",
     "Мастер C",
     "Мастер D",
     "Мастер E",
     "Мастер F",
-];
+];*/
 
 function toMins(t: string): number {
     const [h, m] = t.split(":").map(Number);
@@ -53,8 +61,14 @@ function rangeSlots(minMinutes: number, maxMinutes: number, step: number) {
     return slots;
 }
 
+
+
 export default function ScheduleModule({
-                                           masters = defaultMasters,
+                                           //masters = defaultMasters,
+                                           employees,
+                                           appointments,
+                                           selectedDate,
+                                           onDateSelect,
                                            startHour = 0,
                                            endHour = 24,
                                            slotStepMin = 30,
@@ -66,7 +80,9 @@ export default function ScheduleModule({
                                            onCellClick,
                                            onEventClick,
                                        }: ScheduleModuleProps) {
-    const [events] = useState<ScheduleEvent[]>(initialEvents);
+    const masters = employees.map(e => e.name);
+    //const [events] = useState<ScheduleEvent[]>(initialEvents);
+    const events = appointments;
 
     const minMinutes = startHour * 60;
     const maxMinutes = endHour * 60;
@@ -118,7 +134,9 @@ export default function ScheduleModule({
     // вычисление позиций карточек событий
     const cards = useMemo(() => {
         const pixelsPerMin = rowHeightPx / slotStepMin;
-        const results = events.map((ev) => {
+
+        debugger;
+       /* const results = events.map((ev) => {
             const sm = toMins(ev.start);
             const em = toMins(ev.end);
             const duration = Math.max(0, em - sm);
@@ -128,8 +146,20 @@ export default function ScheduleModule({
             const left = col ? col.left : 100; // fallback
             const width = col ? col.width : 120;
             return { id: ev.id, top, height, left, width, ev };
+        });*/
+        //return results;
+        return appointments.map(ev => {
+            // вычисление позиций карточек событий
+            const sm = toMins(ev.start);
+            const em = toMins(ev.end);
+            const duration = Math.max(0, em - sm);
+            const top = ((sm - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx;
+            const height = (duration / slotStepMin) * rowHeightPx;
+            const col = colRects[ev.master];
+            const left = col ? col.left : 100;
+            const width = col ? col.width : 120;
+            return { id: ev.id, top, height, left, width, ev };
         });
-        return results;
     }, [events, colRects, minMinutes, rowHeightPx, slotStepMin]);
 
     // обработчик клика по ячейке сетки (будет использован на шаге 2)

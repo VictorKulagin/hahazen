@@ -23,12 +23,14 @@ import {companiesList} from "@/services/companiesList";
 import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
 import {Employee, fetchEmployees} from "@/services/employeeApi";
-//import { useEmployees } from '@/contexts/EmployeesContext_';
 import EmployeesList from "@/components/EmployeesList";
-import {useBookedDays} from "@/hooks/useAppointments";
+import {groupAppointments, useBookedDays} from "@/hooks/useAppointments";
 import CustomCalendar from "@/components/CustomCalendar";
 import ScheduleModule from "@/components/ScheduleModule";
-
+import { useEmployees }  from "@/hooks/useEmployees";
+import { useAppointments } from "@/hooks/useAppointments";
+import { flattenGroupedAppointments } from '@/components/utils/appointments';
+import { useAppointmentsByBranchAndDate } from '@/hooks/useAppointments';
 
 const Page: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -66,11 +68,11 @@ const Page: React.FC = () => {
 
 
 
-    const appointments = [
+    /*const appointments = [
         { id: 1, start: "10:00", end: "11:00", client: "Иван Петров", service: "Массаж спины", phone: "+77771234567" },
         { id: 2, start: "12:00", end: "13:30", client: "Анна Сидорова", service: "SPA программа", phone: "+77779876543" },
         { id: 3, start: "15:00", end: "15:30", client: "Сергей К.", service: "Консультация", phone: "+77770000000" },
-    ];
+    ];*/
 
 
     useEffect(() => {
@@ -188,13 +190,19 @@ const Page: React.FC = () => {
 
     const { data: bookedDaysData, error: bookedDaysError, isLoading: isBookedDaysLoading } = useBookedDays(year, month, id);
 
-    /*useEffect(() => {
-        if (!idFromUrl || !id) return;
-        if (String(idFromUrl) !== String(id)) {
-            console.warn(`Редирект на 404: idFromUrl (${idFromUrl}) !== id (${id})`);
-            router.replace("/404");
-        }
-    }, [idFromUrl, id]);*/
+    // Получаем мастеров из API (сотрудников для филиала)
+    const { data: employees, isLoading: employeesLoading, error: employeesError } = useEmployees(id);
+
+// Средствами useAppointments подгружай события выбранного дня:
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+
+
+    const { data: appointments, isLoading: isAppointmentsLoading, error: appointmentsError } = useAppointmentsByBranchAndDate(id, selectedDate);
+
+    const groupedAppointments = groupAppointments(appointments ?? []);
+    const scheduleEvents = flattenGroupedAppointments(groupedAppointments, employees ?? []);
+
     const [isNotFound, setIsNotFound] = useState(false);
     useEffect(() => {
         if (!idFromUrl || !id) return;
@@ -208,6 +216,8 @@ const Page: React.FC = () => {
         // Изменяем заголовок страницы
         document.title = isNotFound ? "404 - Страница не найдена" : "Название вашей страницы";
     }, [isNotFound]);
+
+
 
     if (isNotFound) {
         return (
@@ -230,12 +240,6 @@ const Page: React.FC = () => {
     if (error) {
         return <div>{error}</div>;
     }
-
-
-    //const id = "565";
-
-    //const id = branchesData?.[0]?.company_id; // Получаем ID компании из данных филиала
-    //const id = branchesData?.[0]?.company_id || "unknown";
 
 
     // Пример клиентов
@@ -343,6 +347,7 @@ const Page: React.FC = () => {
 
     const handleDateSelect = (date: Date) => {
         alert(`Выбрана дата: ${date.toLocaleDateString()}`);
+        setSelectedDate(date);
     };
 
     if (isLoading) return <p>Загрузка сотрудников...</p>;
@@ -483,40 +488,12 @@ const Page: React.FC = () => {
                     {/* Правая колонка: 80% */}
                     <section className="col-span-4 bg-white text-black p-4 rounded shadow">
 
-                        {/*<div className="space-y-4 p-4">
-                            <h2 className="text-xl font-bold text-gray-200">Расписание на сегодня</h2>
-                            {appointments.length === 0 ? (
-                                <p className="text-gray-400">Нет записей на сегодня</p>
-                            ) : (
-                                appointments.map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className="bg-gray-800 rounded-xl p-4 shadow-md flex justify-between items-center hover:bg-gray-700 transition"
-                                    >
-                                        <div>
-                                            <div className="flex items-center space-x-2 text-gray-200">
-                                                <ClockIcon className="h-5 w-5 text-indigo-400" />
-                                                <span className="font-medium">
-                  {item.start} – {item.end}
-                </span>
-                                            </div>
-                                            <p className="text-lg font-semibold">{item.client}</p>
-                                            <p className="text-sm text-gray-400">{item.service}</p>
-                                        </div>
-
-                                        <div className="flex items-center space-x-2">
-                                            <a
-                                                href={`tel:${item.phone}`}
-                                                className="p-2 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white transition"
-                                            >
-                                                <PhoneIcon className="h-5 w-5" />
-                                            </a>
-                                        </div>
-                                    </div>
-                                ))
-                            )}
-                        </div>*/}
-                        <ScheduleModule />
+                        <ScheduleModule
+                            employees={employees}  // полный массив объектов Employee[]
+                            appointments={scheduleEvents}
+                            selectedDate={selectedDate}
+                            onDateSelect={setSelectedDate}
+                        />
                     </section>
                 </div>
 

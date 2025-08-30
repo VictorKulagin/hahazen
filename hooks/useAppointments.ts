@@ -5,6 +5,7 @@ import {
     createAppointment,
     updateAppointment,
     deleteAppointment,
+    fetchAppointmentsByBranchAndDate,
     // @ts-ignore
     Appointment
 } from "@/services/appointmentsApi";
@@ -21,7 +22,7 @@ export type DurationOption =
     | 'week';
 
 
-interface GroupedAppointments {
+export interface GroupedAppointments {
     [date: string]: {
         [time: string]: Appointment[];
     };
@@ -70,7 +71,7 @@ export interface AppointmentRequest {
 
 
 // Обновляем функцию группировки
-const groupAppointments = (appointments: AppointmentResponse[]): GroupedAppointments => {
+export const groupAppointments = (appointments: AppointmentResponse[]): GroupedAppointments => {
     return appointments.reduce((acc, appointment) => {
         const date = new Date(appointment.appointment_datetime);
         const dateKey = date.toISOString().split('T')[0];
@@ -84,6 +85,7 @@ const groupAppointments = (appointments: AppointmentResponse[]): GroupedAppointm
     }, {} as GroupedAppointments);
 };
 
+debugger;
 
 export const useAppointments = (
     branchId?: number,
@@ -207,3 +209,30 @@ export const useBookedDays = (year: number, month: number, branch_id?: number | 
         refetchOnWindowFocus: false,
     });
 };
+
+// UseSchedule hook
+export const useAppointmentsByBranchAndDate = (
+    branchId?: number,
+    currentStartDate: Date = new Date()
+) => {
+    const formatDate = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
+    const startDate = formatDate(currentStartDate);
+    const endDate = startDate; // один день
+
+    return useQuery({
+        queryKey: ["appointmentsByBranchAndDate", branchId, startDate, endDate],
+        queryFn: () => {
+            if (!branchId) return Promise.resolve([]);
+            return fetchAppointmentsByBranchAndDate({ branchId, startDate, endDate });
+        },
+        enabled: !!branchId,
+        staleTime: 600000,
+    });
+};
+
