@@ -24,13 +24,193 @@ import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
 import {Employee, fetchEmployees} from "@/services/employeeApi";
 import EmployeesList from "@/components/EmployeesList";
-import {groupAppointments, useBookedDays} from "@/hooks/useAppointments";
+import {groupAppointments, useBookedDays, useCreateAppointment} from "@/hooks/useAppointments";
+
 import CustomCalendar from "@/components/CustomCalendar";
-import ScheduleModule from "@/components/ScheduleModule";
+import ScheduleModule, {toTime} from "@/components/ScheduleModule";
 import { useEmployees }  from "@/hooks/useEmployees";
 import { useAppointments } from "@/hooks/useAppointments";
 import { flattenGroupedAppointments } from '@/components/utils/appointments';
 import { useAppointmentsByBranchAndDate } from '@/hooks/useAppointments';
+import {AppointmentRequest} from "@/services/appointmentsApi";
+import {useEmployeeServices} from "@/hooks/useServices";
+import { formatDateLocal, formatTimeLocal } from "@/components/utils/date";
+import {Services} from "@/services/servicesApi";
+
+
+type EmployeeServiceEither =
+    | (Services & { pivot?: { employee_id: number; service_id: number; individual_price: number; duration_minutes: number } })
+    | { service: Services; pivot?: { employee_id: number; service_id: number; individual_price: number; duration_minutes: number } };
+
+function isNested(item: any): item is { service: Services } {
+    return item && typeof item === "object" && "service" in item;
+}
+
+function unwrapService(item: EmployeeServiceEither): { svc: Services; pivot?: EmployeeServiceEither["pivot"] } {
+    return isNested(item) ? { svc: item.service, pivot: item.pivot } : { svc: item as Services, pivot: (item as any).pivot };
+}
+function CreateEventModal({
+                              isOpen,
+                              onClose,
+                              onSave,
+                              loading,
+                              employeeId
+                          }: {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (data: {
+        name: string;
+        lastName: string;
+        phone: string;
+        comment: string;
+        services: { id: number; qty: number }[];
+    }) => void;
+    loading: boolean;
+    employeeId: number | null;
+}) {
+    const [name, setName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [phone, setPhone] = useState("");
+    const [comment, setComment] = useState("");
+    const [selectedServices, setSelectedServices] = useState<{ id: number; qty: number }[]>([]);
+
+    const { data: services = [], isLoading } = useEmployeeServices(employeeId ?? undefined);
+
+    useEffect(() => {
+        // сбрасываем выбранные услуги при смене мастера
+        setSelectedServices([]);
+    }, [employeeId]);
+
+    if (!isOpen) return null;
+
+    const toggleService = (serviceId: number) => {
+        setSelectedServices(prev =>
+            prev.some(s => s.id === serviceId)
+                ? prev.filter(s => s.id !== serviceId)
+                : [...prev, { id: serviceId, qty: 1 }]
+        );
+    };
+
+    const updateQty = (serviceId: number, qty: number) => {
+        setSelectedServices(prev =>
+            prev.map(s => (s.id === serviceId ? { ...s, qty } : s))
+        );
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (selectedServices.length === 0) {
+            alert("Выберите хотя бы одну услугу");
+            return;
+        }
+        onSave({ name, lastName, phone, comment, services: selectedServices });
+    };
+debugger;
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-white rounded p-6 w-full max-w-md relative">
+                <h2 className="text-lg font-bold mb-4">Создать новое событие</h2>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <input
+                        type="text"
+                        placeholder="Имя"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        required
+                        className="w-full p-2 border rounded"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Фамилия"
+                        value={lastName}
+                        onChange={e => setLastName(e.target.value)}
+                        required
+                        className="w-full p-2 border rounded"
+                    />
+                    <input
+                        type="tel"
+                        placeholder="Телефон"
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                        required
+                        className="w-full p-2 border rounded"
+                    />
+
+                    {/* Новое поле комментария */}
+                    <textarea
+                        placeholder="Комментарий"
+                        value={comment}
+                        onChange={e => setComment(e.target.value)}
+                        className="w-full p-2 border rounded"
+                        rows={3}
+                    />
+
+                    <div>
+                        <h3 className="font-semibold mb-2">Выберите услуги</h3>
+                        {isLoading ? (
+                            <p className="text-sm text-gray-500">Загрузка...</p>
+                        ) : services.length === 0 ? (
+                            <p className="text-sm text-gray-500">У мастера нет привязанных услуг</p>
+                        ) : (
+                            <ul className="space-y-3">
+                                {services.map((item: EmployeeServiceEither) => {
+                                    const { svc, pivot } = unwrapService(item);
+
+                                    const selected = selectedServices.find(s => s.id === svc.id);
+                                    const price = pivot?.individual_price ?? svc.base_price; // если есть индивидуальная цена — покажем её
+
+                                    return (
+                                        <li key={svc.id} className="flex items-center justify-between p-3 border rounded-2xl shadow-sm hover:shadow-md transition">
+                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!selected}
+                                                    onChange={() => toggleService(svc.id)}
+                                                    className="w-5 h-5 accent-blue-600"
+                                                />
+                                                <span className="font-medium text-gray-800">{svc.name}</span>
+                                                <span className="text-sm text-gray-500">{price}₽</span>
+                                            </label>
+
+                                            {selected && (
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    value={selected.qty}
+                                                    onChange={e => updateQty(svc.id, Number(e.target.value))}
+                                                    className="w-16 p-1 border rounded-lg text-center focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+
+                    <div className="flex justify-end space-x-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                            {loading ? "Создание..." : "Создать"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 
 const Page: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -203,6 +383,80 @@ const Page: React.FC = () => {
     const groupedAppointments = groupAppointments(appointments ?? []);
     const scheduleEvents = flattenGroupedAppointments(groupedAppointments, employees ?? []);
 
+    const { mutateAsync: createAppointmentMutate, isPending: isCreating } = useCreateAppointment();
+
+
+
+
+
+
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [selectedMasterIndex, setSelectedMasterIndex] = useState<number | null>(null);
+    const [selectedStartMinutes, setSelectedStartMinutes] = useState<number | null>(null);
+
+    const handleOpenCreateModal = (startMinutes: number, masterIndex: number) => {
+        setSelectedMasterIndex(masterIndex);
+        setSelectedStartMinutes(startMinutes);
+        setIsCreateModalOpen(true);
+    };
+
+    const handleCloseCreateModal = () => {
+        setIsCreateModalOpen(false);
+        setSelectedMasterIndex(null);
+        setSelectedStartMinutes(null);
+    };
+
+
+
+    const handleSaveAppointment = async (data: {
+        name: string;
+        lastName: string;
+        phone: string;
+        comment: string;
+        services: { id: number; qty: number }[];
+    }) => {
+        if (!id || selectedMasterIndex === null || selectedStartMinutes === null) return;
+
+        // Формируем payload для API
+        const newAppointment: AppointmentRequest = {
+            client: {
+                name: data.name,
+                last_name: data.lastName,
+                phone: data.phone,
+            },
+            client_name: data.name,
+            client_last_name: data.lastName,
+            client_phone: data.phone,
+            branch_id: id,
+            employee_id: employees[selectedMasterIndex].id,
+            date: formatDateLocal(selectedDate), // YYYY-MM-DD
+            time_start: formatTimeLocal(selectedStartMinutes),
+            time_end: formatTimeLocal(selectedStartMinutes + 30),
+            appointment_datetime: `${formatDateLocal(selectedDate)} ${formatTimeLocal(selectedStartMinutes)}`, // "YYYY-MM-DD HH:mm"
+            total_duration: 30, // ⬅️ пока жёстко 30 мин, можно вычислить от услуги
+            comment: data.comment,
+            services: data.services.map(s => ({
+                service_id: s.id,
+                qty: s.qty,
+            })),
+        };
+
+        try {
+            // Создаём запись через React Query
+            await createAppointmentMutate(newAppointment);
+
+            // Закрываем модалку
+            setIsCreateModalOpen(false);
+            setSelectedMasterIndex(null);
+            setSelectedStartMinutes(null);
+
+           // alert("Запись успешно создана!");
+        } catch (err: any) {
+            console.error("Ошибка создания записи:", err);
+            alert(err?.message || "Не удалось создать запись");
+        }
+    };
+
     const [isNotFound, setIsNotFound] = useState(false);
     useEffect(() => {
         if (!idFromUrl || !id) return;
@@ -216,6 +470,7 @@ const Page: React.FC = () => {
         // Изменяем заголовок страницы
         document.title = isNotFound ? "404 - Страница не найдена" : "Название вашей страницы";
     }, [isNotFound]);
+
 
 
 
@@ -488,11 +743,22 @@ const Page: React.FC = () => {
                     {/* Правая колонка: 80% */}
                     <section className="col-span-4 bg-white text-black p-4 rounded shadow">
 
+
                         <ScheduleModule
-                            employees={employees}  // полный массив объектов Employee[]
+                            employees={employees}
                             appointments={scheduleEvents}
                             selectedDate={selectedDate}
                             onDateSelect={setSelectedDate}
+                            onCellClick={handleOpenCreateModal}
+                        />
+
+
+                        <CreateEventModal
+                            isOpen={isCreateModalOpen}
+                            onClose={handleCloseCreateModal}
+                            onSave={handleSaveAppointment}
+                            loading={isCreating}
+                            employeeId={selectedMasterIndex !== null ? employees[selectedMasterIndex].id : null}
                         />
                     </section>
                 </div>

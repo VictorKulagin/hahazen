@@ -11,6 +11,8 @@ import {
 } from "@/services/appointmentsApi";
 
 import { fetchBookedDays, BookedDaysResponse } from "@/services/appointmentsApi";
+import { formatDateLocal } from "@/components/utils/date";
+import { AppointmentRequest } from "@/services/appointmentsApi";
 
 export type DurationOption =
     | '1-day'
@@ -54,7 +56,7 @@ export interface AppointmentResponse {
     }>;
 }
 
-export interface AppointmentRequest {
+/*export interface AppointmentRequest {
     client_name: string;
     client_last_name: string;
     client_phone: string;
@@ -67,7 +69,7 @@ export interface AppointmentRequest {
         service_id: number;
         qty: number;
     }>;
-}
+}*/
 
 
 // Обновляем функцию группировки
@@ -90,38 +92,44 @@ debugger;
 export const useAppointments = (
     branchId?: number,
     employeeId?: number,
-    duration: DurationOption = '1-day',
-    currentStartDate: Date = new Date()  // Добавляем параметр currentStartDate
+    duration: DurationOption = "1-day",
+    currentStartDate: Date = new Date()
 ) => {
-    // Функция для расчета диапазона дат на основе currentStartDate
     const getDateRange = (): { start: string; end: string } => {
         const startDate = new Date(currentStartDate);
-        startDate.setHours(0, 0, 0, 0); // Начало дня
+        startDate.setHours(0, 0, 0, 0);
 
         const endDate = new Date(startDate);
-        const daysToAdd = durationToDays(duration) - 1; // Количество дней, которые нужно добавить к начальной дате
-
+        const daysToAdd = durationToDays(duration) - 1;
         endDate.setDate(startDate.getDate() + daysToAdd);
-        endDate.setHours(23, 59, 59, 999); // Конец дня
+        endDate.setHours(23, 59, 59, 999);
 
         return {
-            start: formatDate(startDate),
-            end: formatDate(endDate)
+            start: formatDateLocal(startDate),
+            end: formatDateLocal(endDate),
         };
     };
 
-    // Получаем start и end на основе currentStartDate и duration
     const { start, end } = getDateRange();
 
-    return useQuery<AppointmentResponse[], Error, GroupedAppointments>({
-        queryKey: ['appointments', branchId, employeeId, start, end],
-        // @ts-ignore
+    /*return useQuery<AppointmentRequest[], Error, GroupedAppointments>({
+        queryKey: ["appointments", branchId, employeeId, start, end],
         queryFn: () => {
-            if (!branchId || !employeeId) return [];
+            if (!branchId || !employeeId) return Promise.resolve([]);
             return fetchAppointments(branchId, employeeId, start, end);
         },
         enabled: !!branchId && !!employeeId,
         select: groupAppointments,
+        staleTime: 600000,
+    });*/
+    return useQuery<AppointmentResponse[], Error, GroupedAppointments>({
+        queryKey: ["appointments", branchId, employeeId, start, end],
+        queryFn: () => {
+            if (!branchId || !employeeId) return Promise.resolve([]);
+            return fetchAppointments(branchId, employeeId, start, end);
+        },
+        enabled: !!branchId && !!employeeId,
+        select: groupAppointments, // принимает AppointmentResponse[]
         staleTime: 600000,
     });
 };
@@ -140,17 +148,34 @@ export const durationToDays = (duration: DurationOption): number => {
     }[duration];
 };
 
-
-
 export const useCreateAppointment = () => {
     const queryClient = useQueryClient();
 
-    return useMutation<Appointment, Error, Omit<Appointment, 'id'>>({
-        // @ts-ignore
-        mutationFn: createAppointment,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        }
+    return useMutation({
+        mutationFn: (payload: AppointmentRequest) => createAppointment(payload),
+        onSuccess: (data, variables) => {
+            // 1. Обновляем общий список
+            queryClient.invalidateQueries({ queryKey: ["appointments"] });
+
+            // 2. Формируем локальную дату (из строки variables.date)
+            /*let dateKeyValue = variables.date;
+            if (variables.date instanceof Date) {
+                dateKeyValue = formatDateLocal(variables.date);
+            }*/
+            // 2. Определяем дату для ключа
+            const dateKeyValue = variables.date; // ✅ всегда строка
+
+            // 3. Инвалидируем именно этот день
+            const dateKey = [
+                "appointmentsByBranchAndDate",
+                variables.branch_id,
+                dateKeyValue,
+                dateKeyValue,
+            ];
+            queryClient.invalidateQueries({ queryKey: dateKey });
+
+            console.log("Appointment created:", data, "with variables:", variables);
+        },
     });
 };
 
@@ -210,19 +235,12 @@ export const useBookedDays = (year: number, month: number, branch_id?: number | 
     });
 };
 
-// UseSchedule hook
+// UseSchedule hook раздел РАСПИСАНИЕ
 export const useAppointmentsByBranchAndDate = (
     branchId?: number,
     currentStartDate: Date = new Date()
 ) => {
-    const formatDate = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-    };
-
-    const startDate = formatDate(currentStartDate);
+    const startDate = formatDateLocal(currentStartDate);
     const endDate = startDate; // один день
 
     return useQuery({
@@ -235,4 +253,3 @@ export const useAppointmentsByBranchAndDate = (
         staleTime: 600000,
     });
 };
-

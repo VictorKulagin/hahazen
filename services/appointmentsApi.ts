@@ -45,7 +45,7 @@ export interface AppointmentsByBranchAndDateParams {
 }
 
 debugger;
-export const fetchAppointments = (
+/*export const fetchAppointments = (
     branchId: number,
     employeeId: number,
     startDate?: string,
@@ -63,11 +63,28 @@ export const fetchAppointments = (
             console.log("Received response:", response.data);
             return response.data as AppointmentRequest[];
         });
+};*/
+
+export const fetchAppointments = (
+    branchId: number,
+    employeeId: number,
+    startDate?: string,
+    endDate?: string
+): Promise<AppointmentResponse[]> => {
+    const params = {
+        branch_id: branchId,
+        employee_id: employeeId,
+        date_start: startDate,
+        date_end: endDate,
+    };
+
+    return apiClient
+        .get("/appointments", { params })
+        .then((response) => response.data as AppointmentResponse[]);
 };
 
 export const createAppointment = async (data: AppointmentRequest) => {
     const response = await apiClient.post<AppointmentRequest>("/appointments", data);
-    debugger;
     console.log(response.data + "createAppointment");
     return response.data;
 };

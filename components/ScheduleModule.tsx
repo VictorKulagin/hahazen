@@ -49,7 +49,7 @@ function toMins(t: string): number {
     return h * 60 + m;
 }
 
-function toTime(mins: number): string {
+export function toTime(mins: number): string {
     const hh = String(Math.floor(mins / 60)).padStart(2, "0");
     const mm = String(mins % 60).padStart(2, "0");
     return `${hh}:${mm}`;
@@ -136,17 +136,17 @@ export default function ScheduleModule({
         const pixelsPerMin = rowHeightPx / slotStepMin;
 
         debugger;
-       /* const results = events.map((ev) => {
-            const sm = toMins(ev.start);
-            const em = toMins(ev.end);
-            const duration = Math.max(0, em - sm);
-            const top = ((sm - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx; // + высота заголовка
-            const height = (duration / slotStepMin) * rowHeightPx;
-            const col = colRects[ev.master];
-            const left = col ? col.left : 100; // fallback
-            const width = col ? col.width : 120;
-            return { id: ev.id, top, height, left, width, ev };
-        });*/
+        /* const results = events.map((ev) => {
+             const sm = toMins(ev.start);
+             const em = toMins(ev.end);
+             const duration = Math.max(0, em - sm);
+             const top = ((sm - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx; // + высота заголовка
+             const height = (duration / slotStepMin) * rowHeightPx;
+             const col = colRects[ev.master];
+             const left = col ? col.left : 100; // fallback
+             const width = col ? col.width : 120;
+             return { id: ev.id, top, height, left, width, ev };
+         });*/
         //return results;
         return appointments.map(ev => {
             // вычисление позиций карточек событий
@@ -199,14 +199,16 @@ export default function ScheduleModule({
                 </div>
 
                 {/* Event cards overlay */}
-                {cards.map((c) => (
+                {cards.map(c => (
                     <div
                         key={c.id}
                         className="event-card"
-                        style={{ top: c.top, left: c.left, width: c.width, height: c.height }}
-                        onClick={() => onEventClick?.(c.ev)}
-                        role="button"
-                        aria-label={`Открыть событие ${c.ev.text}`}
+                        style={{
+                            top: isNaN(c.top) ? 0 : c.top,
+                            left: isNaN(c.left) ? 0 : c.left,
+                            width: isNaN(c.width) ? 120 : c.width,
+                            height: isNaN(c.height) ? rowHeightPx : c.height,
+                        }}
                     >
                         <span className="event-title">{c.ev.text}</span>
                         <span className="event-time">{c.ev.start}–{c.ev.end}</span>
