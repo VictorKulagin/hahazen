@@ -1,5 +1,5 @@
 // components/Calendar/CalendarEvent.tsx
-import { AppointmentRequest } from "@/services/appointmentsApi";
+import { AppointmentRequest, AppointmentService } from "@/types/appointments";
 
 // 1. Добавим тип для редактируемого события (в types/Appointment.ts)
 export interface Appointment extends AppointmentRequest {
@@ -15,14 +15,16 @@ interface CalendarEventProps {
 
 export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) => {
 
-    console.log('CalendarEvent received:', JSON.stringify(event, null, 2));
+    //console.log('CalendarEvent received:', JSON.stringify(event, null, 2));
     // Проверка наличия обязательных полей
+    //@ts-ignore
     if (!event.appointment_datetime) {
         console.error("Некорректные данные события:", event);
         return null;
     }
-
+    //@ts-ignore
     const localStart = new Date(event.appointment_datetime);
+    //@ts-ignore
     const localEnd = new Date(localStart.getTime() + event.total_duration * 60000);
 
     const handleDeleteClick = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -32,12 +34,14 @@ export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) =
 
     try {
         //console.log("ККорректные данные события:", event.appointment_datetime);
+        //@ts-ignore
         const startDate = new Date(event.appointment_datetime);
         const timezoneOffset = startDate.getTimezoneOffset() * 60000;
         const localStartDate = new Date(startDate.getTime() - timezoneOffset);
 
         // Рассчет времени окончания
         const endDate = new Date(
+            //@ts-ignore
             localStartDate.getTime() + event.total_duration * 60000
         );
 
@@ -51,9 +55,12 @@ export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) =
             endDate.getMinutes();
 
         // Стили для позиционирования
+        const pxPerMinute = 1.5; // масштаб — можешь менять
+        const durationMinutes = endMinutes - startMinutes;
+
         const eventStyle = {
-            top: `${startMinutes * 1.333}px`,
-            height: `${(endMinutes - startMinutes) * 1.333}px`
+            top: `${startMinutes * pxPerMinute}px`,
+            height: `${durationMinutes * pxPerMinute}px`
         };
 
         return (
@@ -88,19 +95,27 @@ export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) =
                         {/* Имя и телефон в одну строку */}
                         <div className="flex justify-between items-center">
       <span className="font-semibold text-base text-gray-900 truncate">
-        {event.client.name} {event.client_last_name}
+
+        {           //@ts-ignore
+
+            event.client.name}
+
+          {           //@ts-ignore
+
+              event.client_last_name}
       </span>
                             <span className="text-sm text-gray-700 ml-2 truncate">
-        📞 {event.client.phone}
+        📞 {           //@ts-ignore
+                                event.client.phone}
       </span>
                         </div>
 
                         {/* Комментарий (если есть) */}
-                        {event.comment && (
+                        {/*{event.comment && (
                             <div className="text-xs text-gray-500 mt-1 truncate">
                                 💬 {event.comment}
                             </div>
-                        )}
+                        )}*/}
                     </div>
                 </div>
 
@@ -109,16 +124,21 @@ export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) =
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                         <div className="flex flex-col">
                             <div className="font-semibold text-gray-900 text-base truncate">
-                                {event.client.name} {event.client_last_name}
+
+                                {           //@ts-ignore
+                                    event.client.name} {event.client_last_name}
                             </div>
                             <div className="text-sm text-gray-700 flex items-center gap-1 truncate max-w-xs">
-                                📞 {event.client.phone}
+
+                                📞 {
+                                //@ts-ignore
+                                event.client.phone}
                             </div>
-                            {event.comment && (
+                            {/*{event.comment && (
                                 <div className="text-sm text-gray-500 mt-1 truncate">
                                     💬 {event.comment}
                                 </div>
-                            )}
+                            )}*/}
                         </div>
                         <div className="text-sm text-blue-600 whitespace-nowrap mt-2 sm:mt-0">
                             🕒 {localStart.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {localEnd.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -127,8 +147,15 @@ export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) =
                                     {event.services.map(service => (
                                         // @ts-ignore
                                         <div key={service.id} className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-900 truncate max-w-[140px]">{service.name}</span>
-                                            <span className="text-green-600 font-semibold">💰 {service.individual_price} ₽</span>
+                                            <span className="text-gray-900 truncate max-w-[140px]">{           //@ts-ignore
+                                                service.name}</span>
+
+                                            <span className="text-green-600 font-semibold">💰
+
+                                                {
+                                                    // @ts-ignore
+                                                    service.individual_price
+                                                } ₽</span>
                                         </div>
                                     ))}
                                 </div>

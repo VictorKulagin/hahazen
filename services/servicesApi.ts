@@ -13,11 +13,7 @@ export interface Services {
     online_booking_description: string;
 }
 
-// Получение списка сотрудников
-/*export const fetchServices = async (): Promise<Services[]> => {
-    const response = await apiClient.get<Services[]>("/services");
-    return response.data;
-};*/
+
 
 // Интерфейс для связи мастера и услуги
 export interface EmployeeService {

@@ -1,8 +1,7 @@
-//components/Calendar/Calendar.ts
 // components/Calendar/Calendar.ts
 "use client";
 import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
-import {AppointmentRequest} from "@/services/appointmentsApi";
+import {AppointmentRequest} from "@/types/appointments";
 import {useAppointments, DurationOption, useCreateAppointment, useUpdateAppointment} from "@/hooks/useAppointments";
 import {usePathname, useSearchParams} from 'next/navigation';
 import {useDeleteAppointment} from "@/hooks/useAppointments";
@@ -56,13 +55,39 @@ interface CalendarProps {
 const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
 
-    const isValidTime = (time: string): boolean => {
-        return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
-    };
 
-    const isValidTimeFormat = (time: string): boolean => {
+
+
+
+    const [selection, setSelection] = useState<{
+        startMinutes: number | null;
+        endMinutes: number | null;
+    } | null>(null);
+
+    const pxPerMinute = 1.5; // масштаб — 1 минута = 1.5px
+
+
+
+    //const HOUR_HEIGHT = 60;
+
+
+
+    /*function getSlotHeight(start: string, end: string) {
+        const [startH, startM] = start.split(':').map(Number);
+        const [endH, endM] = end.split(':').map(Number);
+
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+
+        return ((endMinutes - startMinutes) / 60) * HOUR_HEIGHT;
+    }*/
+    /*const isValidTime = (time: string): boolean => {
+        return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
+    };*/
+
+    /*const isValidTimeFormat = (time: string): boolean => {
         return /^([01]\d|2[0-3]):([0-5]\d)$/.test(time);
-    };
+    };*/
 
     // ПРОВЕРКА BRANCHID В НАЧАЛЕ (как в рабочем варианте)
     if (branchId === null) return <div>Выберите филиал</div>;
@@ -76,8 +101,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const { employeeId } = useEmployeeId();
 
 
-    // ИСПРАВЛЕНИЕ: Не рендерим Calendar пока employeeId не загрузился
-    if (branchId === null) return <div>Выберите филиал</div>;
     if (employeeId === null) {
         console.log('⏳ Waiting for employeeId...');
         return <div>Загрузка сотрудника...</div>;
@@ -89,6 +112,12 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     console.log('🔍 Calendar: branchId:', branchId);
 
 
+    interface ModalData {
+        date: string;
+        start: string;   // "HH:mm"
+        end: string;     // "HH:mm"
+        duration?: number; // добавляем длительность}
+    }
     // Найдем что вызывает ререндеры
 
     // ВСЕ useState
@@ -100,7 +129,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState<AppointmentRequest | null>(null);
-
+    const calculateMinutes = (offsetY: number) => Math.round(offsetY / pxPerMinute);
     // ХУКИ
     const {
         mutate: createAppointment,
@@ -191,23 +220,28 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         });
     };
 
-    // ОБРАБОТЧИКИ
-    const handleCellClick = useCallback((date: string, time: string) => {
-        const periods = scheduleMap[date] || [];
-        if (periods.length === 0) {
-            console.error('No schedule found for:', date);
-            alert('Расписание не найдено для выбранной даты');
-            return;
-        }
 
-        const isAvailable = isTimeAvailable(date, time);
-        if (!isAvailable) {
-            alert('Выбранное время недоступно для записи');
-            return;
-        }
 
-        setModalData({ date, time });
-    }, [scheduleMap]);
+   /* const handleCellClick = useCallback(
+        (date: string, time: string, defaultDuration = 30) => {
+            const periods = scheduleMap[date] || [];
+            if (periods.length === 0) {
+                console.error('No schedule found for:', date);
+                alert('Расписание не найдено для выбранной даты');
+                return;
+            }
+
+            const isAvailable = isTimeAvailable(date, time);
+            if (!isAvailable) {
+                alert('Выбранное время недоступно для записи');
+                return;
+            }
+
+            // Открываем модалку и передаём дату, время и длительность по умолчанию
+            setModalData({ date, time, duration: defaultDuration });
+        },
+        [scheduleMap]
+    );*/
 
     const handleAddEvent = useCallback((data: Omit<AppointmentRequest, 'id'>) => {
         if (!branchId || !employeeId) {
@@ -216,21 +250,26 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         }
 //@ts-ignore
         const appointmentData: AppointmentRequest = {
+            //@ts-ignore
             client_name: data.client_name,
+            //@ts-ignore
             client_last_name: data.client_last_name,
+            //@ts-ignore
             client_phone: data.client_phone,
             branch_id: branchId,
             employee_id: employeeId, // ИЗ REACT QUERY
             date: data.date,
             time_start: data.time_start,
             time_end: data.time_end,
+            //@ts-ignore
             appointment_datetime: data.appointment_datetime,
+            //@ts-ignore
             total_duration: data.total_duration,
             services: data.services.map(s => ({
                 service_id: s.service_id,
                 qty: s.qty
             })),
-            comment: data.comment || ""
+            //comment: data.comment || ""
         };
 
         createAppointment(appointmentData, {
@@ -304,8 +343,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
     const calendarRef = useRef<HTMLDivElement>(null);
     const times = generateTimeSlots();
     const isFetchingAppointments = useIsFetching({ queryKey: ['appointments'] });
-
-
 
 
 
@@ -439,8 +476,12 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 </div>
 
                 {dates.map((currentDate) => {
-                    const schedule = scheduleMap[currentDate];
-                    const isWorkingDay = !!schedule;
+                    //const schedule = scheduleMap[currentDate];
+                    //const isWorkingDay = !!schedule;
+
+                    const isWorkingDay = !!scheduleMap[currentDate];
+
+
 
                     if (!Date.parse(currentDate)) {
                         console.error('Invalid date detected:', currentDate);
@@ -459,33 +500,133 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                                 })}
                                 {!isWorkingDay && <span className="day-off-badge">Day off (Выходной)</span>}
                             </div>
-                            <div className="day-content">
-                                {times.map(time => {
-                                    const [hours, minutes] = time.split(':').map(Number);
-                                    const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                                    const currentEvents = groupedAppointments?.[currentDate]?.[formattedTime] || [];
-                                    const isAvailable = isTimeAvailable(currentDate, time);
-                                    const isPast = checkIfPast(currentDate, time);
+
+                            <div
+                                className="day-content relative"
+                                onMouseDown={(e) => {
+                                    if ((e.target as HTMLElement).classList.contains("day-content")) {
+                                        const clickY = e.nativeEvent.offsetY;
+
+                                        setSelection({
+                                            startMinutes: calculateMinutes(clickY),
+                                            endMinutes: calculateMinutes(clickY),
+                                        });
+                                    }
+                                }}
+                                onMouseMove={(e) => {
+                                    if (!selection) return;
+
+                                    const moveY = e.nativeEvent.offsetY;
+                                    setSelection((prev) =>
+                                        prev ? { ...prev, endMinutes: calculateMinutes(moveY) } : null
+                                    );
+                                }}
+                                onMouseUp={() => {
+                                    if (!selection) return;
+
+                                    const start = Math.min(selection.startMinutes!, selection.endMinutes!);
+                                    const end = Math.max(selection.startMinutes!, selection.endMinutes!);
+
+                                    const startH = Math.floor(start / 60);
+                                    const startM = start % 60;
+                                    const endH = Math.floor(end / 60);
+                                    const endM = end % 60;
+
+                                    setModalData({
+                                        date: currentDate,
+                                        time: `${startH.toString().padStart(2, "0")}:${startM
+                                            .toString()
+                                            .padStart(2, "0")}`,
+                                        //@ts-ignore
+                                        endTime: `${endH.toString().padStart(2, "0")}:${endM
+                                            .toString()
+                                            .padStart(2, "0")}`,
+                                        duration: end - start,
+                                        isWorkingDay: isWorkingDay, // передаем флаг
+                                    });
+
+                                    setSelection(null);
+                                }}
+                            >
+
+                                {/* ⬇️ подсветка рабочего периода */}
+                                {(scheduleMap[currentDate] ?? []).map((p, idx) => {
+                                    const startMinutes = convertTimeToMinutes(p.start);
+                                    const endMinutes = convertTimeToMinutes(p.end);
+                                    const topPx = startMinutes * pxPerMinute;
+                                    const heightPx = Math.max((endMinutes - startMinutes) * pxPerMinute, 2);
 
                                     return (
                                         <div
-                                            key={`${currentDate}-${time}`}
-                                            className={`time-slot 
-                                                ${isPast ? 'past-slot' : 'future-slot'} 
-                                                ${isAvailable ? 'available' : 'unavailable'}`}
-                                            onClick={() => isAvailable && handleCellClick(currentDate, time)}
-                                        >
-                                            {currentEvents.map(event => (
-                                                <MemoizedCalendarEvent
-                                                    key={event.id}
-                                                    event={event}
-                                                    onDelete={handleDeleteAppointment}
-                                                    onEdit={handleEditEvent}
-                                                />
-                                            ))}
-                                        </div>
+                                            key={`work-${currentDate}-${idx}`}
+                                            className="working-period"
+                                            style={{
+                                                position: "absolute",
+                                                top: `${topPx}px`,
+                                                height: `${heightPx}px`,
+                                                left: 0,
+                                                right: 0,
+                                                pointerEvents: "none",
+                                            }}
+                                        />
                                     );
                                 })}
+
+                                {/* тут дальше твои события */}
+
+                                {/* визуальное выделение */}
+                                {selection && (
+                                    <div
+                                        className="selection-highlight"
+                                        style={{
+                                            position: "absolute",
+                                            top: Math.min(selection.startMinutes!, selection.endMinutes!) + "px",
+                                            height:
+                                                Math.abs(selection.endMinutes! - selection.startMinutes!) + "px",
+                                            left: 0,
+                                            right: 0,
+                                            backgroundColor: "rgba(144, 238, 144, 0.5)",
+                                            pointerEvents: "none",
+                                        }}
+                                    />
+                                )}
+
+                                {/* отрисовка событий */}
+                                {Object.values(groupedAppointments?.[currentDate] || {})
+                                    .flat()
+                                    .map((event) => {
+                                        if (!event.appointment_datetime || !event.total_duration) return null;
+
+                                        const startDate = new Date(event.appointment_datetime);
+                                        const endDate = new Date(
+                                            startDate.getTime() + event.total_duration * 60000
+                                        );
+
+                                        const startMinutes =
+                                            startDate.getHours() * 60 + startDate.getMinutes();
+                                        const endMinutes =
+                                            endDate.getHours() * 60 + endDate.getMinutes();
+                                        const durationMinutes = endMinutes - startMinutes;
+
+                                        return (
+                                            <div
+                                                key={event.id}
+                                                style={{
+                                                    position: "absolute",
+                                                    top: `${startMinutes * pxPerMinute}px`,
+                                                    height: `${durationMinutes * pxPerMinute}px`,
+                                                    left: 0,
+                                                    right: 0,
+                                                }}
+                                            >
+                                                <MemoizedCalendarEvent
+                                                    event={event}
+                                                    onDelete={handleDeleteAppointment}
+                                                    onEdit={() => handleEditEvent(event)}
+                                                />
+                                            </div>
+                                        );
+                                    })}
                             </div>
                         </div>
                     );
@@ -524,6 +665,21 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
             {/* ВСЕ СТИЛИ ИЗ РАБОЧЕГО ВАРИАНТА - ПОЛНАЯ ВЕРСИЯ */}
             <style jsx>{`
+
+
+              .working-period {
+                background: rgba(200, 230, 201, 0.6); /* светло-зелёный фон */
+                border-left: 3px solid rgba(76, 175, 80, 0.45);
+                border-radius: 4px;
+                z-index: 0;
+              }
+
+              .event {
+                z-index: 2;
+                position: absolute;
+              }
+              
+              
               .loading-overlay {
                 position: fixed;
                 top: 0;
@@ -545,7 +701,8 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
               .day-content {
                 position: relative;
-                height: 1440px; /* 24 часа */
+                /*height: 1440px;*/ /* 24 часа */
+                height: 100%;
               }
 
               .event {
@@ -659,7 +816,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
               }
 
               .hour-slot {
-                height: 60px;
+                height: 90px;
                 position: relative;
               }
 
@@ -1109,6 +1266,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
         services: ''
     });
 
+
     /*const [form, setForm] = useState<AppointmentRequest | Omit<AppointmentRequest, 'id'>>(
         editingEvent || {
             client_name: "",
@@ -1126,6 +1284,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
         });*/
     const [form, setForm] = useState<AppointmentRequest>(// @ts-ignore
         editingEvent || {
+            //@ts-ignore
             client_name: "",
             client_last_name: "",
             client_phone: "",
@@ -1136,10 +1295,12 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
             time_end: add30Minutes(data.time),
             appointment_datetime: `${data.date}T${data.time}`,
             total_duration: 30,
+            //total_duration: data.date || 30, // берем рассчитанную длительность
             services: [],
-            comment: ""
+            //comment: ""
         }
     );
+
 
 
     const {
@@ -1173,12 +1334,21 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
         const start = new Date(`${data.date}T${form.time_start}`);
         const end = new Date(`${data.date}T${form.time_end}`);
         const duration = (end.getTime() - start.getTime()) / 60000;
+        //const duration = (new Date(`${date}T${end}`)).getTime() - (new Date(`${date}T${start}`)).getTime();
 
         const errors = {
+            //@ts-ignore
             phone: validatePhone(form.client_phone),
+            //@ts-ignore
             name: validateName(form.client_name),
             services: form.services.length === 0 ? 'Добавьте хотя бы одну услугу' : ''
         };
+
+        if (duration <= 0) {
+            // Можно показать ошибку - время окончания должно быть позже начала
+            alert('Время окончания должно быть позже времени начала');
+            return;
+        }
 
         setValidationErrors(errors);
 
@@ -1211,7 +1381,9 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 <div className="form-group">
                     <label className="block font-semibold mb-1">Клиент: Имя</label>
                     <input
+                        //@ts-ignore
                         value={form.client_name}
+                        //@ts-ignore
                         onChange={e => setForm({...form, client_name: e.target.value})}
                     />
                 </div>
@@ -1219,7 +1391,9 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 <div className="form-group">
                     <label className="block font-semibold mb-1">Клиент: Фамилия</label>
                     <input
+                        //@ts-ignore
                         value={form.client_last_name}
+                        //@ts-ignore
                         onChange={e => setForm({...form, client_last_name: e.target.value})}
                     />
                 </div>
@@ -1228,6 +1402,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                     <label className="block font-semibold mb-1">Телефон:</label>
                     <input
                         type="tel"
+                        //@ts-ignore
                         value={form.client_phone}
                         onChange={(e) => {
                             const inputValue = e.target.value;
@@ -1236,7 +1411,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                                 .replace(/[^\d+]/g, '')
                                 .replace(/^\+?/, '+')
                                 .slice(0, 16);
-
+                            //@ts-ignore
                             setForm({ ...form, client_phone: filteredValue });
                             setValidationErrors(prev => ({
                                 ...prev,
@@ -1253,7 +1428,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                     )}
                 </div>
 
-                <div className="form-group">
+                {/*<div className="form-group">
                     <label className="block font-semibold mb-1">Комментарий:</label>
                     <textarea
                         value={form.comment}
@@ -1264,7 +1439,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                             padding: "8px"            // padding inside textarea
                         }}
                     />
-                </div>
+                </div>*/}
 
                 <div className="time-selection">
                     <div className="form-group">

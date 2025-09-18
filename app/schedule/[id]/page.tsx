@@ -1,3 +1,4 @@
+//app\schedule\[id]\page
 "use client";
 import React, { useState } from "react";
 import { useEffect } from 'react';
@@ -24,193 +25,36 @@ import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
 import {Employee, fetchEmployees} from "@/services/employeeApi";
 import EmployeesList from "@/components/EmployeesList";
-import {groupAppointments, useBookedDays, useCreateAppointment} from "@/hooks/useAppointments";
+import {
+    groupAppointments,
+    useBookedDays,
+    useCreateAppointment
+} from "@/hooks/useAppointments";
 
 import CustomCalendar from "@/components/CustomCalendar";
-import ScheduleModule, {toTime} from "@/components/ScheduleModule";
+import ScheduleModule, {toMins, toTime} from "@/components/ScheduleModule";
 import { useEmployees }  from "@/hooks/useEmployees";
 import { useAppointments } from "@/hooks/useAppointments";
 import { flattenGroupedAppointments } from '@/components/utils/appointments';
 import { useAppointmentsByBranchAndDate } from '@/hooks/useAppointments';
-import {AppointmentRequest} from "@/services/appointmentsApi";
+import { AppointmentRequest, AppointmentResponse } from "@/types/appointments";
 import {useEmployeeServices} from "@/hooks/useServices";
 import { formatDateLocal, formatTimeLocal } from "@/components/utils/date";
 import {Services} from "@/services/servicesApi";
+import CreateEventModal from "@/components/schedulePage/CreateEventModal";
+import { normalizeAppointments } from "@/components/utils/normalizeAppointments";
+import UpdateEventModal from "@/components/schedulePage/UpdateEventModal";
 
 
-type EmployeeServiceEither =
-    | (Services & { pivot?: { employee_id: number; service_id: number; individual_price: number; duration_minutes: number } })
-    | { service: Services; pivot?: { employee_id: number; service_id: number; individual_price: number; duration_minutes: number } };
-
-function isNested(item: any): item is { service: Services } {
-    return item && typeof item === "object" && "service" in item;
+export interface ScheduleEvent {
+    id: string;
+    start: string;
+    end: string;
+    text: string;
+    master: number;
+    client?: any;      // ✅ добавим, чтобы можно было прокидывать клиента
+    services?: any[];  // ✅ добавим, чтобы прокидывать услуги
 }
-
-function unwrapService(item: EmployeeServiceEither): { svc: Services; pivot?: EmployeeServiceEither["pivot"] } {
-    return isNested(item) ? { svc: item.service, pivot: item.pivot } : { svc: item as Services, pivot: (item as any).pivot };
-}
-function CreateEventModal({
-                              isOpen,
-                              onClose,
-                              onSave,
-                              loading,
-                              employeeId
-                          }: {
-    isOpen: boolean;
-    onClose: () => void;
-    onSave: (data: {
-        name: string;
-        lastName: string;
-        phone: string;
-        comment: string;
-        services: { id: number; qty: number }[];
-    }) => void;
-    loading: boolean;
-    employeeId: number | null;
-}) {
-    const [name, setName] = useState("");
-    const [lastName, setLastName] = useState("");
-    const [phone, setPhone] = useState("");
-    const [comment, setComment] = useState("");
-    const [selectedServices, setSelectedServices] = useState<{ id: number; qty: number }[]>([]);
-
-    const { data: services = [], isLoading } = useEmployeeServices(employeeId ?? undefined);
-
-    useEffect(() => {
-        // сбрасываем выбранные услуги при смене мастера
-        setSelectedServices([]);
-    }, [employeeId]);
-
-    if (!isOpen) return null;
-
-    const toggleService = (serviceId: number) => {
-        setSelectedServices(prev =>
-            prev.some(s => s.id === serviceId)
-                ? prev.filter(s => s.id !== serviceId)
-                : [...prev, { id: serviceId, qty: 1 }]
-        );
-    };
-
-    const updateQty = (serviceId: number, qty: number) => {
-        setSelectedServices(prev =>
-            prev.map(s => (s.id === serviceId ? { ...s, qty } : s))
-        );
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (selectedServices.length === 0) {
-            alert("Выберите хотя бы одну услугу");
-            return;
-        }
-        onSave({ name, lastName, phone, comment, services: selectedServices });
-    };
-debugger;
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded p-6 w-full max-w-md relative">
-                <h2 className="text-lg font-bold mb-4">Создать новое событие</h2>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <input
-                        type="text"
-                        placeholder="Имя"
-                        value={name}
-                        onChange={e => setName(e.target.value)}
-                        required
-                        className="w-full p-2 border rounded"
-                    />
-                    <input
-                        type="text"
-                        placeholder="Фамилия"
-                        value={lastName}
-                        onChange={e => setLastName(e.target.value)}
-                        required
-                        className="w-full p-2 border rounded"
-                    />
-                    <input
-                        type="tel"
-                        placeholder="Телефон"
-                        value={phone}
-                        onChange={e => setPhone(e.target.value)}
-                        required
-                        className="w-full p-2 border rounded"
-                    />
-
-                    {/* Новое поле комментария */}
-                    <textarea
-                        placeholder="Комментарий"
-                        value={comment}
-                        onChange={e => setComment(e.target.value)}
-                        className="w-full p-2 border rounded"
-                        rows={3}
-                    />
-
-                    <div>
-                        <h3 className="font-semibold mb-2">Выберите услуги</h3>
-                        {isLoading ? (
-                            <p className="text-sm text-gray-500">Загрузка...</p>
-                        ) : services.length === 0 ? (
-                            <p className="text-sm text-gray-500">У мастера нет привязанных услуг</p>
-                        ) : (
-                            <ul className="space-y-3">
-                                {services.map((item: EmployeeServiceEither) => {
-                                    const { svc, pivot } = unwrapService(item);
-
-                                    const selected = selectedServices.find(s => s.id === svc.id);
-                                    const price = pivot?.individual_price ?? svc.base_price; // если есть индивидуальная цена — покажем её
-
-                                    return (
-                                        <li key={svc.id} className="flex items-center justify-between p-3 border rounded-2xl shadow-sm hover:shadow-md transition">
-                                            <label className="flex items-center gap-3 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={!!selected}
-                                                    onChange={() => toggleService(svc.id)}
-                                                    className="w-5 h-5 accent-blue-600"
-                                                />
-                                                <span className="font-medium text-gray-800">{svc.name}</span>
-                                                <span className="text-sm text-gray-500">{price}₽</span>
-                                            </label>
-
-                                            {selected && (
-                                                <input
-                                                    type="number"
-                                                    min={1}
-                                                    value={selected.qty}
-                                                    onChange={e => updateQty(svc.id, Number(e.target.value))}
-                                                    className="w-16 p-1 border rounded-lg text-center focus:ring-2 focus:ring-blue-500"
-                                                />
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
-                    </div>
-
-                    <div className="flex justify-end space-x-2">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            disabled={loading}
-                            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                        >
-                            Отмена
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                        >
-                            {loading ? "Создание..." : "Создать"}
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
-}
-
 
 const Page: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -225,11 +69,12 @@ const Page: React.FC = () => {
 
     const [companiesData, setCompaniesData] = useState<any>(null);
     const [isModalFilOpen, setIsModalFilOpen] = useState(false);
+    //const [editingEvent, setEditingEvent] = useState(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
 
-   // const { employees } = useEmployees();
+    // const { employees } = useEmployees();
 
     const router = useRouter();
 
@@ -355,8 +200,6 @@ const Page: React.FC = () => {
         }
     }, []);
 
-
-
     const id = branchesData?.[0]?.id ?? null;
     const params = useParams();
     //const idFromUrl = params.id as string || null;
@@ -372,33 +215,86 @@ const Page: React.FC = () => {
 
     // Получаем мастеров из API (сотрудников для филиала)
     const { data: employees, isLoading: employeesLoading, error: employeesError } = useEmployees(id);
-
-// Средствами useAppointments подгружай события выбранного дня:
+    // Средствами useAppointments подгружай события выбранного дня:
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
-
-
     const { data: appointments, isLoading: isAppointmentsLoading, error: appointmentsError } = useAppointmentsByBranchAndDate(id, selectedDate);
-
+    const normalizedAppointments =
+        employees && employees.length > 0 && appointments
+            ? normalizeAppointments(appointments, employees)
+            : [];
     const groupedAppointments = groupAppointments(appointments ?? []);
     const scheduleEvents = flattenGroupedAppointments(groupedAppointments, employees ?? []);
-
     const { mutateAsync: createAppointmentMutate, isPending: isCreating } = useCreateAppointment();
-
-
-
-
-
-
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedMasterIndex, setSelectedMasterIndex] = useState<number | null>(null);
     const [selectedStartMinutes, setSelectedStartMinutes] = useState<number | null>(null);
 
+    const [editingEvent, setEditingEvent] = useState<{
+        id: number;
+        timeStart: string;
+        timeEnd: string;
+        employeeId: number;
+        services: { id: number; qty: number }[];
+        client?: { id: number; name: string; last_name?: string; phone?: string };
+    } | null>(null);
+
     const handleOpenCreateModal = (startMinutes: number, masterIndex: number) => {
-        setSelectedMasterIndex(masterIndex);
         setSelectedStartMinutes(startMinutes);
+        setSelectedMasterIndex(masterIndex);
         setIsCreateModalOpen(true);
     };
+
+    const handleEventClick = (ev: ScheduleEvent) => {
+        console.log("🖱 handleEventClick вызван для события:", ev);
+
+        // 1. Находим сотрудника по индексу колонки
+        const emp = employees?.[ev.master];
+        if (!emp) {
+            console.warn("❗ Нет сотрудника по индексу колонки:", ev.master, employees);
+            return;
+        }
+        console.log("👤 Найден сотрудник:", emp);
+
+        // 2. Находим исходную запись в appointments (чтобы достать клиента и услуги)
+        const src = (appointments ?? []).find(a => a.id === Number(ev.id));
+        console.log("📦 Исходная запись из appointments:", src);
+
+        // 3. Преобразуем услуги в формат { id, qty }
+        /*const initialSelected = (src?.services ?? []).map(s => ({
+            id: s.id,
+            qty: (s as any).qty ?? 1,
+        }));
+        console.log("🎯 Преобразованные услуги (initialSelected):", initialSelected);*/
+
+        // 3. Преобразуем услуги в формат { id, qty }
+        const initialSelected = (src?.services ?? []).map(s => ({
+            id: (s as any).service_id ?? (s as any).id, // ✅ поддержка и service_id, и id на всякий случай
+            qty: (s as any).qty ?? 1,
+        }));
+        console.log("🎯 Преобразованные услуги (initialSelected):", initialSelected);
+
+        // 4. Устанавливаем состояние для UpdateEventModal
+        const eventPayload = {
+            id: Number(ev.id),
+            timeStart: ev.start,
+            timeEnd: ev.end,
+            employeeId: emp.id, // ✅ настоящий id из API
+            services: initialSelected, // ✅ сразу подставляем выбранные услуги
+            client: src?.client
+                ? {
+                    id: src.client.id,
+                    name: src.client.name,
+                    last_name: src.client.last_name,
+                    phone: src.client.phone,
+                }
+                : undefined,
+        };
+
+        console.log("🟢 setEditingEvent payload:", eventPayload);
+        setEditingEvent(eventPayload);
+    };
+
 
     const handleCloseCreateModal = () => {
         setIsCreateModalOpen(false);
@@ -408,33 +304,69 @@ const Page: React.FC = () => {
 
 
 
-    const handleSaveAppointment = async (data: {
+    /*const handleSaveAppointment = async (data: {
         name: string;
         lastName: string;
         phone: string;
-        comment: string;
+        clientId?: number; // добавляем сюда
         services: { id: number; qty: number }[];
+        timeStart: string;
+        timeEnd: string;
     }) => {
         if (!id || selectedMasterIndex === null || selectedStartMinutes === null) return;
 
-        // Формируем payload для API
+        const duration = toMins(data.timeEnd) - toMins(data.timeStart);
+
         const newAppointment: AppointmentRequest = {
-            client: {
-                name: data.name,
-                last_name: data.lastName,
-                phone: data.phone,
-            },
+            client_id: data.clientId,  // <--- теперь передаем ID клиента
             client_name: data.name,
             client_last_name: data.lastName,
             client_phone: data.phone,
             branch_id: id,
             employee_id: employees[selectedMasterIndex].id,
-            date: formatDateLocal(selectedDate), // YYYY-MM-DD
-            time_start: formatTimeLocal(selectedStartMinutes),
-            time_end: formatTimeLocal(selectedStartMinutes + 30),
-            appointment_datetime: `${formatDateLocal(selectedDate)} ${formatTimeLocal(selectedStartMinutes)}`, // "YYYY-MM-DD HH:mm"
-            total_duration: 30, // ⬅️ пока жёстко 30 мин, можно вычислить от услуги
-            comment: data.comment,
+            date: formatDateLocal(selectedDate),
+            time_start: data.timeStart,
+            time_end: data.timeEnd,
+            appointment_datetime: `${formatDateLocal(selectedDate)}T${data.timeStart}`,
+            total_duration: duration,
+
+            services: data.services.map((s) => ({
+                service_id: s.id,
+                qty: s.qty,
+                name: "", // 👈 можно пустую строку, если имя не критично
+            })),
+        };
+
+        try {
+            await createAppointmentMutate(newAppointment);
+            setIsCreateModalOpen(false);
+            setSelectedMasterIndex(null);
+            setSelectedStartMinutes(null);
+        } catch (err: any) {
+            console.error("Ошибка создания записи:", err);
+            alert(err?.message || "Не удалось создать запись");
+        }
+    };*/
+
+
+    const handleSaveAppointment = async (data: {
+        name: string;
+        lastName: string;
+        phone: string;
+        clientId?: number;
+        services: { id: number; qty: number }[];
+        timeStart: string;
+        timeEnd: string;
+    }) => {
+        if (!id || selectedMasterIndex === null) return;
+
+        const payload: AppointmentRequest = {
+            client_id: data.clientId,
+            employee_id: employees[selectedMasterIndex].id,
+            branch_id: id,
+            date: formatDateLocal(selectedDate),
+            time_start: data.timeStart,
+            time_end: data.timeEnd,
             services: data.services.map(s => ({
                 service_id: s.id,
                 qty: s.qty,
@@ -442,20 +374,16 @@ const Page: React.FC = () => {
         };
 
         try {
-            // Создаём запись через React Query
-            await createAppointmentMutate(newAppointment);
-
-            // Закрываем модалку
+            await createAppointmentMutate(payload);
             setIsCreateModalOpen(false);
             setSelectedMasterIndex(null);
             setSelectedStartMinutes(null);
-
-           // alert("Запись успешно создана!");
         } catch (err: any) {
             console.error("Ошибка создания записи:", err);
             alert(err?.message || "Не удалось создать запись");
         }
     };
+
 
     const [isNotFound, setIsNotFound] = useState(false);
     useEffect(() => {
@@ -471,9 +399,6 @@ const Page: React.FC = () => {
         document.title = isNotFound ? "404 - Страница не найдена" : "Название вашей страницы";
     }, [isNotFound]);
 
-
-
-
     if (isNotFound) {
         return (
             <div className="text-center py-10">
@@ -483,7 +408,6 @@ const Page: React.FC = () => {
             </div>
         );
     }
-
 
     if (isLoading) return <p>Загрузка...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
@@ -495,7 +419,6 @@ const Page: React.FC = () => {
     if (error) {
         return <div>{error}</div>;
     }
-
 
     // Пример клиентов
     const clients = [
@@ -665,7 +588,7 @@ const Page: React.FC = () => {
                                         : item.label === "Клиенты" && (isAccordionOpenClients
                                         ? <ChevronUpIcon className="h-5 w-5 inline" />
                                         : <ChevronDownIcon className="h-5 w-5 inline" />)
-                                            }
+                                    }
                                 </span>
                                     )}
                                 </div>
@@ -685,8 +608,6 @@ const Page: React.FC = () => {
                 className="bg-backgroundBlue text-white p-4 h-full md:h-auto"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
-
-
                 <div>
                     {/* Модальное окно Филиалы */}
                     {isModalFilOpen && (
@@ -708,8 +629,6 @@ const Page: React.FC = () => {
                         </div>
                     )}
                 </div>
-
-
                 {/* Бургер-иконка (для мобильных устройств) */}
                 <div className="flex justify-between items-center md:hidden">
                     <button
@@ -725,8 +644,6 @@ const Page: React.FC = () => {
                     <h1 className="text-2xl font-bold mb-2">Расписание (Раздел в разработке)</h1>
                 </header>
 
-
-
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {/* Левая колонка: 20%, на мобильных flex с центровкой */}
                     <section className="col-span-4 md:col-span-1 bg-white text-black flex justify-center ">
@@ -739,33 +656,37 @@ const Page: React.FC = () => {
                             onNextMonth={handleNextMonth}
                         />
                     </section>
-
                     {/* Правая колонка: 80% */}
                     <section className="col-span-4 bg-white text-black p-4 rounded shadow">
 
-
                         <ScheduleModule
                             employees={employees}
-                            appointments={scheduleEvents}
+                            appointments={normalizedAppointments}
                             selectedDate={selectedDate}
                             onDateSelect={setSelectedDate}
                             onCellClick={handleOpenCreateModal}
+                            onEventClick={handleEventClick}
                         />
 
-
-                        <CreateEventModal
-                            isOpen={isCreateModalOpen}
-                            onClose={handleCloseCreateModal}
-                            onSave={handleSaveAppointment}
-                            loading={isCreating}
-                            employeeId={selectedMasterIndex !== null ? employees[selectedMasterIndex].id : null}
+                        <UpdateEventModal
+                            isOpen={!!editingEvent}
+                            onClose={() => setEditingEvent(null)}
+                            eventData={editingEvent}
                         />
+
+                        {isCreateModalOpen && selectedStartMinutes !== null && (
+                            <CreateEventModal
+                                isOpen={isCreateModalOpen}
+                                onClose={() => setIsCreateModalOpen(false)}
+                                onSave={handleSaveAppointment}
+                                loading={false}
+                                employeeId={selectedMasterIndex !== null ? employees[selectedMasterIndex].id : null}
+                                defaultStartTime={formatTimeLocal(selectedStartMinutes)}
+                                defaultEndTime={formatTimeLocal(selectedStartMinutes + 30)} // пока 30 мин шаг
+                            />
+                        )}
                     </section>
                 </div>
-
-
-
-
             </main>
         </div>
     );

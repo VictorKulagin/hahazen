@@ -34,20 +34,6 @@ export const useEmployeeServices = (employeeId: number | undefined) => {
     });
 };
 
-// Хук для синхронизации услуг мастера
-/*export const useSyncEmployeeServices = (employeeId: number) => {
-    const queryClient = useQueryClient();
-
-    return useMutation<EmployeeServiceResponse[], Error, EmployeeService[]>({
-        mutationFn: (services) => syncEmployeeServices(employeeId, services),
-        onSuccess: () => {
-            // Обновляем кэш после успешной синхронизации
-            queryClient.invalidateQueries({
-                queryKey: ['employeeServices', employeeId]
-            });
-        }
-    });
-};*/
 
 export const useSyncEmployeeServices = () => {
     const queryClient = useQueryClient();

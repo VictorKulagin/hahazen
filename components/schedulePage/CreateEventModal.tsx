@@ -1,0 +1,448 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useEmployeeServices } from "@/hooks/useServices";
+import type { Services } from "@/services/servicesApi";
+import ClientAutocomplete from "@/components/ClientAutocomplete";
+import type { Client } from "@/services/clientApi";
+import { useUpdateClient } from "@/hooks/useClient";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+
+type EmployeeServiceEither =
+    | (Services & {
+    pivot?: {
+        employee_id: number;
+        service_id: number;
+        individual_price: number;
+        duration_minutes: number;
+    };
+})
+    | {
+    service: Services;
+    pivot?: {
+        employee_id: number;
+        service_id: number;
+        individual_price: number;
+        duration_minutes: number;
+    };
+};
+
+function isNested(item: any): item is { service: Services } {
+    return item && typeof item === "object" && "service" in item;
+}
+
+function unwrapService(
+    item: EmployeeServiceEither
+): { svc: Services; pivot?: EmployeeServiceEither["pivot"] } {
+    return isNested(item)
+        ? { svc: item.service, pivot: item.pivot }
+        : { svc: item as Services, pivot: (item as any).pivot };
+}
+
+interface CreateEventModalProps {
+    isOpen: boolean;
+    onClose: () => void;
+    onSave: (data: {
+        clientId?: number;
+        name: string;
+        lastName: string;
+        phone: string;
+        services: { id: number; qty: number }[];
+        timeStart: string;
+        timeEnd: string;
+    }) => void;
+    loading: boolean;
+    employeeId: number | null;
+    defaultStartTime?: string;
+    defaultEndTime?: string;
+}
+
+const CreateEventModal: React.FC<CreateEventModalProps> = ({
+                                                               isOpen,
+                                                               onClose,
+                                                               onSave,
+                                                               loading,
+                                                               employeeId,
+                                                               defaultStartTime,
+                                                               defaultEndTime,
+                                                           }) => {
+    const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+    const [name, setName] = useState("");
+    const [lastName, setLastName] = useState("");
+    const [phone, setPhone] = useState("");
+    const [showClientFields, setShowClientFields] = useState(false);
+    const [isEditingClient, setIsEditingClient] = useState(false);
+    const [selectedServices, setSelectedServices] = useState<
+        { id: number; qty: number }[]
+    >([]);
+
+    const [timeStart, setTimeStart] = useState(defaultStartTime || "09:00");
+    const [timeEnd, setTimeEnd] = useState(defaultEndTime || "09:30");
+
+    const { data: services = [], isLoading } = useEmployeeServices(
+        employeeId ?? undefined
+    );
+
+    const { mutateAsync: updateClientMutate, isPending: updating } =
+        useUpdateClient();
+
+    useEffect(() => {
+        setSelectedServices([]);
+        setSelectedClientId(null);
+        setName("");
+        setLastName("");
+        setPhone("");
+        setShowClientFields(false);
+        setIsEditingClient(false);
+        setTimeStart(defaultStartTime || "09:00");
+        setTimeEnd(defaultEndTime || "09:30");
+    }, [employeeId, isOpen]);
+
+    if (!isOpen) return null;
+
+    const toggleService = (serviceId: number) => {
+        setSelectedServices((prev) =>
+            prev.some((s) => s.id === serviceId)
+                ? prev.filter((s) => s.id !== serviceId)
+                : [...prev, { id: serviceId, qty: 1 }]
+        );
+    };
+
+    const updateQty = (serviceId: number, qty: number) => {
+        if (qty < 1) qty = 1;
+        setSelectedServices((prev) =>
+            prev.map((s) => (s.id === serviceId ? { ...s, qty } : s))
+        );
+    };
+
+    const resetClient = () => {
+        setSelectedClientId(null);
+        setName("");
+        setLastName("");
+        setPhone("");
+        setShowClientFields(false);
+        setIsEditingClient(false);
+    };
+
+    const handleUpdateClient = async () => {
+        if (!selectedClientId) return;
+        try {
+            await updateClientMutate({
+                id: selectedClientId,
+                data: { name, last_name: lastName, phone },
+            });
+            setIsEditingClient(false);
+        } catch (err) {
+            console.error("Ошибка обновления клиента", err);
+            alert("Не удалось обновить клиента");
+        }
+    };
+
+    const adjustTime = (field: "start" | "end", delta: number) => {
+        const value = field === "start" ? timeStart : timeEnd;
+        if (!value) return;
+
+        const [h, m] = value.split(":").map(Number);
+        let totalMinutes = h * 60 + m + delta;
+
+        if (totalMinutes < 0) totalMinutes = 0;
+        if (totalMinutes >= 24 * 60) totalMinutes = 24 * 60 - 1;
+
+        const newHours = Math.floor(totalMinutes / 60)
+            .toString()
+            .padStart(2, "0");
+        const newMinutes = (totalMinutes % 60).toString().padStart(2, "0");
+        const newValue = `${newHours}:${newMinutes}`;
+
+        if (field === "start") setTimeStart(newValue);
+        else setTimeEnd(newValue);
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (selectedServices.length === 0) {
+            alert("Выберите хотя бы одну услугу");
+            return;
+        }
+
+        onSave({
+            clientId: selectedClientId ?? undefined,
+            name,
+            lastName,
+            phone,
+            services: selectedServices,
+            timeStart,
+            timeEnd,
+        });
+    };
+
+    return (
+        <div
+            className={`
+    fixed inset-0 z-50 flex justify-end
+    bg-black bg-opacity-50
+    transition-opacity duration-300
+    ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}
+  `}
+        >
+            <div
+                className={`
+      bg-white w-[28rem] shadow-lg h-full
+      transform transition-transform duration-300
+      ${isOpen ? "translate-x-0" : "translate-x-full"}
+    `}
+            >
+
+                <button
+                    type="button"
+                    onClick={onClose}
+                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-50 bg-white rounded-full shadow p-1"
+                    aria-label="Закрыть окно"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-6 h-6"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+
+
+            <div className="bg-white rounded p-6 w-full max-w-md relative text-black">
+                <h2 className="text-lg font-bold mb-4">Создать новое событие</h2>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* 1. Поиск клиента */}
+                    <ClientAutocomplete
+                        onSelect={(client: Client) => {
+                            setSelectedClientId(client.id ?? null);
+                            setName(client.name ?? "");
+                            setLastName(client.last_name ?? "");
+                            setPhone(client.phone ?? "");
+                            setShowClientFields(true);
+                        }}
+                    />
+
+                    {/* 2. Просмотр клиента */}
+                    {showClientFields && !isEditingClient && (
+                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                            {/* Блок с именем клиента */}
+                            <div className="flex items-center mb-3">
+                                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                    <span className="text-gray-500 text-lg">👤</span>
+                                </div>
+                                <div>
+                                    <div className="font-semibold text-gray-800">{name}</div>
+                                    <div className="text-gray-600 text-sm">{phone}</div>
+                                </div>
+                            </div>
+
+                            {/* Фамилия отдельно (если нужна) */}
+                            {lastName && (
+                                <div className="text-gray-700 text-sm mb-2">
+                                    <b>Фамилия:</b> {lastName}
+                                </div>
+                            )}
+
+                            {/* Кнопки */}
+                            <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditingClient(true)}
+                                    className="px-3 py-1 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition"
+                                >
+                                    ✏️ Редактировать
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={resetClient}
+                                    className="px-3 py-1 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
+                                >
+                                    ⟳ Сбросить
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {showClientFields && isEditingClient && (
+                        <div className="bg-gray-50 p-4 rounded border space-y-2">
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full p-2 border rounded"
+                            />
+                            <input
+                                type="text"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                className="w-full p-2 border rounded"
+                            />
+                            <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="w-full p-2 border rounded"
+                            />
+
+                            <div className="flex justify-end gap-6 pt-3 border-t border-gray-200">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditingClient(false)}
+                                    className="text-gray-500 hover:underline"
+                                >
+                                    Отмена
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleUpdateClient}
+                                    disabled={updating}
+                                    className="text-blue-600 hover:underline"
+                                >
+                                    💾 {updating ? "Сохранение..." : "Сохранить"}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 3. Время */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block mb-1 font-semibold">Время начала</label>
+                            <input
+                                type="time"
+                                value={timeStart}
+                                onChange={(e) => setTimeStart(e.target.value)}
+                                className="w-full p-2 border rounded"
+                                required
+                            />
+                            <div className="flex justify-between mt-2">
+                                <button
+                                    type="button"
+                                    className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
+                                    onClick={() => adjustTime("start", -15)}
+                                >
+                                    −15 мин
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
+                                    onClick={() => adjustTime("start", 15)}
+                                >
+                                    +15 мин
+                                </button>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block mb-1 font-semibold">Время окончания</label>
+                            <input
+                                type="time"
+                                value={timeEnd}
+                                onChange={(e) => setTimeEnd(e.target.value)}
+                                className="w-full p-2 border rounded"
+                                required
+                            />
+                            <div className="flex justify-between mt-2">
+                                <button
+                                    type="button"
+                                    className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
+                                    onClick={() => adjustTime("end", -15)}
+                                >
+                                    −15 мин
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
+                                    onClick={() => adjustTime("end", 15)}
+                                >
+                                    +15 мин
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 4. Услуги */}
+                    <div>
+                        <h3 className="font-semibold mb-2">Выберите услуги</h3>
+                        {isLoading ? (
+                            <p className="text-sm text-gray-500">Загрузка...</p>
+                        ) : services.length === 0 ? (
+                            <p className="text-sm text-gray-500">
+                                У мастера нет привязанных услуг
+                            </p>
+                        ) : (
+                            <ul className="space-y-3">
+                                {services.map((item: EmployeeServiceEither) => {
+                                    const { svc, pivot } = unwrapService(item);
+                                    const selected = selectedServices.find(
+                                        (s) => s.id === svc.id
+                                    );
+                                    const price =
+                                        pivot?.individual_price ?? (svc as any).base_price;
+                                    return (
+                                        <li
+                                            key={svc.id}
+                                            className="flex items-center justify-between p-3 border rounded-2xl shadow-sm hover:shadow-md transition"
+                                        >
+                                            <label className="flex items-center gap-3 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={!!selected}
+                                                    onChange={() => toggleService(svc.id)}
+                                                    className="w-5 h-5 accent-blue-600"
+                                                />
+                                                <span className="font-medium text-gray-800">
+                          {svc.name}
+                        </span>
+                                                <span className="text-sm text-gray-500">{price}₽</span>
+                                            </label>
+
+                                            {selected && (
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    value={selected.qty}
+                                                    onChange={(e) =>
+                                                        updateQty(svc.id, Number(e.target.value))
+                                                    }
+                                                    className="w-16 p-1 border rounded-lg text-center focus:ring-2 focus:ring-blue-500"
+                                                />
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
+                    </div>
+
+                    {/* 5. Кнопки сохранения события */}
+                    <div className="flex justify-end space-x-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            disabled={loading}
+                            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        >
+                            Отмена
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                        >
+                            {loading ? "Создание..." : "Создать"}
+                        </button>
+                    </div>
+                </form>
+            </div>
+            </div>
+        </div>
+    );
+};
+
+export default CreateEventModal;

@@ -86,7 +86,7 @@ const CustomCalendar: React.FC<CustomCalendarProps> = ({
                             key={idx}
                             onClick={() => handleDayClick(day)}
                             style={{
-                                width: 40,
+                                width: 38,
                                 height: 40,
                                 lineHeight: '40px',
                                 textAlign: 'center',

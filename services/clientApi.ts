@@ -65,6 +65,12 @@ export const fetchClientById = (id: number): Promise<Client> => {
         .then((response) => response.data as Client);
 };
 
+
+export const createClient = async (data: Client): Promise<Client> => {
+    const response = await apiClient.post<Client>("/clients", data);
+    return response.data;
+};
+
 /*export const createClient = async (data: Client): Promise<Client> => {
     const response = await apiClient.post<Client>("/clients", data);
     return response.data;

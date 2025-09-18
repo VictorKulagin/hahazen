@@ -1,13 +1,6 @@
 "use client";
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import {Employee} from "@/services/employeeApi";
-
-// =============================
-// ScheduleModule — Step 1
-// - чистый React без сторонних модулей
-// - рендер сетки расписания и карточек событий
-// - без модалок, без drag&drop (появятся на шагах 2+)
-// =============================
+import { useEmployees } from "@/hooks/useEmployees";
 
 export interface ScheduleEvent {
     id: string;
@@ -15,36 +8,35 @@ export interface ScheduleEvent {
     end: string;
     text: string;
     master: number;
+    client?: {
+        id: number;
+        name: string;
+        last_name?: string;
+        phone?: string;
+    };
+    services?: Array<{
+        id: number;
+        name: string;
+        base_price: number;
+        individual_price: number;
+        service_duration_minutes: number;
+    }>;
 }
 
-
 export type ScheduleModuleProps = {
-    employees: Employee[];
+    employees: ReturnType<typeof useEmployees>["data"]; // ✅ правильный тип
     appointments: ScheduleEvent[];
     selectedDate: Date;
     onDateSelect: React.Dispatch<React.SetStateAction<Date>>;
-
-    masters?: string[];
-    startHour?: number; // 8 → 08:00
-    endHour?: number;   // 20 → 20:00
-    slotStepMin?: number; // шаг сетки (мин), по умолчанию 30
-    rowHeightPx?: number; // высота строки слота
-    initialEvents?: ScheduleEvent[];
-    onCellClick?: (startMinutes: number, masterIndex: number) => void; // зарезервировано для шага 2
-    onEventClick?: (event: ScheduleEvent) => void;                      // зарезервировано для шага 3
+    startHour?: number;
+    endHour?: number;
+    slotStepMin?: number;
+    rowHeightPx?: number;
+    onCellClick?: (startMinutes: number, masterIndex: number) => void;
+    onEventClick?: (event: ScheduleEvent) => void;
 };
 
-
-/*const defaultMasters = [
-    "Мастер A",
-    "Мастер B",
-    "Мастер C",
-    "Мастер D",
-    "Мастер E",
-    "Мастер F",
-];*/
-
-function toMins(t: string): number {
+export function toMins(t: string): number {
     const [h, m] = t.split(":").map(Number);
     return h * 60 + m;
 }
@@ -61,10 +53,7 @@ function rangeSlots(minMinutes: number, maxMinutes: number, step: number) {
     return slots;
 }
 
-
-
 export default function ScheduleModule({
-                                           //masters = defaultMasters,
                                            employees,
                                            appointments,
                                            selectedDate,
@@ -73,37 +62,37 @@ export default function ScheduleModule({
                                            endHour = 24,
                                            slotStepMin = 30,
                                            rowHeightPx = 40,
-                                           initialEvents = [
-                                               { id: "e1", start: "08:15", end: "09:00", text: "Зарядка", master: 0 },
-                                               { id: "e2", start: "09:00", end: "10:00", text: "Завтрак", master: 1 },
-                                           ],
                                            onCellClick,
                                            onEventClick,
                                        }: ScheduleModuleProps) {
     const masters = employees.map(e => e.name);
-    //const [events] = useState<ScheduleEvent[]>(initialEvents);
-    const events = appointments;
-
     const minMinutes = startHour * 60;
     const maxMinutes = endHour * 60;
-    const slots = useMemo(
-        () => rangeSlots(minMinutes, maxMinutes, slotStepMin),
-        [minMinutes, maxMinutes, slotStepMin]
-    );
+    const slots = useMemo(() => rangeSlots(minMinutes, maxMinutes, slotStepMin), [minMinutes, maxMinutes, slotStepMin]);
+
+    // Локальное состояние событий
+    const [events, setEvents] = useState<ScheduleEvent[]>(appointments);
+
+    // Синхронизация с пропсами appointments
+    useEffect(() => {
+        setEvents(appointments);
+    }, [appointments]);
+
+    useEffect(() => {
+        console.log("Events raw:", events);
+    }, [events]);
 
     // refs для измерений колонок
     const scheduleRef = useRef<HTMLDivElement | null>(null);
     const headerRowRef = useRef<HTMLDivElement | null>(null);
     const [colRects, setColRects] = useState<{ left: number; width: number }[]>([]);
 
-    // пересчёт позиций колонок
     useLayoutEffect(() => {
         const schedule = scheduleRef.current;
         const header = headerRowRef.current;
         if (!schedule || !header) return;
 
         const scheduleBox = schedule.getBoundingClientRect();
-        // .col-master в хедере: первый столбец времени пропускаем
         const cols = Array.from(header.querySelectorAll<HTMLDivElement>(".col-master"));
         const rects = cols.map((c) => {
             const r = c.getBoundingClientRect();
@@ -112,7 +101,6 @@ export default function ScheduleModule({
         setColRects(rects);
     }, [masters.length]);
 
-    // слушатель ресайза окна → обновить измерения
     useEffect(() => {
         function onResize() {
             const schedule = scheduleRef.current;
@@ -126,30 +114,13 @@ export default function ScheduleModule({
             });
             setColRects(rects);
         }
-        onResize();
         window.addEventListener("resize", onResize);
         return () => window.removeEventListener("resize", onResize);
     }, []);
 
     // вычисление позиций карточек событий
     const cards = useMemo(() => {
-        const pixelsPerMin = rowHeightPx / slotStepMin;
-
-        debugger;
-        /* const results = events.map((ev) => {
-             const sm = toMins(ev.start);
-             const em = toMins(ev.end);
-             const duration = Math.max(0, em - sm);
-             const top = ((sm - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx; // + высота заголовка
-             const height = (duration / slotStepMin) * rowHeightPx;
-             const col = colRects[ev.master];
-             const left = col ? col.left : 100; // fallback
-             const width = col ? col.width : 120;
-             return { id: ev.id, top, height, left, width, ev };
-         });*/
-        //return results;
-        return appointments.map(ev => {
-            // вычисление позиций карточек событий
+        return events.map(ev => {
             const sm = toMins(ev.start);
             const em = toMins(ev.end);
             const duration = Math.max(0, em - sm);
@@ -162,11 +133,21 @@ export default function ScheduleModule({
         });
     }, [events, colRects, minMinutes, rowHeightPx, slotStepMin]);
 
-    // обработчик клика по ячейке сетки (будет использован на шаге 2)
-    const handleCellClick = (startMin: number, masterIndex: number) => () => {
-        if (onCellClick) onCellClick(startMin, masterIndex);
-    };
+    // клик по ячейке
+    const handleCellClick = (startMin: number, masterIndex: number) => {
+        // создаём новое событие локально
+        const newEvent: ScheduleEvent = {
+            id: `e-${Date.now()}`,
+            start: toTime(startMin),
+            end: toTime(startMin + slotStepMin),
+            text: "Новое событие",
+            master: masterIndex
+        };
+        setEvents(prev => [...prev, newEvent]);
 
+        // синхронизация с внешним обработчиком (Timetable/сервер)
+        onCellClick?.(startMin, masterIndex);
+    };
     return (
         <div className="schedule-wrapper">
             <div className="schedule" ref={scheduleRef}>
@@ -174,13 +155,11 @@ export default function ScheduleModule({
                 <div className="header-row" ref={headerRowRef}>
                     <div className="col-time">Время</div>
                     {masters.map((m, i) => (
-                        <div className="col-master" key={i}>
-                            {m}
-                        </div>
+                        <div className="col-master" key={i}>{m}</div>
                     ))}
                 </div>
 
-                {/* Body */}
+
                 <div className="body" style={{ position: "relative" }}>
                     {slots.map((min, rowIdx) => (
                         <div className="slot-row" key={rowIdx}>
@@ -189,7 +168,7 @@ export default function ScheduleModule({
                                 <div
                                     key={masterIdx}
                                     className="col-master cell-slot"
-                                    onClick={handleCellClick(min, masterIdx)}
+                                    onClick={() => handleCellClick(min, masterIdx)}
                                     role="button"
                                     aria-label={`Создать событие: ${toTime(min)} — ${masters[masterIdx]}`}
                                 />
@@ -197,21 +176,26 @@ export default function ScheduleModule({
                         </div>
                     ))}
                 </div>
-
                 {/* Event cards overlay */}
                 {cards.map(c => (
                     <div
                         key={c.id}
-                        className="event-card"
+                        className={`
+    absolute bg-blue-100 border border-blue-300 rounded-lg shadow-sm
+    p-1.5 flex flex-col justify-center cursor-pointer
+    hover:bg-blue-200 transition-colors text-xs
+  `}
                         style={{
                             top: isNaN(c.top) ? 0 : c.top,
                             left: isNaN(c.left) ? 0 : c.left,
                             width: isNaN(c.width) ? 120 : c.width,
                             height: isNaN(c.height) ? rowHeightPx : c.height,
                         }}
+
+                        onClick={() => onEventClick?.(c.ev)} // 👈 передаем event наружу
                     >
                         <span className="event-title">{c.ev.text}</span>
-                        <span className="event-time">{c.ev.start}–{c.ev.end}</span>
+                        <span className="event-time">{c.ev.start} – {c.ev.end}</span>
                     </div>
                 ))}
             </div>
@@ -221,7 +205,7 @@ export default function ScheduleModule({
         .schedule { position: relative; min-width: calc(100px + ${masters.length}*120px); border:1px solid #dee2e6; border-radius:.25rem; background:#fff; }
         .header-row, .slot-row { display:flex; }
         .col-time { flex:0 0 100px; background:#f8f9fa; border-right:1px solid #dee2e6; text-align:center; font-weight:600; padding:.5rem; box-sizing:border-box; }
-        .col-master { flex:1; border-right:1px solid #dee2e6; padding:.5rem; box-sizing:border-box; min-width:120px; position:relative; }
+        .col-master { flex:1; border-right:1px solid #dee2e6; padding:.5rem; box-sizing:border-box; min-width:190px; position:relative; }
         .col-master:last-child { border-right:none; }
         .cell-slot { height:${rowHeightPx}px; border-top:1px solid #dee2e6; cursor:pointer; }
         .cell-slot:hover { background: rgba(0,0,0,.03); }

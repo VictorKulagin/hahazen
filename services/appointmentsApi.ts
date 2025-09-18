@@ -1,41 +1,15 @@
 // services/appointmentsApi.ts
 import apiClient from "./api";
-import {AppointmentResponse} from "@/hooks/useAppointments";
+//import {AppointmentResponse} from "@/hooks/useAppointments";
 
-
+import { AppointmentRequest, AppointmentResponse } from "@/types/appointments";
 export interface BookedDaysResponse {
     year: number;
     month: number;
     branch_id: number | null;
     days: number[];
 }
-export interface AppointmentRequest {
-    id?: number; // Добавляем опциональное поле id
-    client: {
-        name: string;
-        last_name: string;
-        phone: string;
-    };
-    client_name: string;
-    client_last_name: string;
-    client_phone: string;
-    branch_id: number;
-    employee_id: number;
-    date: string;
-    time_start: string;
-    time_end: string;
-    appointment_datetime: string;
-    total_duration: number;
-    services: Array<{
-        service_id: number;
-        qty: number;
-        individual_price?: number; // Добавьте при необходимости
-        duration_minutes?: number;
-        name?: string;
-        id?: number;
-    }>;
-    comment?: string;
-}
+
 
 // Интерфейс для параметров запроса к appointments по филиалу и дате
 export interface AppointmentsByBranchAndDateParams {
@@ -44,26 +18,6 @@ export interface AppointmentsByBranchAndDateParams {
     endDate: string;
 }
 
-debugger;
-/*export const fetchAppointments = (
-    branchId: number,
-    employeeId: number,
-    startDate?: string,
-    endDate?: string
-): Promise<AppointmentRequest[]> => {
-    const params = {
-        branch_id: branchId,
-        employee_id: employeeId,
-        date_start: startDate,
-        date_end: endDate
-    };
-
-    return apiClient.get("/appointments", { params })
-        .then(response => {
-            console.log("Received response:", response.data);
-            return response.data as AppointmentRequest[];
-        });
-};*/
 
 export const fetchAppointments = (
     branchId: number,
@@ -83,9 +37,10 @@ export const fetchAppointments = (
         .then((response) => response.data as AppointmentResponse[]);
 };
 
-export const createAppointment = async (data: AppointmentRequest) => {
-    const response = await apiClient.post<AppointmentRequest>("/appointments", data);
-    console.log(response.data + "createAppointment");
+
+export const createAppointment = async (data: AppointmentRequest): Promise<AppointmentResponse> => {
+    const response = await apiClient.post<AppointmentResponse>("/appointments", data);
+    console.log("createAppointment response:", response.data);
     return response.data;
 };
 
@@ -119,9 +74,6 @@ export const fetchBookedDays = async (
         throw error;
     }
 };
-
-
-
 
 // Функция для получения данных по новому интерфейсу
 export const fetchAppointmentsByBranchAndDate = (

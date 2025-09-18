@@ -11,6 +11,9 @@ import {
 } from "@/services/appointmentsApi";
 
 import { fetchBookedDays, BookedDaysResponse } from "@/services/appointmentsApi";
+import { formatDateLocal } from "@/components/utils/date";
+import { AppointmentRequest } from "@/types/appointments";
+import {AppointmentResponse} from "@/types/appointments";
 
 export type DurationOption =
     | '1-day'
@@ -36,39 +39,6 @@ const formatDate = (date: Date): string => {
     return `${year}-${month}-${day}`;
 };
 // Обновляем интерфейсы
-export interface AppointmentResponse {
-    id: number;
-    appointment_datetime: string;
-    total_duration: number;
-    branch_id: number;
-    client: {
-        id: number;
-        name: string;
-        last_name: string;
-        phone: string;
-    };
-    services: Array<{
-        id: number;
-        name: string;
-        quantity: number;
-    }>;
-}
-
-export interface AppointmentRequest {
-    client_name: string;
-    client_last_name: string;
-    client_phone: string;
-    branch_id: number;
-    employee_id: number;
-    date: string;
-    time_start: string;
-    time_end: string;
-    services: Array<{
-        service_id: number;
-        qty: number;
-    }>;
-}
-
 
 // Обновляем функцию группировки
 export const groupAppointments = (appointments: AppointmentResponse[]): GroupedAppointments => {
@@ -90,39 +60,41 @@ debugger;
 export const useAppointments = (
     branchId?: number,
     employeeId?: number,
-    duration: DurationOption = '1-day',
-    currentStartDate: Date = new Date()  // Добавляем параметр currentStartDate
+    duration: DurationOption = "1-day",
+    currentStartDate: Date = new Date()
 ) => {
-    // Функция для расчета диапазона дат на основе currentStartDate
     const getDateRange = (): { start: string; end: string } => {
         const startDate = new Date(currentStartDate);
-        startDate.setHours(0, 0, 0, 0); // Начало дня
+        startDate.setHours(0, 0, 0, 0);
 
         const endDate = new Date(startDate);
-        const daysToAdd = durationToDays(duration) - 1; // Количество дней, которые нужно добавить к начальной дате
-
+        const daysToAdd = durationToDays(duration) - 1;
         endDate.setDate(startDate.getDate() + daysToAdd);
-        endDate.setHours(23, 59, 59, 999); // Конец дня
+        endDate.setHours(23, 59, 59, 999);
 
         return {
-            start: formatDate(startDate),
-            end: formatDate(endDate)
+            start: formatDateLocal(startDate),
+            end: formatDateLocal(endDate),
         };
     };
 
-    // Получаем start и end на основе currentStartDate и duration
     const { start, end } = getDateRange();
 
+    const queryKey = ["appointments", branchId, employeeId, start, end];
+    //console.log("useAppointments queryKey:", queryKey); // ← теперь видно в консоли
+
     return useQuery<AppointmentResponse[], Error, GroupedAppointments>({
-        queryKey: ['appointments', branchId, employeeId, start, end],
-        // @ts-ignore
+        queryKey, // используем нашу переменную
+
         queryFn: () => {
-            if (!branchId || !employeeId) return [];
+            if (!branchId || !employeeId) return Promise.resolve([]);
             return fetchAppointments(branchId, employeeId, start, end);
         },
         enabled: !!branchId && !!employeeId,
-        select: groupAppointments,
-        staleTime: 600000,
+        select: groupAppointments, // принимает AppointmentResponse[]
+        //staleTime: 600000,
+        staleTime: 600000, // 10 минут кэш
+        refetchInterval: 60000, // автообновление каждые 60 секунд
     });
 };
 
@@ -140,102 +112,35 @@ export const durationToDays = (duration: DurationOption): number => {
     }[duration];
 };
 
-
-
-/*export const useCreateAppointment = () => {
-    const queryClient = useQueryClient();*/
-
-    /*return useMutation<Appointment, Error, Omit<Appointment, 'id'>>({
-        // @ts-ignore
-        mutationFn: createAppointment,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        }
-    });*/
-    /*return useMutation<Appointment, Error, Omit<Appointment, 'id'>>({
-        // @ts-ignore
-        mutationFn: createAppointment,
-        onSuccess: (_, variables) => {
-            queryClient.invalidateQueries({
-                queryKey: ["appointments"], // общий список
-            });
-
-            queryClient.invalidateQueries({
-                queryKey: ["appointmentsByBranchAndDate"], // календарь
-            });
-        }
-    });
-};*/
-
-/*export const useCreateAppointment = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (payload: AppointmentRequest) => createAppointment(payload),
-        onSuccess: (data, variables) => {
-            // Обновляем общий список
-            queryClient.invalidateQueries({ queryKey: ["appointments"] });
-
-            // Обновляем календарь конкретной даты
-            queryClient.invalidateQueries({ queryKey: ["appointmentsByBranchAndDate"] });
-
-            // Можно логировать
-            console.log("Appointment created:", data, "with variables:", variables);
-        },
-    });
-};*/
-
-/*export const useCreateAppointment = () => {
-    const queryClient = useQueryClient();
-
-    return useMutation({
-        mutationFn: (payload: AppointmentRequest) => createAppointment(payload),
-        onSuccess: (data, variables) => {
-            // Общий список
-            queryClient.invalidateQueries({ queryKey: ["appointments"] });
-
-            // Конкретный день, на который добавили запись
-            const dateKey = ["appointmentsByBranchAndDate", variables.branch_id, variables.date, variables.date];
-            queryClient.invalidateQueries({ queryKey: dateKey });
-
-            console.log("Appointment created:", data, "with variables:", variables);
-        },
-    });
-};*/
-
-// helper для форматирования даты без UTC
-const formatDateLocal = (date: Date): string => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-};
-
 export const useCreateAppointment = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        // @ts-ignore
         mutationFn: (payload: AppointmentRequest) => createAppointment(payload),
         onSuccess: (data, variables) => {
-            // 1. Обновляем общий список
-            queryClient.invalidateQueries({ queryKey: ["appointments"] });
+            if (!variables) return;
 
-            // 2. Формируем локальную дату (из строки variables.date)
-            let dateKeyValue = variables.date;
-            // @ts-ignore
-            if (variables.date instanceof Date) {
-                dateKeyValue = formatDateLocal(variables.date);
-            }
-
-            // 3. Инвалидируем именно этот день
+            // Инвалидация для ключа расписания филиала по дате
             const dateKey = [
                 "appointmentsByBranchAndDate",
                 variables.branch_id,
-                dateKeyValue,
-                dateKeyValue,
+                variables.date,
+                variables.date,
             ];
+
+            // Инвалидация для ключа расписания по мастеру
+            const masterKey = [
+                "appointments",
+                variables.branch_id,
+                variables.employee_id,
+                variables.date,
+                variables.date,
+            ];
+
+            // Инвалидация кэшей
             queryClient.invalidateQueries({ queryKey: dateKey });
+            queryClient.invalidateQueries({ queryKey: masterKey });
+            queryClient.invalidateQueries({ queryKey: ["appointments"] }); // общий инвалидационный ключ - если требуется
 
             console.log("Appointment created:", data, "with variables:", variables);
         },
@@ -247,45 +152,48 @@ export const useUpdateAppointment = () => {
 
     return useMutation<Appointment, Error, Appointment>({
         mutationFn: (data) => updateAppointment(data.id, data),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ['appointments']
-            });
-        }
+        onSuccess: (_, variables) => {
+            console.log("✅ Запись обновлена:", variables);
+
+            // Инвалидация всех ключей, связанных с расписанием
+            queryClient.invalidateQueries({ queryKey: ["appointments"] });
+            queryClient.invalidateQueries({ queryKey: ["appointmentsByBranchAndDate"] });
+        },
     });
 };
 
-
 export const useDeleteAppointment = () => {
     const queryClient = useQueryClient();
-//debugger;
+
     return useMutation<void, Error, number, { previous: Appointment[] | undefined }>({
         mutationFn: (id: number) => deleteAppointment(id),
 
         onMutate: async (id) => {
-            await queryClient.cancelQueries({ queryKey: ['appointments'] });
+            await queryClient.cancelQueries({ queryKey: ["appointments"] });
 
-            const previous = queryClient.getQueryData<Appointment[]>(['appointments']);
+            const previous = queryClient.getQueryData<Appointment[]>(["appointments"]);
 
-            queryClient.setQueryData(
-                ['appointments'],
-                (old: Appointment[] | undefined) => old?.filter(a => a.id !== id) || []
+            // ✅ тут указываем generic
+            queryClient.setQueryData<Appointment[]>(
+                ["appointments"],
+                (old) => (old ? old.filter((a) => a.id !== id) : [])
             );
 
-            return { previous }; // Теперь TypeScript знает тип возвращаемого значения
+            return { previous };
         },
 
         onError: (error, id, context) => {
-            // context теперь имеет тип { previous: Appointment[] | undefined }
             if (context?.previous) {
-                queryClient.setQueryData(['appointments'], context.previous);
+                queryClient.setQueryData(["appointments"], context.previous);
             }
             alert(`Ошибка удаления записи #${id}: ${error.message}`);
         },
 
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['appointments'] });
-        }
+        onSuccess: () => {
+            console.log("🗑 Запись удалена");
+            queryClient.invalidateQueries({ queryKey: ["appointments"] });
+            queryClient.invalidateQueries({ queryKey: ["appointmentsByBranchAndDate"] });
+        },
     });
 };
 
@@ -298,23 +206,18 @@ export const useBookedDays = (year: number, month: number, branch_id?: number | 
     });
 };
 
-// UseSchedule hook раздел РАСПИСАНИЕ
 export const useAppointmentsByBranchAndDate = (
     branchId?: number,
     currentStartDate: Date = new Date()
 ) => {
-    const formatDate = (date: Date): string => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0");
-        const day = String(date.getDate()).padStart(2, "0");
-        return `${year}-${month}-${day}`;
-    };
+    const startDate = formatDateLocal(currentStartDate);
+    const endDate = startDate; // один день
 
-    const startDate = formatDate(currentStartDate);
-    const endDate = startDate;
+    const queryKey = ["appointmentsByBranchAndDate", branchId, startDate, endDate];
+    console.log("useAppointmentsByBranchAndDate queryKey:", queryKey);
 
     return useQuery({
-        queryKey: ["appointmentsByBranchAndDate", branchId, startDate, endDate],
+        queryKey,
         queryFn: () => {
             if (!branchId) return Promise.resolve([]);
             return fetchAppointmentsByBranchAndDate({ branchId, startDate, endDate });
