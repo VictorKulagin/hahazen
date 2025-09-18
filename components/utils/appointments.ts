@@ -1,4 +1,4 @@
-import { GroupedAppointments, AppointmentResponse } from '@/hooks/useAppointments';
+import { GroupedAppointments } from '@/hooks/useAppointments';
 import { ScheduleEvent } from '@/components/ScheduleModule';
 import { Employee } from '@/services/employeeApi';
 
