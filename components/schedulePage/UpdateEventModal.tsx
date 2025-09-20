@@ -9,11 +9,12 @@ interface UpdateEventModalProps {
     onClose: () => void;
     eventData: {
         id: number;
+        date: string;  // ⬅ добавили
         client?: { id: number; name: string; last_name?: string; phone?: string };
         services: { id: number; qty: number }[];
         timeStart: string;
         timeEnd: string;
-        employeeId: number; // ВАЖНО: реальный employee_id!
+        employeeId: number;
     } | null;
 }
 
@@ -100,14 +101,14 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
 
         await updateAppointmentMutate({
             id: eventData.id,
-            date: new Date().toISOString().split("T")[0], // <-- сегодняшняя дата или возьми из eventData
+            date: eventData.date,                 // ⬅ используем дату записи
             time_start: timeStart,
             time_end: timeEnd,
             employee_id: eventData.employeeId,
             client_id: eventData.client?.id,
             services: selectedServices.map(s => ({
                 service_id: s.id,
-                qty: s.qty ?? 1
+                qty: s.qty ?? 1,
             })),
         });
 

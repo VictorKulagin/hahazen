@@ -44,6 +44,9 @@ import {Services} from "@/services/servicesApi";
 import CreateEventModal from "@/components/schedulePage/CreateEventModal";
 import { normalizeAppointments } from "@/components/utils/normalizeAppointments";
 import UpdateEventModal from "@/components/schedulePage/UpdateEventModal";
+import { useEmployeeSchedules } from "@/hooks/useEmployeeSchedules";
+import { EditEmployeeModal } from "@/components/schedulePage/EditEmployeeModal";
+import { useUpdateEmployee } from "@/hooks/useEmployees";
 
 
 export interface ScheduleEvent {
@@ -90,7 +93,7 @@ const Page: React.FC = () => {
     const [year, setYear] = useState(today.getFullYear());
     const [month, setMonth] = useState(today.getMonth() + 1);
     const [daysWithAppointments, setDaysWithAppointments] = useState<number[]>([]);
-
+    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
 
     /*const appointments = [
@@ -208,15 +211,29 @@ const Page: React.FC = () => {
         idFromUrl = params.id as string;
     }
 
+
+
     console.log("ID из данных филиала:", id);
     console.log("ID из URL:", idFromUrl);
+
+    const { mutateAsync: updateEmployeeMutate } = useUpdateEmployee();
 
     const { data: bookedDaysData, error: bookedDaysError, isLoading: isBookedDaysLoading } = useBookedDays(year, month, id);
 
     // Получаем мастеров из API (сотрудников для филиала)
     const { data: employees, isLoading: employeesLoading, error: employeesError } = useEmployees(id);
+
     // Средствами useAppointments подгружай события выбранного дня:
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+
+
+    const startDate = formatDateLocal(selectedDate);
+    const endDate = formatDateLocal(selectedDate);
+
+    const { data: schedules = [] } = useEmployeeSchedules(id, undefined, startDate, endDate);
+
+
 
     const { data: appointments, isLoading: isAppointmentsLoading, error: appointmentsError } = useAppointmentsByBranchAndDate(id, selectedDate);
     const normalizedAppointments =
@@ -232,6 +249,7 @@ const Page: React.FC = () => {
 
     const [editingEvent, setEditingEvent] = useState<{
         id: number;
+        date: string;                              // ⬅ добавили
         timeStart: string;
         timeEnd: string;
         employeeId: number;
@@ -274,13 +292,20 @@ const Page: React.FC = () => {
         }));
         console.log("🎯 Преобразованные услуги (initialSelected):", initialSelected);
 
+        // пробуем взять из datetime_start или appointment_datetime, если нет — из выбранной даты
+        const dateFromSrc =
+            (src as any)?.datetime_start?.slice(0, 10) ??
+            (src as any)?.appointment_datetime?.slice(0, 10) ??
+            formatDateLocal(selectedDate);
+
         // 4. Устанавливаем состояние для UpdateEventModal
         const eventPayload = {
             id: Number(ev.id),
+            date: dateFromSrc,               // ⬅ вот она, корректная дата записи
             timeStart: ev.start,
             timeEnd: ev.end,
-            employeeId: emp.id, // ✅ настоящий id из API
-            services: initialSelected, // ✅ сразу подставляем выбранные услуги
+            employeeId: emp.id,
+            services: initialSelected,
             client: src?.client
                 ? {
                     id: src.client.id,
@@ -291,7 +316,6 @@ const Page: React.FC = () => {
                 : undefined,
         };
 
-        console.log("🟢 setEditingEvent payload:", eventPayload);
         setEditingEvent(eventPayload);
     };
 
@@ -304,49 +328,8 @@ const Page: React.FC = () => {
 
 
 
-    /*const handleSaveAppointment = async (data: {
-        name: string;
-        lastName: string;
-        phone: string;
-        clientId?: number; // добавляем сюда
-        services: { id: number; qty: number }[];
-        timeStart: string;
-        timeEnd: string;
-    }) => {
-        if (!id || selectedMasterIndex === null || selectedStartMinutes === null) return;
 
-        const duration = toMins(data.timeEnd) - toMins(data.timeStart);
 
-        const newAppointment: AppointmentRequest = {
-            client_id: data.clientId,  // <--- теперь передаем ID клиента
-            client_name: data.name,
-            client_last_name: data.lastName,
-            client_phone: data.phone,
-            branch_id: id,
-            employee_id: employees[selectedMasterIndex].id,
-            date: formatDateLocal(selectedDate),
-            time_start: data.timeStart,
-            time_end: data.timeEnd,
-            appointment_datetime: `${formatDateLocal(selectedDate)}T${data.timeStart}`,
-            total_duration: duration,
-
-            services: data.services.map((s) => ({
-                service_id: s.id,
-                qty: s.qty,
-                name: "", // 👈 можно пустую строку, если имя не критично
-            })),
-        };
-
-        try {
-            await createAppointmentMutate(newAppointment);
-            setIsCreateModalOpen(false);
-            setSelectedMasterIndex(null);
-            setSelectedStartMinutes(null);
-        } catch (err: any) {
-            console.error("Ошибка создания записи:", err);
-            alert(err?.message || "Не удалось создать запись");
-        }
-    };*/
 
 
     const handleSaveAppointment = async (data: {
@@ -382,6 +365,23 @@ const Page: React.FC = () => {
             console.error("Ошибка создания записи:", err);
             alert(err?.message || "Не удалось создать запись");
         }
+    };
+
+
+    const handleSaveEmployee = async (updatedEmployee: any) => {
+        try {
+            await updateEmployeeMutate(updatedEmployee);
+            setSelectedEmployee(null); // закрываем модалку после успешного сохранения
+        } catch (err) {
+            console.error("Ошибка при сохранении сотрудника:", err);
+            alert("Не удалось обновить данные сотрудника");
+        }
+    };
+
+
+    const handleMasterClick = (employee: Employee) => {
+        console.log("🔧 Редактируем сотрудника:", employee);
+        setSelectedEmployee(employee);
     };
 
 
@@ -662,10 +662,19 @@ const Page: React.FC = () => {
                         <ScheduleModule
                             employees={employees}
                             appointments={normalizedAppointments}
+                            schedules={schedules} // ✅ вот так
                             selectedDate={selectedDate}
                             onDateSelect={setSelectedDate}
                             onCellClick={handleOpenCreateModal}
                             onEventClick={handleEventClick}
+                            onMasterClick={handleMasterClick} // 👈 добавили
+                        />
+
+                        <EditEmployeeModal
+                            isOpen={!!selectedEmployee}
+                            employee={selectedEmployee}
+                            onClose={() => setSelectedEmployee(null)}
+                            onSave={handleSaveEmployee}
                         />
 
                         <UpdateEventModal

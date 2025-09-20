@@ -1,11 +1,10 @@
 // hooks/useEmployees.ts
 "use client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Employee, fetchEmployees } from "@/services/employeeApi";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import {Employee, fetchEmployees, updateEmployee} from "@/services/employeeApi";
 import { useEffect, useRef, useState } from "react";
 import { EventSourcePolyfill } from "event-source-polyfill";
 import { createSSEConnection } from "@/services/api";
-
 export const useEmployees = (branchId?: number) => {
     const queryClient = useQueryClient();
     const eventSourceRef = useRef<EventSourcePolyfill | null>(null);
@@ -128,4 +127,23 @@ export const useEmployees = (branchId?: number) => {
     };
 };
 
+
+
+export const useUpdateEmployee = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (employee: Partial<Employee> & { id: number }) =>
+            updateEmployee(employee.id, employee),
+
+        onSuccess: () => {
+            // ⬇️ Обновляем список сотрудников
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+        },
+
+        onError: (error) => {
+            console.error("Ошибка при обновлении сотрудника:", error);
+        },
+    });
+};
 
