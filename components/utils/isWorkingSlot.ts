@@ -1,50 +1,69 @@
 // components/utils/isWorkingSlot.ts
-import { EmployeeSchedule } from "@/services/еmployeeScheduleApi";
-
+import { formatDateLocal } from "@/components/utils/date";
+import type { EmployeeSchedule } from "@/services/еmployeeScheduleApi";
 
 /**
- * Проверяет, рабочий ли слот для данного сотрудника.
- * Поддерживает несколько интервалов в один день.
+ * Универсальная проверка: является ли указанный слот рабочим.
+ * Поддерживает 2 формы ответа бэка:
+ * 1) Дневные интервалы: { date: 'YYYY-MM-DD', start_time: 'HH:mm', end_time: 'HH:mm' }
+ * 2) Недельный шаблон: { schedule_type: 'weekly', periods: [ ['mon','09:00','18:00'], ... ] }
  *
- * @param employeeId ID сотрудника
- * @param time "HH:mm" – время слота
- * @param date Date – текущая дата
- * @param schedules массив графиков (для всех сотрудников)
+ * ВАЖНО: Функция получает ВСЕ графики (по всем сотрудникам) и сама фильтрует по employeeId.
  */
 export function isWorkingSlot(
     employeeId: number,
-    time: string,
-    date: Date,
+    timeStr: string,            // 'HH:mm'
+    selectedDate: Date,
     schedules: EmployeeSchedule[]
 ): boolean {
-    if (!schedules?.length) return true; // если нет данных — считаем рабочим
+    const dayStr = formatDateLocal(selectedDate); // 'YYYY-MM-DD'
+    const minutes = toMinutes(timeStr);
+    console.log("▶️ isWorkingSlot:", { employeeId, timeStr, dayStr, schedules });
+    // 1) Пробуем сначала «дневной» формат (explicit intervals)
+    const daily = schedules.filter(
+        (s: any) =>
+            s.employee_id === employeeId &&
+            s.date && s.start_time && s.end_time && s.date === dayStr
+    );
+    if (daily.length > 0) {
+        return daily.some((s: any) => inRange(minutes, s.start_time, s.end_time));
+    }
 
-    // Находим график сотрудника
-    const schedule = schedules.find(s => s.employee_id === employeeId);
-    if (!schedule) return true; // нет графика — считаем рабочим
+    // 2) Если дневных интервалов нет — поддержим weekly-шаблон
+    const weekly = schedules.filter(
+        (s: any) => s.employee_id === employeeId && s.schedule_type === "weekly" && Array.isArray(s.periods)
+    );
+    if (weekly.length > 0) {
+        const dayKey = getWeekKey(selectedDate); // 'mon'..'sun'
+        // periods: [ [ 'mon','09:00','18:00' ], ... ] и/или несколько интервалов в один день
+        const dayIntervals = weekly.flatMap((s: any) =>
+            (s.periods || []).filter((p: any) => p?.[0] === dayKey)
+        );
+        if (dayIntervals.length === 0) return false; // выходной
+        return dayIntervals.some((p: any) => inRange(minutes, p[1], p[2]));
+    }
 
-    // Определяем день недели
-    const weekday = date.toLocaleDateString("en-US", { weekday: "short" }).toLowerCase();
-    // en-US вернёт "mon", "tue", "wed" ... → приводим к формату API
-    const dayMap: Record<string, string> = {
-        sun: "sun",
-        mon: "mon",
-        tue: "tue",
-        wed: "wed",
-        thu: "thu",
-        fri: "fri",
-        sat: "sat",
-    };
-    const dayKey = dayMap[weekday] || "mon";
-
-    // Фильтруем все интервалы для этого дня
-    const dayPeriods = schedule.periods.filter(p => p[0] === dayKey);
-    if (!dayPeriods.length) return false; // если вообще нет интервалов — день нерабочий
-
-    // Проверяем, попадает ли время в один из интервалов
-    return dayPeriods.some(period => {
-        const [_, start, end] = period; // ["mon", "09:00", "12:00"]
-        return time >= start && time < end;
-    });
+    // 3) Если по сотруднику вообще нет записей — считаем нерабочим временем
+    return false;
 }
 
+function toMinutes(hhmm: string): number {
+    const [h, m] = (hhmm || "0:0").split(":").map(Number);
+    return (h || 0) * 60 + (m || 0);
+}
+
+function inRange(min: number, start: string, end: string) {
+    const s = toMinutes(start);
+    const e = toMinutes(end);
+    return min >= s && min < e;
+}
+
+// Mon..Sun -> 'mon'..'sun'
+function getWeekKey(d: Date): "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun" {
+    // getDay(): 0=Sunday..6=Saturday
+    const idx = d.getDay();
+    const map = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
+    const key = map[idx];
+    // нам нужна 'mon'..'sun'
+    return key === "sun" ? "sun" : key;
+}

@@ -145,12 +145,8 @@ export default function ScheduleModule({
                             </div>
                             {/* колонки мастеров */}
                             {masters.map((_, masterIdx) => {
-                                const employee = employees[masterIdx]; // ✅ Вот так получаем сотрудника
-                                const scheduleForEmployee = employee
-                                    ? schedules.find(s => s.employee_id === employee.id)
-                                    : undefined;
-
-                                const working = employee && scheduleForEmployee
+                                const employee = employees[masterIdx];
+                                const working = employee
                                     ? isWorkingSlot(employee.id, toTime(min), selectedDate, schedules)
                                     : true;
 
@@ -160,7 +156,7 @@ export default function ScheduleModule({
                                         className={`col-master flex-1 min-w-[180px] h-[40px] border-t border-l border-gray-200 cursor-pointer ${
                                             working
                                                 ? "bg-white hover:bg-gray-50"
-                                                : "bg-[repeating-linear-gradient(45deg,#f8f8f8_0,#f8f8f8_10px,#ececec_10px,#ececec_20px)]"
+                                                : "bg-[repeating-linear-gradient(45deg,#fafafa_0,#fafafa_6px,#f0f0f0_6px,#f0f0f0_12px)]"
                                         }`}
                                         onClick={() => handleCellClick(min, masterIdx)}
                                     />

@@ -47,7 +47,7 @@ import UpdateEventModal from "@/components/schedulePage/UpdateEventModal";
 import { useEmployeeSchedules } from "@/hooks/useEmployeeSchedules";
 import { EditEmployeeModal } from "@/components/schedulePage/EditEmployeeModal";
 import { useUpdateEmployee } from "@/hooks/useEmployees";
-
+import { isWorkingSlot } from "@/components/utils/isWorkingSlot";
 
 export interface ScheduleEvent {
     id: string;
@@ -231,8 +231,13 @@ const Page: React.FC = () => {
     const startDate = formatDateLocal(selectedDate);
     const endDate = formatDateLocal(selectedDate);
 
-    const { data: schedules = [] } = useEmployeeSchedules(id, undefined, startDate, endDate);
-
+    //const { data: schedules = [] } = useEmployeeSchedules(id, undefined, startDate, endDate);
+    const { data: schedules = [] } = useEmployeeSchedules(
+        id,           // branchId
+        undefined,    // employeeId — не указываем, чтобы получить графики для всех
+        startDate,
+        endDate
+    );
 
 
     const { data: appointments, isLoading: isAppointmentsLoading, error: appointmentsError } = useAppointmentsByBranchAndDate(id, selectedDate);
@@ -246,6 +251,7 @@ const Page: React.FC = () => {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedMasterIndex, setSelectedMasterIndex] = useState<number | null>(null);
     const [selectedStartMinutes, setSelectedStartMinutes] = useState<number | null>(null);
+    const [isOutsideSchedule, setIsOutsideSchedule] = useState(false); // 👈 добавляем!
 
     const [editingEvent, setEditingEvent] = useState<{
         id: number;
@@ -257,10 +263,24 @@ const Page: React.FC = () => {
         client?: { id: number; name: string; last_name?: string; phone?: string };
     } | null>(null);
 
-    const handleOpenCreateModal = (startMinutes: number, masterIndex: number) => {
+    /*const handleOpenCreateModal = (startMinutes: number, masterIndex: number) => {
         setSelectedStartMinutes(startMinutes);
         setSelectedMasterIndex(masterIndex);
         setIsCreateModalOpen(true);
+    };*/
+
+    const handleOpenCreateModal = (startMinutes: number, masterIndex: number) => {
+        const emp = employees[masterIndex];
+        const timeStr = formatTimeLocal(startMinutes);
+        const working = emp
+            ? isWorkingSlot(emp.id, timeStr, selectedDate, schedules)
+            : true;
+
+        setSelectedStartMinutes(startMinutes);
+        setSelectedMasterIndex(masterIndex);
+
+        setIsCreateModalOpen(true);
+        setIsOutsideSchedule(!working); // 👈 добавляем этот стейт
     };
 
     const handleEventClick = (ev: ScheduleEvent) => {
@@ -692,6 +712,7 @@ const Page: React.FC = () => {
                                 employeeId={selectedMasterIndex !== null ? employees[selectedMasterIndex].id : null}
                                 defaultStartTime={formatTimeLocal(selectedStartMinutes)}
                                 defaultEndTime={formatTimeLocal(selectedStartMinutes + 30)} // пока 30 мин шаг
+                                isOutsideSchedule={isOutsideSchedule} // 👈 передаём
                             />
                         )}
                     </section>

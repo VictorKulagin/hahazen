@@ -55,6 +55,7 @@ interface CreateEventModalProps {
     employeeId: number | null;
     defaultStartTime?: string;
     defaultEndTime?: string;
+    isOutsideSchedule?: boolean; // 👈 добавляем сюда (необязательный проп)
 }
 
 const CreateEventModal: React.FC<CreateEventModalProps> = ({
@@ -65,6 +66,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                                employeeId,
                                                                defaultStartTime,
                                                                defaultEndTime,
+                                                               isOutsideSchedule = false, // 👈 значение по умолчанию
                                                            }) => {
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
     const [name, setName] = useState("");
@@ -215,6 +217,17 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
             <div className="bg-white rounded p-6 w-full max-w-md relative text-black">
                 <h2 className="text-lg font-bold mb-4">Создать новое событие</h2>
+
+                <div className="...">
+                    <div className="bg-white p-4">
+                        {isOutsideSchedule && (
+                            <div className="bg-yellow-50 text-yellow-700 p-2 mb-3 rounded border border-yellow-300 text-sm">
+                                ⚠️ Внимание: сотрудник в этот день не работает. Запись будет вне графика.
+                            </div>
+                        )}
+                        {/* форма создания записи */}
+                    </div>
+                </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* 1. Поиск клиента */}

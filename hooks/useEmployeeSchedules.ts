@@ -16,39 +16,20 @@ export const useEmployeeSchedules = (
     endDate?: string
 ) => {
     return useQuery<EmployeeSchedule[], Error>({
-        queryKey: [
-            'employeeSchedules',
-            branchId,
-            employeeId, // Добавляем в ключ
-            startDate,
-            endDate
-        ],
+        queryKey: ['employeeSchedules', branchId, employeeId, startDate, endDate],
         queryFn: async () => {
-            try {
-                if (!branchId || !employeeId || !startDate || !endDate) return [];
+            if (!branchId || !startDate || !endDate) return []; // employeeId больше не обязателен
 
-                console.log('Fetching schedules with:', {
-                    branchId,
-                    employeeId,
-                    startDate,
-                    endDate
-                });
+            console.log('Fetching schedules with:', {
+                branchId,
+                employeeId,
+                startDate,
+                endDate
+            });
 
-                const data = await fetchEmployeeSchedules(
-                    branchId,
-                    employeeId,
-                    startDate,
-                    endDate
-                );
-
-                console.log('Received schedules:', data);
-                return data;
-            } catch (error) {
-                console.error('Error fetching schedules:', error);
-                throw error;
-            }
+            return await fetchEmployeeSchedules(branchId, employeeId, startDate, endDate);
         },
-        enabled: !!branchId && !!employeeId
+        enabled: !!branchId && !!startDate && !!endDate // убрали проверку employeeId
     });
 };
 
