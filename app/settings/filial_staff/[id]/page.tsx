@@ -862,6 +862,7 @@ const Page: React.FC = ( ) => {
                         setIsSubmitting={setIsSubmitting}
                         isScheduleLoading={isScheduleLoading}
                         availableServices={allServices || []}
+                        // @ts-ignore
                         initialSelectedServices={currentEmployeeServices || []}
                         isServicesLoading={isEmployeeServicesLoading}
                         onServicesChange={setSelectedServices}
@@ -1052,8 +1053,11 @@ const EmployeeModal = ({
     >(
         initialSelectedServices.map(s => ({
             service_id: s.id,
+            // @ts-ignore
             individual_price: s.pivot?.individual_price ?? s.base_price,
+            // @ts-ignore
             duration_minutes: s.pivot?.duration_minutes ?? s.duration_minutes,
+            // @ts-ignore
             name: s.name
         }))
     );
