@@ -2,7 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { Employee } from "@/services/employeeApi";
 import { useEmployeeSchedules, useCreateEmployeeSchedule, useUpdateEmployeeSchedule } from "@/hooks/useEmployeeSchedules";
-
+import { useServices, useEmployeeServices, useSyncEmployeeServices } from "@/hooks/useServices";
+//import { EmployeeService } from "@/services/servicesApi";
+import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
 
 type Props = {
     isOpen: boolean;
@@ -15,6 +17,12 @@ type WeeklyPeriod = {
     day: string;   // "mon" | "tue" | ... — можно уточнить тип позже
     start: string; // "HH:mm"
     end: string;   // "HH:mm"
+};
+
+type EmployeeService = {
+    service_id: number;
+    individual_price?: number;
+    duration_minutes?: number;
 };
 
 export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, onSave }) => {
@@ -35,6 +43,13 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     // API-хуки
     const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
     const { mutateAsync: updateSchedule } = useUpdateEmployeeSchedule();
+
+    const { data: allServices = [] } = useServices();
+    const { data: employeeServices = [] } = useEmployeeServices(employee?.id);
+    const { mutateAsync: syncServices } = useSyncEmployeeServices();
+
+    const [selectedServices, setSelectedServices] = useState<EmployeeService[]>([]);
+
 
     useEffect(() => {
         if (employee && isOpen) {
@@ -89,6 +104,49 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     }, [schedules]);
 
 
+    // Загружаем выбранные услуги при открытии
+    useEffect(() => {
+        if (!isOpen) return;
+
+        console.log("🔧 Открыта модалка для сотрудника:", employee?.name ?? "—");
+
+        setSelectedServices(
+            (employeeServices ?? []).map((s) => ({
+                service_id: s.service_id,
+                individual_price: s.individual_price,
+                duration_minutes: s.duration_minutes,
+            }))
+        );
+    }, [employeeServices, isOpen]);
+
+    const toggleService = (serviceId: number) => {
+        setSelectedServices((prev) => {
+            const exists = prev.find((s) => s.service_id === serviceId);
+            if (exists) {
+                return prev.filter((s) => s.service_id !== serviceId);
+            } else {
+                const base = allServices.find((s) => s.id === serviceId);
+                return [
+                    ...prev,
+                    {
+                        service_id: serviceId,
+                        individual_price: base?.base_price ?? 0,
+                        duration_minutes: base?.duration_minutes ?? 30,
+                    },
+                ];
+            }
+        });
+    };
+
+    const updateField = (serviceId: number, field: "price" | "duration", value: number) => {
+        setSelectedServices(prev =>
+            prev.map(s =>
+                s.service_id === serviceId ? { ...s, [field]: value } : s
+            )
+        );
+    };
+
+
     const addPeriod = () => setPeriods(prev => [...prev, { day: "mon", start: "09:00", end: "18:00" }]);
     const updatePeriod = (i: number, field: keyof WeeklyPeriod, value: string) =>
         setPeriods(prev => prev.map((p, idx) => (idx === i ? { ...p, [field]: value } : p)));
@@ -97,37 +155,62 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
     if (!isOpen || !employee) return null;
 
+// Сохранение данных
     const handleSave = async () => {
         if (!employee) return;
 
-        onSave({ ...employee, name, last_name: lastName, phone, specialty, email, hire_date: hireDate, });
-
-        // Подготовка данных для графика
-        const payload = {
-            id: scheduleId ?? 0,
-            employee_id: employee.id,
-            schedule_type: "weekly" as const,
-            start_date: startDate,
-            end_date: endDate,
-            night_shift: 0,
-            periods: periods.map(p => [p.day, p.start, p.end]) as [string, string, string][],
-        };
-
         try {
+            // 1. Сохраняем изменения сотрудника
+            await onSave({
+                ...employee,
+                name,
+                last_name: lastName,
+                phone,
+                specialty,
+                email,
+                hire_date: hireDate,
+            });
+
+            // 2. Сохраняем график
+            const payload = {
+                id: scheduleId ?? 0,
+                employee_id: employee.id,
+                schedule_type: "weekly" as const,
+                start_date: startDate,
+                end_date: endDate,
+                night_shift: 0,
+                periods: periods.map((p) => [p.day, p.start, p.end]) as [string, string, string][],
+            };
+
             if (scheduleId) {
                 await updateSchedule(payload);
             } else {
                 await createSchedule(payload);
             }
-        } catch (error) {
-            console.error("Ошибка сохранения графика:", error);
-            alert("Не удалось сохранить график");
-        }
 
+            // 3. Синхронизация услуг
+            const normalized: EmployeeServicePayload[] = selectedServices.map((s) => ({
+                service_id: s.service_id,
+                individual_price: s.individual_price ?? 0,
+                duration_minutes: s.duration_minutes ?? 0,
+            }));
+
+            await syncServices({
+                employeeId: employee.id,
+                services: normalized,
+            });
+
+            console.log("✅ Сотрудник, график и услуги успешно сохранены");
+
+            // 4. Закрываем модалку
+            onClose();
+
+        } catch (err) {
+            console.error("❌ Ошибка сохранения:", err);
+            alert("Не удалось сохранить данные. Проверьте соединение и попробуйте снова.");
+        }
     };
 
-    // @ts-ignore
-    // @ts-ignore
     return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end">
             <div className="bg-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
@@ -225,7 +308,6 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                     {activeTab === "schedule" && (
                         <div className="space-y-4">
 
-
                             {/* Тип графика */}
                             <div>
                                 <label className="block mb-1 font-semibold">Тип графика</label>
@@ -262,12 +344,11 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                             </div>
 
                             {/* Периоды */}
-                            {/* Периоды */}
                             <div>
                                 <label className="block font-semibold mb-2">Периоды</label>
 
                                 {/* Контейнер с прокруткой */}
-                                <div className="max-h-80 overflow-y-auto pr-1">
+                                <div className="max-h-96 overflow-y-auto pr-1">
                                     {periods.map((p, i) => (
                                         <div key={i} className="grid grid-cols-[2rem_6rem_1fr_1fr_2rem] gap-2 items-center mb-2">
                                             {/* Стрелки */}
@@ -366,11 +447,84 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                     )}
 
                     {activeTab === "services" && (
-                        <div className="text-gray-700 text-sm">
-                            <p className="mb-2">Тут будет список услуг сотрудника.</p>
-                            <p className="text-xs text-gray-500">
-                                (позже сюда добавим чекбоксы и цены — пока просто заглушка)
-                            </p>
+                        <div className="space-y-3">
+                            {allServices.map((service) => {
+                                const selected = selectedServices.find((s) => s.service_id === service.id);
+                                const isChecked = !!selected;
+
+                                return (
+                                    <div
+                                        key={service.id}
+                                        className="flex flex-col p-3 border rounded-lg hover:bg-gray-50 transition"
+                                    >
+                                        {/* Чекбокс + имя услуги */}
+                                        <div className="flex items-center justify-between">
+                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => toggleService(service.id)}
+                                                    className="h-4 w-4 accent-blue-600"
+                                                />
+                                                <span className="font-medium text-gray-800">{service.name}</span>
+                                            </label>
+                                            <span className="text-gray-500 text-sm">
+              Базовая: {service.base_price}₽ · {service.duration_minutes} мин
+            </span>
+                                        </div>
+
+                                        {/* Индивидуальные настройки — показываем только если услуга выбрана */}
+                                        {isChecked && (
+                                            <div className="grid grid-cols-2 gap-4 mt-2">
+                                                <div>
+                                                    <label className="block text-xs text-gray-500">Инд. цена</label>
+                                                    <input
+                                                        type="number"
+                                                        min={0}
+                                                        value={selected?.individual_price ?? service.base_price}
+                                                        onChange={(e) =>
+                                                            setSelectedServices((prev) =>
+                                                                prev.map((s) =>
+                                                                    s.service_id === service.id
+                                                                        ? { ...s, individual_price: Number(e.target.value) }
+                                                                        : s
+                                                                )
+                                                            )
+                                                        }
+                                                        className="w-full p-2 border rounded"
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <label className="block text-xs text-gray-500">Минут</label>
+                                                    <input
+                                                        type="number"
+                                                        min={5}
+                                                        step={5}
+                                                        value={selected?.duration_minutes ?? service.duration_minutes}
+                                                        onChange={(e) =>
+                                                            setSelectedServices((prev) =>
+                                                                prev.map((s) =>
+                                                                    s.service_id === service.id
+                                                                        ? { ...s, duration_minutes: Number(e.target.value) }
+                                                                        : s
+                                                                )
+                                                            )
+                                                        }
+                                                        className="w-full p-2 border rounded"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+
+                            {allServices.length === 0 && (
+                                <p className="text-gray-500 text-sm text-center">
+                                    Нет доступных услуг для филиала
+                                </p>
+                            )}
                         </div>
                     )}
                 </div>

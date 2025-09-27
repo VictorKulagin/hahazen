@@ -23,13 +23,23 @@ export interface EmployeeService {
 }
 
 // Ответ с назначенными услугами мастера (расширяем базовую услугу)
-export interface EmployeeServiceResponse extends Services {
+/*export interface EmployeeServiceResponse extends Services {
     pivot: {
         employee_id: number;
         service_id: number;
         individual_price: number;
         duration_minutes: number;
     };
+}*/
+
+// Ответ с назначенными услугами мастера
+export interface EmployeeServiceResponse {
+    id: number;               // id связи
+    service_id: number;
+    employee_id: number;
+    individual_price: number;
+    duration_minutes: number;
+    service: Services;        // объект с полной информацией об услуге
 }
 
 export const fetchServices = async (): Promise<Services[]> => {
