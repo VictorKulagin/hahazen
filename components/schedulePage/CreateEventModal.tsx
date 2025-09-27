@@ -102,18 +102,22 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
     if (!isOpen) return null;
 
+// ✅ Переключение выбора услуги
     const toggleService = (serviceId: number) => {
-        setSelectedServices((prev) =>
-            prev.some((s) => s.id === serviceId)
-                ? prev.filter((s) => s.id !== serviceId)
-                : [...prev, { id: serviceId, qty: 1 }]
-        );
+        setSelectedServices((prev) => {
+            const exists = prev.some((s) => s.id === serviceId);
+            return exists
+                ? prev.filter((s) => s.id !== serviceId) // убираем
+                : [...prev, { id: serviceId, qty: 1 }];  // добавляем с qty=1
+        });
     };
 
+// ✅ Обновление количества для выбранной услуги
     const updateQty = (serviceId: number, qty: number) => {
-        if (qty < 1) qty = 1;
         setSelectedServices((prev) =>
-            prev.map((s) => (s.id === serviceId ? { ...s, qty } : s))
+            prev.map((s) =>
+                s.id === serviceId ? { ...s, qty: qty > 0 ? qty : 1 } : s
+            )
         );
     };
 
@@ -385,33 +389,26 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                         {isLoading ? (
                             <p className="text-sm text-gray-500">Загрузка...</p>
                         ) : services.length === 0 ? (
-                            <p className="text-sm text-gray-500">
-                                У мастера нет привязанных услуг
-                            </p>
+                            <p className="text-sm text-gray-500">У мастера нет привязанных услуг</p>
                         ) : (
                             <ul className="space-y-3">
-                                {services.map((item: EmployeeServiceEither) => {
-                                    const { svc, pivot } = unwrapService(item);
-                                    const selected = selectedServices.find(
-                                        (s) => s.id === svc.id
-                                    );
-                                    const price =
-                                        pivot?.individual_price ?? (svc as any).base_price;
+                                {services.map((item) => {
+                                    const selected = selectedServices.find((s) => s.id === item.service_id);
+                                    const price = item.individual_price ?? item.base_price;
+
                                     return (
                                         <li
-                                            key={svc.id}
+                                            key={item.service_id}
                                             className="flex items-center justify-between p-3 border rounded-2xl shadow-sm hover:shadow-md transition"
                                         >
                                             <label className="flex items-center gap-3 cursor-pointer">
                                                 <input
                                                     type="checkbox"
                                                     checked={!!selected}
-                                                    onChange={() => toggleService(svc.id)}
+                                                    onChange={() => toggleService(item.service_id)}
                                                     className="w-5 h-5 accent-blue-600"
                                                 />
-                                                <span className="font-medium text-gray-800">
-                          {svc.name}
-                        </span>
+                                                <span className="font-medium text-gray-800">{item.name}</span>
                                                 <span className="text-sm text-gray-500">{price}₽</span>
                                             </label>
 
@@ -420,9 +417,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                     type="number"
                                                     min={1}
                                                     value={selected.qty}
-                                                    onChange={(e) =>
-                                                        updateQty(svc.id, Number(e.target.value))
-                                                    }
+                                                    onChange={(e) => updateQty(item.service_id, Number(e.target.value))}
                                                     className="w-16 p-1 border rounded-lg text-center focus:ring-2 focus:ring-blue-500"
                                                 />
                                             )}
