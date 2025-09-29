@@ -3,8 +3,9 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "re
 import { useEmployees } from "@/hooks/useEmployees";
 import { isWorkingSlot } from "@/components/utils/isWorkingSlot";
 import type { EmployeeSchedule } from "@/services/еmployeeScheduleApi";
-import {Employee} from "@/services/employeeApi";
-
+import { Employee } from "@/services/employeeApi";
+import { PlusIcon } from "@heroicons/react/24/solid";
+import { UserPlusIcon } from "@heroicons/react/24/solid"; // 👈 вместо PlusIcon
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -16,7 +17,7 @@ export interface ScheduleEvent {
 export type ScheduleModuleProps = {
     employees: ReturnType<typeof useEmployees>["data"];
     appointments: ScheduleEvent[];
-    selectedDate: Date;                                 // ← уже есть в твоём коде
+    selectedDate: Date;
     onDateSelect: React.Dispatch<React.SetStateAction<Date>>;
     startHour?: number;
     endHour?: number;
@@ -24,8 +25,9 @@ export type ScheduleModuleProps = {
     rowHeightPx?: number;
     onCellClick?: (startMinutes: number, masterIndex: number) => void;
     onEventClick?: (event: ScheduleEvent) => void;
-    schedules?: EmployeeSchedule[];                     // ← НОВОЕ: массив графиков
-    onMasterClick?: (employee: any) => void; // 👈 новый пропс
+    schedules?: EmployeeSchedule[];
+    onMasterClick?: (employee: Employee) => void;
+    onAddEmployee?: () => void; // 👈 новый пропс
 };
 
 export function toMins(t: string): number {
@@ -55,15 +57,13 @@ export default function ScheduleModule({
                                            onCellClick,
                                            onEventClick,
                                            schedules = [],
-                                           onMasterClick,   // 👈 добавляем сюда!// ← дефолт: пустой массив
+                                           onMasterClick,
+                                           onAddEmployee, // 👈 новый пропс
                                        }: ScheduleModuleProps) {
     const masters = employees.map((e) => e.name);
     const minMinutes = startHour * 60;
     const maxMinutes = endHour * 60;
-    const slots = useMemo(
-        () => rangeSlots(minMinutes, maxMinutes, slotStepMin),
-        [minMinutes, maxMinutes, slotStepMin]
-    );
+    const slots = useMemo(() => rangeSlots(minMinutes, maxMinutes, slotStepMin), [minMinutes, maxMinutes, slotStepMin]);
 
     const [events, setEvents] = useState<ScheduleEvent[]>(appointments);
     const [colRects, setColRects] = useState<{ left: number; width: number }[]>([]);
@@ -72,19 +72,14 @@ export default function ScheduleModule({
 
     useEffect(() => setEvents(appointments), [appointments]);
 
-    // измерения колонок
     const recalcColRects = () => {
         if (!headerRowRef.current || !scheduleRef.current) return;
         const scheduleBox = scheduleRef.current.getBoundingClientRect();
-        const cols = Array.from(
-            headerRowRef.current.querySelectorAll<HTMLDivElement>(".col-master")
-        );
-        setColRects(
-            cols.map((c) => {
-                const r = c.getBoundingClientRect();
-                return { left: r.left - scheduleBox.left, width: r.width };
-            })
-        );
+        const cols = Array.from(headerRowRef.current.querySelectorAll<HTMLDivElement>(".col-master"));
+        setColRects(cols.map((c) => {
+            const r = c.getBoundingClientRect();
+            return { left: r.left - scheduleBox.left, width: r.width };
+        }));
     };
 
     useLayoutEffect(() => recalcColRects(), [masters.length]);
@@ -93,7 +88,6 @@ export default function ScheduleModule({
         return () => window.removeEventListener("resize", recalcColRects);
     }, []);
 
-    // карточки событий
     const cards = useMemo(() => {
         return events.map((ev) => {
             const sm = toMins(ev.start);
@@ -108,42 +102,44 @@ export default function ScheduleModule({
         });
     }, [events, colRects, minMinutes, rowHeightPx, slotStepMin]);
 
-    const handleCellClick = (startMin: number, masterIndex: number) => {
-        onCellClick?.(startMin, masterIndex);
-    };
-
     return (
-        <div className="overflow-x-auto">
-            <div
-                ref={scheduleRef}
-                className="relative border border-gray-300 rounded bg-white min-w-max"
-            >
+        <div className="overflow-x-auto relative">
+            <div ref={scheduleRef} className="relative border border-gray-300 rounded bg-white min-w-max">
                 {/* Заголовок */}
-                <div ref={headerRowRef} className="flex sticky top-0 bg-white z-20 border-b">
-                    <div className="flex-none w-[90px] bg-gray-100 border-r border-gray-300 text-center font-semibold p-2 sticky left-0 z-30 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
+                <div ref={headerRowRef} className="flex sticky top-0 bg-white z-1 h-10 border-b">
+                    <div className="flex-none w-[90px] bg-gray-100 border-r border-gray-300 text-center font-semibold p-1 sticky left-0 z-30 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
                         Время
                     </div>
                     {masters.map((m, i) => (
                         <div
                             key={i}
-                            className="col-master flex-1 min-w-[180px] border-r border-gray-300 p-2 text-center font-medium cursor-pointer hover:bg-gray-100"
-                            onClick={() => onMasterClick?.(employees[i])}  // 👈 передаём весь объект Employee
+                            className="col-master flex-1 min-w-[180px] border-r border-gray-300 p-1 text-center font-medium cursor-pointer hover:bg-gray-100"
+                            onClick={() => onMasterClick?.(employees[i])}
                             title="Редактировать сотрудника"
                         >
                             ✏️ {m}
                         </div>
                     ))}
+                    {/* 👉 ОТДЕЛЬНАЯ КОЛОНКА */}
+                    <div className="hidden sm:flex flex-none min-w-[180px] border-r border-gray-300 p-2 justify-center">
+                        <button
+                            onClick={onAddEmployee}
+                            className="px-3 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition flex items-center gap-2"
+                            title="Добавить"
+                        >
+                            <UserPlusIcon className="h-5 w-5" />
+                            <span className="hidden md:inline">Добавить</span>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Сетка */}
                 <div className="relative">
                     {slots.map((min, rowIdx) => (
                         <div className="flex" key={rowIdx}>
-                            {/* колонка времени */}
                             <div className="flex-none w-[90px] h-[40px] border-t border-gray-300 flex items-center justify-center text-sm bg-white sticky left-0 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
                                 {toTime(min)}
                             </div>
-                            {/* колонки мастеров */}
                             {masters.map((_, masterIdx) => {
                                 const employee = employees[masterIdx];
                                 const working = employee
@@ -153,15 +149,15 @@ export default function ScheduleModule({
                                 return (
                                     <div
                                         key={masterIdx}
-                                        className={`col-master flex-1 min-w-[180px] h-[40px] border-t border-l border-gray-200 cursor-pointer ${
-                                            working
-                                                ? "bg-white hover:bg-gray-50"
-                                                : "bg-[repeating-linear-gradient(45deg,#fafafa_0,#fafafa_6px,#f0f0f0_6px,#f0f0f0_12px)]"
+                                        className={`col-master flex-1 min-w-[180px] h-[40px] border-t border-l border-gray-200 ${
+                                            working ? "bg-white hover:bg-gray-50" : "bg-[repeating-linear-gradient(45deg,#fafafa_0,#fafafa_6px,#f0f0f0_6px,#f0f0f0_12px)]"
                                         }`}
-                                        onClick={() => handleCellClick(min, masterIdx)}
+                                        onClick={() => onCellClick?.(min, masterIdx)}
                                     />
                                 );
                             })}
+                            {/* 👇 ВАЖНО: добавляем пустую колонку внутри flex */}
+                            <div className="hidden sm:block flex-none min-w-[180px] h-[40px] border-t border-l border-gray-200 bg-white" />
                         </div>
                     ))}
                 </div>
@@ -180,12 +176,19 @@ export default function ScheduleModule({
                         onClick={() => onEventClick?.(c.ev)}
                     >
                         <span className="font-semibold">{c.ev.text}</span>
-                        <span className="text-[11px] opacity-80">
-              {c.ev.start} – {c.ev.end}
-            </span>
+                        <span className="text-[11px] opacity-80">{c.ev.start} – {c.ev.end}</span>
                     </div>
                 ))}
             </div>
+
+            {/* 👇 FAB для мобильных */}
+            <button
+                onClick={onAddEmployee}
+                className="sm:hidden fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition"
+                title="Добавить"
+            >
+                <UserPlusIcon className="h-6 w-6" />
+            </button>
         </div>
     );
 }

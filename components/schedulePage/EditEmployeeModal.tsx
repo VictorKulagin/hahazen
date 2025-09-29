@@ -51,6 +51,15 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const [selectedServices, setSelectedServices] = useState<EmployeeService[]>([]);
 
 
+    // --- состояния для загрузки графика ---
+    const [scheduleStartDate, setScheduleStartDate] = useState<string>("");
+    const [scheduleEndDate, setScheduleEndDate] = useState<string>("");
+
+// --- состояния для редактирования в форме ---
+    const [localStartDate, setLocalStartDate] = useState<string>("");
+    const [localEndDate, setLocalEndDate] = useState<string>("");
+
+
     useEffect(() => {
         if (employee && isOpen) {
             setName(employee.name);
@@ -78,46 +87,83 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     }, [employee, isOpen]);
 
     // Подгружаем расписания из API
-    const { data: schedules } = useEmployeeSchedules(
-        employee?.branch_id,
+    /*const { data: schedules } = useEmployeeSchedules(
+        branchId,          // ✅ используем branchId,
         employee?.id,
         startDate,
         endDate
+    );*/
+
+    // загружаем график (API)
+    const { data: schedules } = useEmployeeSchedules(
+        employee?.branch_id,
+        employee?.id,
+        scheduleStartDate,
+        scheduleEndDate
     );
 
     // Если пришли данные из API
+// при открытии модалки
+    useEffect(() => {
+        if (employee && isOpen) {
+            const today = new Date();
+            const defaultStart = today.toISOString().split("T")[0];
+            const defaultEnd = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+                .toISOString()
+                .split("T")[0];
+
+            setScheduleStartDate(defaultStart); // только для загрузки API
+            setScheduleEndDate(defaultEnd);
+
+            setLocalStartDate(defaultStart); // для формы
+            setLocalEndDate(defaultEnd);
+        }
+    }, [employee, isOpen]);
+
+// когда пришли данные из API
     useEffect(() => {
         if (schedules && schedules.length > 0) {
             const s = schedules[0];
             setScheduleId(s.id);
+            setLocalStartDate(s.start_date);
+            setLocalEndDate(s.end_date);
 
-            // Обновляем только если пользователь не менял поля
-            setStartDate(prev => prev || s.start_date);
-            setEndDate(prev => prev || s.end_date);
-
-            setPeriods(s.periods.map((p) => ({
-                day: p[0],
-                start: p[1],
-                end: p[2]
-            })));
+            setPeriods(
+                s.periods.map((p) => ({
+                    day: p[0],
+                    start: p[1],
+                    end: p[2],
+                }))
+            );
         }
     }, [schedules]);
 
 
     // Загружаем выбранные услуги при открытии
     useEffect(() => {
-        if (!isOpen) return;
+        if (!isOpen || !employee?.id) return;
 
         console.log("🔧 Открыта модалка для сотрудника:", employee?.name ?? "—");
 
-        setSelectedServices(
-            (employeeServices ?? []).map((s) => ({
-                service_id: s.service_id,
-                individual_price: s.individual_price,
-                duration_minutes: s.duration_minutes,
-            }))
-        );
-    }, [employeeServices, isOpen]);
+        const newServices = (employeeServices ?? []).map((s) => ({
+            service_id: s.service_id,
+            individual_price: s.individual_price,
+            duration_minutes: s.duration_minutes,
+        }));
+
+        // Сравнение, чтобы не вызывать setState если данные не поменялись
+        setSelectedServices((prev) => {
+            const isEqual =
+                prev.length === newServices.length &&
+                prev.every((p, i) =>
+                    p.service_id === newServices[i].service_id &&
+                    p.individual_price === newServices[i].individual_price &&
+                    p.duration_minutes === newServices[i].duration_minutes
+                );
+
+            return isEqual ? prev : newServices;
+        });
+    }, [employee?.id, isOpen, employeeServices]);
 
     const toggleService = (serviceId: number) => {
         setSelectedServices((prev) => {
@@ -176,8 +222,8 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 id: scheduleId ?? 0,
                 employee_id: employee.id,
                 schedule_type: "weekly" as const,
-                start_date: startDate,
-                end_date: endDate,
+                start_date: localStartDate, // 🔥 теперь берём локальное
+                end_date: localEndDate,     // 🔥 теперь берём локальное
                 night_shift: 0,
                 periods: periods.map((p) => [p.day, p.start, p.end]) as [string, string, string][],
             };
@@ -327,8 +373,8 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                                     <label className="block mb-1 font-semibold">Дата начала</label>
                                     <input
                                         type="date"
-                                        value={startDate}
-                                        onChange={(e) => setStartDate(e.target.value)}
+                                        value={localStartDate}
+                                        onChange={(e) => setLocalStartDate(e.target.value)}
                                         className="w-full p-2 border rounded"
                                     />
                                 </div>
@@ -336,8 +382,8 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                                     <label className="block mb-1 font-semibold">Дата окончания</label>
                                     <input
                                         type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
+                                        value={localEndDate}
+                                        onChange={(e) => setLocalEndDate(e.target.value)}
                                         className="w-full p-2 border rounded"
                                     />
                                 </div>
