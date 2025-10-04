@@ -1,10 +1,18 @@
 // hooks/useEmployees.ts
 "use client";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import {Employee, fetchEmployees, updateEmployee} from "@/services/employeeApi";
+import {useQuery, useQueryClient, useMutation, UseMutationResult} from "@tanstack/react-query";
+import {
+    Employee,
+    fetchEmployees,
+    createEmployee,
+    updateEmployee,
+    deleteEmployee,
+    EmployeeCreatePayload
+} from "@/services/employeeApi";
 import { useEffect, useRef, useState } from "react";
 import { EventSourcePolyfill } from "event-source-polyfill";
 import { createSSEConnection } from "@/services/api";
+
 export const useEmployees = (branchId?: number) => {
     const queryClient = useQueryClient();
     const eventSourceRef = useRef<EventSourcePolyfill | null>(null);
@@ -147,3 +155,34 @@ export const useUpdateEmployee = () => {
     });
 };
 
+
+
+export const useCreateEmployee = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation<Employee, Error, EmployeeCreatePayload>({
+        mutationFn: (payload: EmployeeCreatePayload) => createEmployee(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+        },
+    });
+};
+
+
+export const useDeleteEmployee = (): UseMutationResult<void, unknown, number, unknown> => {
+    const queryClient = useQueryClient();
+
+    return useMutation<void, unknown, number>({
+        mutationFn: async (id: number) => {
+            console.log("🟠 Попали в mutationFn, id:", id);
+            return deleteEmployee(id);
+        },
+        onSuccess: () => {
+            console.log("✅ Сотрудник удалён, обновляем employees");
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+        },
+        onError: (error: any) => {
+            console.error("❌ Ошибка удаления:", error.response?.data || error.message);
+        },
+    });
+};

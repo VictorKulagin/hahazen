@@ -27,7 +27,7 @@ export type ScheduleModuleProps = {
     onEventClick?: (event: ScheduleEvent) => void;
     schedules?: EmployeeSchedule[];
     onMasterClick?: (employee: Employee) => void;
-    onAddEmployee?: () => void; // 👈 новый пропс
+    onAddEntity?: () => void; // 👈 новый пропс
 };
 
 export function toMins(t: string): number {
@@ -58,7 +58,7 @@ export default function ScheduleModule({
                                            onEventClick,
                                            schedules = [],
                                            onMasterClick,
-                                           onAddEmployee, // 👈 новый пропс
+                                           onAddEntity, // 👈 новый пропс
                                        }: ScheduleModuleProps) {
     const masters = employees.map((e) => e.name);
     const minMinutes = startHour * 60;
@@ -123,7 +123,7 @@ export default function ScheduleModule({
                     {/* 👉 ОТДЕЛЬНАЯ КОЛОНКА */}
                     <div className="hidden sm:flex flex-none min-w-[180px] border-r border-gray-300 p-2 justify-center">
                         <button
-                            onClick={onAddEmployee}
+                            onClick={onAddEntity}
                             className="px-3 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition flex items-center gap-2"
                             title="Добавить"
                         >
@@ -183,7 +183,7 @@ export default function ScheduleModule({
 
             {/* 👇 FAB для мобильных */}
             <button
-                onClick={onAddEmployee}
+                onClick={onAddEntity}
                 className="sm:hidden fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition"
                 title="Добавить"
             >

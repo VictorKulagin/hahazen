@@ -5,7 +5,7 @@ import {
     Services,
     syncEmployeeServices,
     fetchEmployeeServices,
-    EmployeeService,
+    EmployeeService, createServices, deleteServices, updateServices,
 } from "@/services/servicesApi";
 
 export interface NormalizedEmployeeService extends EmployeeService {
@@ -56,6 +56,47 @@ export const useSyncEmployeeServices = () => {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["employeeServices"] });
+        },
+    });
+};
+
+// Хук для создания новой услуги
+// Создание услуги
+export const useCreateService = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (data: Omit<Services, "id">) => createServices(data), // ✅
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["services"] });
+        },
+        onError: (error) => {
+            console.error("❌ Ошибка при создании услуги:", error);
+        },
+    });
+};
+
+// 🔹 Удаление услуги
+export const useDeleteService = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => deleteServices(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["services"] });
+        },
+    });
+};
+
+// 🔹 Обновление услуги
+export const useUpdateService = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: ({ id, data }: { id: number; data: Partial<Services> }) =>
+            updateServices(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["services"] });
         },
     });
 };

@@ -33,7 +33,7 @@ import {
 
 import CustomCalendar from "@/components/CustomCalendar";
 import ScheduleModule, {toMins, toTime} from "@/components/ScheduleModule";
-import { useEmployees }  from "@/hooks/useEmployees";
+import {useCreateEmployee, useEmployees} from "@/hooks/useEmployees";
 import { useAppointments } from "@/hooks/useAppointments";
 import { flattenGroupedAppointments } from '@/components/utils/appointments';
 import { useAppointmentsByBranchAndDate } from '@/hooks/useAppointments';
@@ -48,6 +48,9 @@ import { useEmployeeSchedules } from "@/hooks/useEmployeeSchedules";
 import { EditEmployeeModal } from "@/components/schedulePage/EditEmployeeModal";
 import { useUpdateEmployee } from "@/hooks/useEmployees";
 import { isWorkingSlot } from "@/components/utils/isWorkingSlot";
+import {CreateMenuModal} from "@/components/schedulePage/CreateMenuModal";
+import { ServiceManager} from "@/components/schedulePage/ServiceManager";
+import {CreateEmployeeModal} from "@/components/schedulePage/CreateEmployeeModal";
 
 export interface ScheduleEvent {
     id: string;
@@ -76,6 +79,7 @@ const Page: React.FC = () => {
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
+    const [isCreateEmployeeOpen, setIsCreateEmployeeOpen] = useState(false);
 
     // const { employees } = useEmployees();
 
@@ -95,7 +99,8 @@ const Page: React.FC = () => {
     const [daysWithAppointments, setDaysWithAppointments] = useState<number[]>([]);
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
 
-
+    const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
+    const [isCreateServiceOpen, setIsCreateServiceOpen] = useState(false);
     /*const appointments = [
         { id: 1, start: "10:00", end: "11:00", client: "Иван Петров", service: "Массаж спины", phone: "+77771234567" },
         { id: 2, start: "12:00", end: "13:30", client: "Анна Сидорова", service: "SPA программа", phone: "+77779876543" },
@@ -204,6 +209,7 @@ const Page: React.FC = () => {
     }, []);
 
     const id = branchesData?.[0]?.id ?? null;
+    console.log("ID из данных PAGE:", id);
     const params = useParams();
     //const idFromUrl = params.id as string || null;
     let idFromUrl: string | null = null;
@@ -239,6 +245,7 @@ const Page: React.FC = () => {
         endDate
     );
 
+    const { mutateAsync: createEmployeeMutate } = useCreateEmployee();
 
     const { data: appointments, isLoading: isAppointmentsLoading, error: appointmentsError } = useAppointmentsByBranchAndDate(id, selectedDate);
     const normalizedAppointments =
@@ -688,6 +695,7 @@ const Page: React.FC = () => {
                             onCellClick={handleOpenCreateModal}
                             onEventClick={handleEventClick}
                             onMasterClick={handleMasterClick} // 👈 добавили
+                            onAddEntity={() => setIsCreateMenuOpen(true)} // 👈 открывает меню выбора
                         />
 
                         <EditEmployeeModal
@@ -715,6 +723,41 @@ const Page: React.FC = () => {
                                 isOutsideSchedule={isOutsideSchedule} // 👈 передаём
                             />
                         )}
+
+                        {isCreateEmployeeOpen && (
+                            <CreateEmployeeModal
+                                isOpen={isCreateEmployeeOpen}
+                                branchId={id}
+                                onClose={() => setIsCreateEmployeeOpen(false)}
+                                onSave={() => {
+                                    setIsCreateEmployeeOpen(false);
+                                }}
+                            />
+                        )}
+
+                        {/* Модалки */}
+                        <EditEmployeeModal isOpen={!!selectedEmployee} employee={selectedEmployee} onClose={() => setSelectedEmployee(null)} onSave={updateEmployeeMutate} />
+
+                        {/* Создание услуги + список */}
+                        {isCreateServiceOpen && (
+                            <ServiceManager branchId={id} onClose={() => setIsCreateServiceOpen(false)} />
+                        )}
+
+                        <CreateMenuModal
+                            isOpen={isCreateMenuOpen}
+                            onClose={() => setIsCreateMenuOpen(false)}
+                            onSelect={(type) => {
+                                if (type === "employee") {
+                                    setIsCreateEmployeeOpen(true); // ✅ открываем создание
+                                }
+                                if (type === "service") {
+                                    setIsCreateServiceOpen(true);
+                                }
+                            }}
+                        />
+
+
+
                     </section>
                 </div>
             </main>

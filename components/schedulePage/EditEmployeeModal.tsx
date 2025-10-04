@@ -5,6 +5,7 @@ import { useEmployeeSchedules, useCreateEmployeeSchedule, useUpdateEmployeeSched
 import { useServices, useEmployeeServices, useSyncEmployeeServices } from "@/hooks/useServices";
 //import { EmployeeService } from "@/services/servicesApi";
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
+import {useDeleteEmployee} from "@/hooks/useEmployees";
 
 type Props = {
     isOpen: boolean;
@@ -47,6 +48,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const { data: allServices = [] } = useServices();
     const { data: employeeServices = [] } = useEmployeeServices(employee?.id);
     const { mutateAsync: syncServices } = useSyncEmployeeServices();
+    const deleteEmployeeMutation = useDeleteEmployee();
 
     const [selectedServices, setSelectedServices] = useState<EmployeeService[]>([]);
 
@@ -577,6 +579,22 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
                 {/* Футер */}
                 <div className="p-4 border-t bg-white flex justify-end gap-2">
+                    <button
+                        onClick={async () => {
+                            if (!employee?.id) return;
+                            if (confirm("Удалить этого сотрудника?")) {
+                                try {
+                                    await deleteEmployeeMutation.mutateAsync(employee.id);
+                                    onClose();
+                                } catch (err) {
+                                    alert("Ошибка при удалении");
+                                }
+                            }
+                        }}
+                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                    >
+                        Удалить
+                    </button>
                     <button
                         onClick={onClose}
                         className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
