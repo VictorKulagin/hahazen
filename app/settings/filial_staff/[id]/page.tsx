@@ -422,6 +422,7 @@ const Page: React.FC = ( ) => {
                 email: formData.email || null,
                 phone: formData.phone || null,
                 // Добавляем обязательные поля со значениями null
+                // @ts-ignore
                 description: null,
                 gender: null,
                 last_name: null,
