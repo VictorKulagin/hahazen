@@ -232,26 +232,42 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
 
                         {/* Кнопки */}
                         <div className="flex justify-between mt-4">
+                            {/* Левая кнопка — Удалить */}
                             <button
                                 type="button"
                                 onClick={handleDelete}
                                 disabled={isDeleting}
-                                className="px-4 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200"
+                                className={`
+      px-4 py-2 text-sm font-medium rounded-md border transition-all duration-200
+      ${isDeleting
+                                    ? "bg-red-50 text-red-400 border-red-100 cursor-not-allowed"
+                                    : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100 active:bg-red-200"}
+    `}
                             >
                                 {isDeleting ? "Удаление..." : "Удалить"}
                             </button>
+
+                            {/* Правая группа — Закрыть / Сохранить */}
                             <div className="flex gap-2">
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                                    className="px-4 py-2 text-sm font-medium rounded-md border border-gray-200
+                 bg-gray-50 text-gray-700 hover:bg-gray-100 active:bg-gray-200
+                 transition-all duration-200"
                                 >
                                     Закрыть
                                 </button>
+
                                 <button
                                     type="submit"
                                     disabled={isUpdating || updatingClient}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    className={`
+        px-4 py-2 text-sm font-medium rounded-md shadow-sm transition-all duration-200
+        ${isUpdating || updatingClient
+                                        ? "bg-green-400 text-white cursor-not-allowed"
+                                        : "bg-green-600 text-white hover:bg-green-700 active:bg-green-800 shadow hover:shadow-md"}
+      `}
                                 >
                                     {isUpdating || updatingClient ? "Сохранение..." : "Сохранить"}
                                 </button>

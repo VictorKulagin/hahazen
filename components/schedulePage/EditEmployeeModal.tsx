@@ -578,7 +578,8 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 </div>
 
                 {/* Футер */}
-                <div className="p-4 border-t bg-white flex justify-end gap-2">
+                <div className="p-4 border-t bg-white flex justify-between items-center">
+                    {/* Левая часть — удалить */}
                     <button
                         onClick={async () => {
                             if (!employee?.id) return;
@@ -591,22 +592,33 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                                 }
                             }
                         }}
-                        className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition"
+                        className="px-4 py-2 text-sm font-medium rounded-md
+               bg-red-50 text-red-600 hover:bg-red-100
+               border border-red-200 transition-all duration-200"
                     >
                         Удалить
                     </button>
-                    <button
-                        onClick={onClose}
-                        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
-                    >
-                        Закрыть
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-                    >
-                        Сохранить
-                    </button>
+
+                    {/* Правая часть — основные кнопки */}
+                    <div className="flex gap-2">
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 text-sm font-medium rounded-md
+                 bg-gray-50 text-gray-700 hover:bg-gray-100
+                 border border-gray-200 transition-all duration-200"
+                        >
+                            Закрыть
+                        </button>
+
+                        <button
+                            onClick={handleSave}
+                            className="px-4 py-2 text-sm font-medium rounded-md
+                 bg-green-600 text-white hover:bg-green-700
+                 shadow-sm hover:shadow-md transition-all duration-200"
+                        >
+                            Сохранить
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

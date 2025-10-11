@@ -31,7 +31,7 @@ import {
     useCreateAppointment
 } from "@/hooks/useAppointments";
 
-import CustomCalendar from "@/components/CustomCalendar";
+import CustomCalendarDesktop from "@/components/CustomCalendarDesktop";
 import ScheduleModule, {toMins, toTime} from "@/components/ScheduleModule";
 import {useCreateEmployee, useEmployees} from "@/hooks/useEmployees";
 import { useAppointments } from "@/hooks/useAppointments";
@@ -51,6 +51,7 @@ import { isWorkingSlot } from "@/components/utils/isWorkingSlot";
 import {CreateMenuModal} from "@/components/schedulePage/CreateMenuModal";
 import { ServiceManager} from "@/components/schedulePage/ServiceManager";
 import {CreateEmployeeModal} from "@/components/schedulePage/CreateEmployeeModal";
+import CustomCalendarMobile from "@/components/CustomCalendarMobile";
 
 export interface ScheduleEvent {
     id: string;
@@ -588,6 +589,20 @@ const Page: React.FC = () => {
                     <span>{companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Компания не найдена"}</span>
                 </div>
 
+                {/* Встроенный календарь дестоп*/}
+                <div className="hidden md:block mt-4 bg-[#f8f8f8] rounded-lg p-2 text-black shadow-inner">
+                    <section className="hidden md:flex justify-center">
+                    <CustomCalendarDesktop
+                        year={year}
+                        month={month}
+                        daysWithAppointments={bookedDaysData?.days ?? []}
+                        onDateSelect={handleDateSelect}
+                        onPrevMonth={handlePrevMonth}
+                        onNextMonth={handleNextMonth}
+                    />
+                    </section>
+                </div>
+
                 <div>
                     <nav className="mt-4">
                         {menuItems.map((item, index) => (
@@ -671,20 +686,21 @@ const Page: React.FC = () => {
                     <h1 className="text-2xl font-bold mb-2">Расписание (Раздел в разработке)</h1>
                 </header>
 
+                {/* Календарь — показывать только на мобильных */}
+                <section className="block md:hidden bg-white text-black w-full px-4 py-2">
+                    <CustomCalendarMobile
+                        year={year}
+                        month={month}
+                        daysWithAppointments={bookedDaysData?.days ?? []}
+                        onDateSelect={handleDateSelect}
+                        onPrevMonth={handlePrevMonth}
+                        onNextMonth={handleNextMonth}
+                    />
+                </section>
+
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {/* Левая колонка: 20%, на мобильных flex с центровкой */}
-                    <section className="col-span-4 md:col-span-1 bg-white text-black flex justify-center ">
-                        <CustomCalendar
-                            year={year}
-                            month={month}
-                            daysWithAppointments={bookedDaysData?.days ?? []}
-                            onDateSelect={handleDateSelect}
-                            onPrevMonth={handlePrevMonth}
-                            onNextMonth={handleNextMonth}
-                        />
-                    </section>
                     {/* Правая колонка: 80% */}
-                    <section className="col-span-4 bg-white text-black p-4 rounded shadow">
+                    <section className="col-span-5 bg-white text-black p-4 rounded shadow">
 
                         <ScheduleModule
                             employees={employees}
