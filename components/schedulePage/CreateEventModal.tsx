@@ -219,7 +219,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 </button>
 
 
-            <div className="bg-white rounded p-6 w-full max-w-md relative text-black">
+                <div className="bg-white rounded p-2 w-full max-w-md text-black">
                 <h2 className="text-lg font-bold mb-4">Создать новое событие</h2>
 
                 <div className="...">
@@ -233,8 +233,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* 1. Поиск клиента */}
+                    <form onSubmit={handleSubmit} className="max-h-screen overflow-y-auto flex flex-col">
+
+                        <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
+
+                {/* 1. Поиск клиента */}
                     <ClientAutocomplete
                         onSelect={(client: Client) => {
                             setSelectedClientId(client.id ?? null);
@@ -427,23 +430,29 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                             </ul>
                         )}
                     </div>
+                        </div>
 
                     {/* 5. Кнопки сохранения события */}
-                    <div className="flex justify-end space-x-2">
+                    <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 px-6 flex justify-end gap-3">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                            className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300
+      bg-gray-50 text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-all duration-200"
                         >
-                            Отмена
+                            Закрыть
                         </button>
+
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm transition-all duration-200
+      ${loading
+                                ? "bg-green-400 text-white cursor-not-allowed"
+                                : "bg-green-600 text-white hover:bg-green-700 active:bg-green-800 shadow hover:shadow-md"}`}
                         >
-                            {loading ? "Создание..." : "Создать"}
+                            {loading ? "Создание..." : "Сохранить"}
                         </button>
                     </div>
                 </form>

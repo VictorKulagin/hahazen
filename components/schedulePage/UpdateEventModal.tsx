@@ -136,10 +136,13 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                 >
                     ✕
                 </button>
-                <div className="bg-white rounded p-6 w-full max-w-md text-black">
+                <div className="bg-white rounded p-2 w-full max-w-md text-black">
                     <h2 className="text-lg font-bold mb-4">Редактировать запись</h2>
 
-                    <form onSubmit={handleSave} className="space-y-4">
+                    <form onSubmit={handleSave} className="max-h-screen overflow-y-auto flex flex-col">
+                        {/* Содержимое с прокруткой */}
+                        {/* СКРОЛЛИРУЕМАЯ ЧАСТЬ */}
+                        <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
                         {/* Клиент */}
                         {!isEditingClient ? (
                             <div className="bg-gray-50 p-4 rounded-xl border">
@@ -229,48 +232,54 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                 </ul>
                             )}
                         </div>
+                        </div>
 
                         {/* Кнопки */}
-                        <div className="flex justify-between mt-4">
-                            {/* Левая кнопка — Удалить */}
-                            <button
-                                type="button"
-                                onClick={handleDelete}
-                                disabled={isDeleting}
-                                className={`
-      px-4 py-2 text-sm font-medium rounded-md border transition-all duration-200
-      ${isDeleting
-                                    ? "bg-red-50 text-red-400 border-red-100 cursor-not-allowed"
-                                    : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100 active:bg-red-200"}
-    `}
-                            >
-                                {isDeleting ? "Удаление..." : "Удалить"}
-                            </button>
+                        <div className="absolute bottom-0 left-0 right-0 bg-white pt-4 pb-4">
+                            {/* Полоса бордера на всю ширину */}
+                            <div className="absolute top-0 left-0 w-full border-t border-gray-200"></div>
 
-                            {/* Правая группа — Закрыть / Сохранить */}
-                            <div className="flex gap-2">
+                            {/* Контейнер с отступами */}
+                            <div className="flex justify-between px-4">
+                                {/* Левая кнопка — Удалить */}
                                 <button
                                     type="button"
-                                    onClick={onClose}
-                                    className="px-4 py-2 text-sm font-medium rounded-md border border-gray-200
-                 bg-gray-50 text-gray-700 hover:bg-gray-100 active:bg-gray-200
-                 transition-all duration-200"
+                                    onClick={handleDelete}
+                                    disabled={isDeleting}
+                                    className={`px-4 py-2 text-sm font-medium rounded-md border transition-all duration-200
+        ${
+                                        isDeleting
+                                            ? "bg-red-50 text-red-400 border-red-100 cursor-not-allowed"
+                                            : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100 active:bg-red-200"
+                                    }`}
                                 >
-                                    Закрыть
+                                    {isDeleting ? "Удаление..." : "Удалить"}
                                 </button>
 
-                                <button
-                                    type="submit"
-                                    disabled={isUpdating || updatingClient}
-                                    className={`
-        px-4 py-2 text-sm font-medium rounded-md shadow-sm transition-all duration-200
-        ${isUpdating || updatingClient
-                                        ? "bg-green-400 text-white cursor-not-allowed"
-                                        : "bg-green-600 text-white hover:bg-green-700 active:bg-green-800 shadow hover:shadow-md"}
-      `}
-                                >
-                                    {isUpdating || updatingClient ? "Сохранение..." : "Сохранить"}
-                                </button>
+                                {/* Правая группа — Закрыть / Сохранить */}
+                                <div className="flex gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={onClose}
+                                        className="px-4 py-2 text-sm font-medium rounded-md border border-gray-200
+          bg-gray-50 text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-all duration-200"
+                                    >
+                                        Закрыть
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isUpdating || updatingClient}
+                                        className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm transition-all duration-200
+          ${
+                                            isUpdating || updatingClient
+                                                ? "bg-green-400 text-white cursor-not-allowed"
+                                                : "bg-green-600 text-white hover:bg-green-700 active:bg-green-800 shadow hover:shadow-md"
+                                        }`}
+                                    >
+                                        {isUpdating || updatingClient ? "Сохранение..." : "Сохранить"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </form>
