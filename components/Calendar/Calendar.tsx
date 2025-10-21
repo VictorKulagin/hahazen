@@ -1,35 +1,26 @@
-//components/Calendar/Calendar.ts
+// components/Calendar/Calendar.ts
 "use client";
 import React, {useState, useEffect, useRef, useCallback, useMemo} from "react";
-import {createAppointment, /*Appointment,*/ Service, AppointmentRequest} from "@/services/appointmentsApi";
-import {useAppointments, DurationOption, useCreateAppointment, useUpdateAppointment} from "@/hooks/useAppointments"; // Добавляем импорт
+import {AppointmentRequest} from "@/types/appointments";
+import {useAppointments, DurationOption, useCreateAppointment, useUpdateAppointment} from "@/hooks/useAppointments";
 import {usePathname, useSearchParams} from 'next/navigation';
 import {useDeleteAppointment} from "@/hooks/useAppointments";
-import {useMutation} from '@tanstack/react-query';
 import { add30Minutes, generateWeekDates, generateTimeSlots, getWeekRange } from "./utils";
 import { CurrentTimeIndicator } from "./CurrentTimeIndicator";
 import { CalendarEvent } from "./CalendarEvent";
 import { useEmployeeSchedules } from "@/hooks/useEmployeeSchedules";
-
 import { useQueryClient } from '@tanstack/react-query';
-
 import {useRouter} from "next/navigation";
 import {WeekNavigator} from "@/components/Calendar/WeekNavigator";
 import {durationToDays} from "@/components/Calendar/durationToDays";
-import {EmployeeSchedule} from "@/services/еmployeeScheduleApi"; // Импортируем useRouter
-
 import {useEmployeeServices, useServices} from "@/hooks/useServices";
-import {Services} from "@/services/servicesApi";
 import {EditEventModal} from "@/components/Calendar/EditEventModal";
 import { validatePhone, validateName } from '@/components/Validations';
+import Spinner from "@/components/Spinner";
+import { useIsFetching } from '@tanstack/react-query';
+import { useEmployeeId } from "@/hooks/useEmployeeId";
 
-
-
-
-
-
-
-// 1. Модифицируем функцию конвертации времени
+// Функции остаются те же
 const convertTimeToMinutes = (time?: string | null): number => {
     if (!time || typeof time !== 'string') {
         console.warn('Invalid time input:', time);
@@ -57,138 +48,131 @@ const convertTimeToMinutes = (time?: string | null): number => {
     return hours * 60 + minutes;
 };
 
-    interface CalendarProps {
-        branchId: number | null;
-        // employeeId?: number; // Опциональный параметр, если потребуется
-    }
 
+interface CalendarProps {
+    branchId: number | null;
+}
 const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
 
-// В начале компонента Calendar, после импортов
-    const isValidTime = (time: string): boolean => {
+
+
+
+
+
+    const [selection, setSelection] = useState<{
+        startMinutes: number | null;
+        endMinutes: number | null;
+    } | null>(null);
+
+    const pxPerMinute = 1.5; // масштаб — 1 минута = 1.5px
+
+
+
+    //const HOUR_HEIGHT = 60;
+
+
+
+    /*function getSlotHeight(start: string, end: string) {
+        const [startH, startM] = start.split(':').map(Number);
+        const [endH, endM] = end.split(':').map(Number);
+
+        const startMinutes = startH * 60 + startM;
+        const endMinutes = endH * 60 + endM;
+
+        return ((endMinutes - startMinutes) / 60) * HOUR_HEIGHT;
+    }*/
+    /*const isValidTime = (time: string): boolean => {
         return /^([01]\d|2[0-3]):[0-5]\d$/.test(time);
-    };
+    };*/
 
-    // 1. Добавляем функцию-валидатор
-    const isValidTimeFormat = (time: string): boolean => {
+    /*const isValidTimeFormat = (time: string): boolean => {
         return /^([01]\d|2[0-3]):([0-5]\d)$/.test(time);
-    };
+    };*/
 
-    if (branchId === null) return <div>Выберите филиал</div>;// Остальная логика с branchId как number}
+    // ПРОВЕРКА BRANCHID В НАЧАЛЕ (как в рабочем варианте)
+    if (branchId === null) return <div>Выберите филиал</div>;
 
     const queryClient = useQueryClient();
-
     const pathname = usePathname();
     const searchParams = useSearchParams();
     const router = useRouter();
 
-    // 1. Получение masterId из хэша
-    const getEmployeeIdFromHash = useCallback((): number | null => {
-        const hash = window.location.hash;
-        const match = hash.match(/(?:#|&)master=(\d+)/);
-        return match ? parseInt(match[1], 10) : null;
-    }, []);
+    // ИСПОЛЬЗУЕМ REACT QUERY ДЛЯ EMPLOYEEID
+    const { employeeId } = useEmployeeId();
 
-    // 2. Состояние для принудительного обновления
+
+    if (employeeId === null) {
+        console.log('⏳ Waiting for employeeId...');
+        return <div>Загрузка сотрудника...</div>;
+    }
+
+
+    // ОТЛАДКА
+    console.log('🔍 Calendar: employeeId from useSelectedEmployee:', employeeId);
+    console.log('🔍 Calendar: branchId:', branchId);
+
+
+    interface ModalData {
+        date: string;
+        start: string;   // "HH:mm"
+        end: string;     // "HH:mm"
+        duration?: number; // добавляем длительность}
+    }
+    // Найдем что вызывает ререндеры
+
+    // ВСЕ useState
     const [forceUpdateKey, setForceUpdateKey] = useState(0);
-    const employeeId = getEmployeeIdFromHash();
-
-
-    //const {mutate: createAppointment, isPending, isError, error} = useCreateAppointment();
-
-
+    const [editingEvent, setEditingEvent] = useState<AppointmentRequest | null>(null);
+    const [currentStartDate, setCurrentStartDate] = useState(new Date());
+    const [selectedDuration, setSelectedDuration] = useState<DurationOption>('1-day');
+    const [modalData, setModalData] = useState<{ date: string; time: string } | null>(null);
+    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedEvent, setSelectedEvent] = useState<AppointmentRequest | null>(null);
+    const calculateMinutes = (offsetY: number) => Math.round(offsetY / pxPerMinute);
+    // ХУКИ
     const {
         mutate: createAppointment,
         isPending,
         isError
     } = useCreateAppointment();
 
-
-    const [editingEvent, setEditingEvent] = useState<AppointmentRequest | null>(null);
-
     const { mutate: updateAppointment } = useUpdateAppointment();
+    const {mutate: deleteAppointment} = useDeleteAppointment();
 
-   /* const {
-        data: services,
-        isLoading, // <-- Добавьте эту строку
-        isError
-    } = useServices();*/
-
-
-    const {mutate: deleteAppointment} = useDeleteAppointment(/*id*/);
-
-    // 3. Запрос данных
-// Внутри компонента Calendar:
-    const [selectedDuration, setSelectedDuration] = useState<DurationOption>('1-day');
-// Обновите вызов хука useAppointments
     const {
         data: groupedAppointments,
-        refetch,
+        refetch: refetchAppointments,
         isLoading: isLoadingAppointments,
         isError: isAppointmentsError,
-        error // Добавляем получение ошибки
+        error: appointmentsError
     } = useAppointments(
         branchId || undefined,
-        employeeId || undefined,
-        selectedDuration // Добавляем параметр длительности
+        employeeId || undefined, // ИЗ REACT QUERY
+        selectedDuration,
+        currentStartDate
     );
-
-    console.log('Данные из API:', groupedAppointments);
-
-
-
-
-    useEffect(() => {
-        console.log('Current request params:', {
-            branchId: branchId ?? 'undefined',
-            employeeId: employeeId ?? 'undefined',
-            duration: selectedDuration
-        });
-    }, [branchId, employeeId, selectedDuration]);
-
-
-// Обновляем useEffect с новым именем
-    useEffect(() => {
-        if (!isLoadingAppointments && groupedAppointments) {
-            console.log('Grouped Appointments Data:', groupedAppointments);
-            console.log('Dates:', Object.keys(groupedAppointments));
-            console.log('Count:', Object.values(groupedAppointments).flat().length);
-        }
-    }, [groupedAppointments, isLoadingAppointments]); // Используем переименованную переменную
-
-    const [modalData, setModalData] = useState<{ date: string; time: string } | null>(null);
-
-    const [currentStartDate, setCurrentStartDate] = useState(new Date());
-
-    const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
-
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-
-    const [selectedEvent, setSelectedEvent] = useState<AppointmentRequest | null>(null);
-
-
-
 
     const dates = useMemo(() => {
         const dates = generateWeekDates(currentStartDate, selectedDuration);
-        console.log("Generated dates-:", dates);
         return dates;
     }, [currentStartDate, selectedDuration]);
 
-    // 3. Получаем данные о рабочих часах сотрудника
     const { data: employeeSchedules } = useEmployeeSchedules(
         branchId || undefined,
-        employeeId || undefined,
-        dates[0], // startDate (первая дата в диапазоне)
-        dates[dates.length - 1] // endDate (последняя дата в диапазоне)
+        employeeId || undefined, // ИЗ REACT QUERY
+        dates[0],
+        dates[dates.length - 1]
     );
 
+    const {
+        data: employeeServices,
+        isLoading: isLoadingEmployeeServices
+    } = useEmployeeServices(employeeId || undefined);
 
-// 1. Модифицируем структуру scheduleMap для хранения массивов периодов
+    // ВСЯ БИЗНЕС-ЛОГИКА остается та же
     const scheduleMap = useMemo(() => {
         const map: Record<string, Array<{ start: string; end: string }>> = {};
-
-        //console.log("Raw employee schedules data JSON:", JSON.stringify(employeeSchedules, null, 4));
 
         employeeSchedules?.forEach((schedule, scheduleIndex) => {
             const startDate = new Date(schedule.start_date);
@@ -213,13 +197,9 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 });
             }
         });
-
-        console.log('ScheduleMap with periods:', map);
         return map;
     }, [employeeSchedules]);
 
-
-    // Проверка, прошло ли время
     const checkIfPast = (date: string, time: string) => {
         const [year, month, day] = date.split('-').map(Number);
         const [hours, minutes] = time.split(':').map(Number);
@@ -227,223 +207,127 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         return slotTime < new Date();
     };
 
-// 1. Модифицируем проверку времени
-// 2. Обновляем проверку доступности времени
     const isTimeAvailable = (date: string, time: string) => {
         const periods = scheduleMap[date] || [];
-        //if (!periods.length) return false;
-        if (periods.length === 0) return false; // Важная проверка
+        if (periods.length === 0) return false;
 
         const slotMinutes = convertTimeToMinutes(time);
 
         return periods.some(period => {
             const start = convertTimeToMinutes(period.start);
             const end = convertTimeToMinutes(period.end);
-            //debugger;
             return slotMinutes >= start && slotMinutes < end;
         });
     };
 
-    const MemoizedCalendarEvent = React.memo(CalendarEvent);
-    const MemoizedWeekNavigator = React.memo(WeekNavigator);
 
 
+   /* const handleCellClick = useCallback(
+        (date: string, time: string, defaultDuration = 30) => {
+            const periods = scheduleMap[date] || [];
+            if (periods.length === 0) {
+                console.error('No schedule found for:', date);
+                alert('Расписание не найдено для выбранной даты');
+                return;
+            }
 
-    const calendarRef = useRef<HTMLDivElement>(null);
+            const isAvailable = isTimeAvailable(date, time);
+            if (!isAvailable) {
+                alert('Выбранное время недоступно для записи');
+                return;
+            }
 
-    const times = generateTimeSlots();
+            // Открываем модалку и передаём дату, время и длительность по умолчанию
+            setModalData({ date, time, duration: defaultDuration });
+        },
+        [scheduleMap]
+    );*/
 
-    /*const handleCellClick = useCallback((date: string, time: string) => {
-        if (!modalData) { // Проверяем, не открыто ли уже модальное окно
-            setModalData({ date, time });
-        }
-    }, [modalData]);*/
-
-
-// 1. Обновляем обработчик клика
-    const handleCellClick = useCallback((date: string, time: string) => {
-        //setSelectedEvent(null); // Сбрасываем редактирование
-        const periods = scheduleMap[date] || [];
-        if (periods.length === 0) {
-            console.error('No schedule found for:', date);
-            alert('Расписание не найдено для выбранной даты');
-            return;
-        }
-
-        const isAvailable = isTimeAvailable(date, time);
-        if (!isAvailable) {
-            alert('Выбранное время недоступно для записи');
-            return;
-        }
-
-        setModalData({ date, time });
-    }, [scheduleMap]);
-
-    console.log(branchId + " Branch ID");
-    console.log(employeeId + " EmployeeId ID");
-
-    // 4. Обработчик изменений хэша
-    const handleHashChange = useCallback(() => {
-        const newId = getEmployeeIdFromHash();
-        setForceUpdateKey(prev => prev + 1); // Принудительное обновление
-        refetch();
-    }, [refetch, getEmployeeIdFromHash]);
-
-
-
-
-
-    useEffect(() => {
-        console.log("Employee Schedules RAW Data:", JSON.stringify(employeeSchedules, null, 2));
-    }, [employeeSchedules]);
-
-    useEffect(() => {
-        console.log('Полученные данные:',
-            Object.entries(groupedAppointments || {}).map(([date, events]) => ({
-                date,
-                count: events?.length
-            }))
-        );
-    }, [groupedAppointments]);
-
-
-
-
-    useEffect(() => {
-        console.log('Отладочная информация:', {
-            dates,
-            appointments: groupedAppointments ? Object.values(groupedAppointments).flat() : [],
-            times: generateTimeSlots()
-        });
-    }, [groupedAppointments, dates]);
-    /*Важная отладочная информация не удалять*/
-    useEffect(() => {
-        if (isError && error) {
-            console.error('Ошибка загрузки данных:', error);
-            // showNotification('Ошибка загрузки расписания', 'error');
-            alert(`Ошибка: ${error.message}`);
-        }
-    }, [isError, error]); // Добавляем зависимости
-
-    // 5. Эффекты для отслеживания изменений
-    useEffect(() => {
-        window.addEventListener("hashchange", handleHashChange);
-        return () => window.removeEventListener("hashchange", handleHashChange);
-    }, [handleHashChange]);
-
-    useEffect(() => {
-        handleHashChange();
-    }, [pathname, searchParams, handleHashChange]);
-
-    useEffect(() => {
-        if (groupedAppointments) {
-            console.log("Группированные данные:", groupedAppointments);
-            console.log("Даты с событиями:", Object.keys(groupedAppointments));
-        }
-    }, [groupedAppointments]);
-
-    // Основной эффект для отслеживания изменений
-    const scrollToCurrentTime = () => {
-        const now = new Date();
-        const minutes = now.getHours() * 60 + now.getMinutes();
-        const scrollPosition = minutes * 1.333 - 200;
-        calendarRef.current?.scrollTo(0, scrollPosition);
-    };
-
-    const handleDurationChange = (duration: DurationOption) => {
-        // При смене длительности сразу запрашиваем данные
-        setSelectedDuration(duration);
-
-        if (duration === 'week') {
-            // Для недели переходим к текущему понедельнику
-            const today = new Date();
-            const monday = new Date(today);
-            monday.setDate(today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1));
-            setCurrentStartDate(monday);
-        } else {
-            // Для других периодов начинаем с сегодняшнего дня
-            setCurrentStartDate(new Date());
-        }
-    };
-
-
-    const handleWeekChange = (direction: 'prev' | 'next') => {
-        setCurrentStartDate(prev => {
-            const newDate = new Date(prev);
-            const days = durationToDays(selectedDuration);
-            newDate.setDate(prev.getDate() + (direction === 'prev' ? -1 : days));
-            refetch(); // Добавляем обновление данных
-            return newDate;
-        });
-    };
-
-
-// В компоненте Calendar.tsx обновляем handleAddEvent
-// 1. Исправляем обработчик создания события
     const handleAddEvent = useCallback((data: Omit<AppointmentRequest, 'id'>) => {
         if (!branchId || !employeeId) {
             alert('Выберите филиал и сотрудника');
             return;
         }
-
+//@ts-ignore
         const appointmentData: AppointmentRequest = {
+            //@ts-ignore
             client_name: data.client_name,
+            //@ts-ignore
             client_last_name: data.client_last_name,
+            //@ts-ignore
             client_phone: data.client_phone,
             branch_id: branchId,
-            employee_id: employeeId,
+            employee_id: employeeId, // ИЗ REACT QUERY
             date: data.date,
             time_start: data.time_start,
             time_end: data.time_end,
+            //@ts-ignore
+            appointment_datetime: data.appointment_datetime,
+            //@ts-ignore
+            total_duration: data.total_duration,
             services: data.services.map(s => ({
                 service_id: s.service_id,
                 qty: s.qty
             })),
-            comment: data.comment || ""
+            //comment: data.comment || ""
         };
 
         createAppointment(appointmentData, {
             onSuccess: () => {
-                // Инвалидация кэша и принудительный перезапрос
-                queryClient.invalidateQueries(['appointments']);
+                queryClient.invalidateQueries({ queryKey: ['appointments'] });
                 setModalData(null);
             }
         });
-
-        console.log("branchId handleAddEvent:", branchId, "employeeId handleAddEvent:", employeeId);
-
-    }, [branchId, employeeId, createAppointment, queryClient]);
-
-    // Добавляем обработку состояний
-    if (isPending) {
-        return <div>Создание записи...</div>;
-    }
-
-    if (isError) {
-        return <div>Ошибка: {error?.message}</div>;
-    }
-
-// Обновим обработчик открытия модалки
-    /*const handleEditEvent = (event: Appointment) => {
-        setModalData({
-            date: event.date,
-            time: event.time_start
-        });
-        setEditingEvent(event);
-    };*/
-
+    }, [branchId, employeeId, createAppointment, queryClient]); // ДОБАВЛЯЕМ employeeId
 
     const handleEditEvent = (event: AppointmentRequest) => {
-        console.log('Opening edit modal for event:', event.id, 'Data:', event);
         setSelectedEvent(event);
-        setIsEditModalOpen(true); // Добавляем это!
-        setModalData(null); // Закрываем модалку создания
+        setIsEditModalOpen(true);
+        setModalData(null);
     };
 
+    const handleDeleteAppointment = (id: number) => {
+        if (window.confirm('Удалить запись?')) {
+            deleteAppointment(id, {
+                onSuccess: () => {
+                    setNotification({ message: 'Запись успешно удалена!', type: 'success' });
+                    setTimeout(() => setNotification(null), 3000);
+                },
+                onError: (error) => {
+                    console.error("Ошибка удаления:", error);
+                    setNotification({ message: `Ошибка удаления: ${error.message}`, type: 'error' });
+                    setTimeout(() => setNotification(null), 5000);
+                }
+            });
+        }
+    };
+
+    const handleDurationChange = (duration: DurationOption) => {
+        setSelectedDuration(duration);
+
+        if (duration === 'week') {
+            const today = new Date();
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - (today.getDay() === 0 ? 6 : today.getDay() - 1));
+            setCurrentStartDate(monday);
+        } else {
+            setCurrentStartDate(new Date());
+        }
+    };
+
+    const handleWeekChange = (direction: 'prev' | 'next') => {
+        setCurrentStartDate(prev => {
+            const newDate = new Date(prev);
+            const step = durationToDays(selectedDuration);
+            const offset = direction === 'prev' ? -step : step;
+            newDate.setDate(prev.getDate() + offset);
+            return newDate;
+        });
+    };
 
     const getDayClass = (date: string) => {
-        if (!Date.parse(date)) { // Исправлено здесь
-            console.error('Invalid date:', date); // И здесь
+        if (!Date.parse(date)) {
+            console.error('Invalid date:', date);
             return 'invalid-date';
         }
         const today = new Date().toISOString().split('T')[0];
@@ -453,30 +337,101 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
         return `day-column ${isPast ? 'past-day' : ''} ${isToday ? 'current-day' : ''}`;
     };
 
+    // МЕМОИЗИРОВАННЫЕ КОМПОНЕНТЫ
+    const MemoizedCalendarEvent = React.memo(CalendarEvent);
+    const MemoizedWeekNavigator = React.memo(WeekNavigator);
+    const calendarRef = useRef<HTMLDivElement>(null);
+    const times = generateTimeSlots();
+    const isFetchingAppointments = useIsFetching({ queryKey: ['appointments'] });
 
-    // Функция для обработки удаления
-    const handleDeleteAppointment = (id: number) => {
-        if (window.confirm('Удалить запись?')) {
-            deleteAppointment(id, {
-                onSuccess: () => {
-                    console.log("Запись успешно удалена");
-                    setNotification({ message: 'Запись успешно удалена!', type: 'success' });
-                    // Скрываем уведомление через 3 секунды
-                    setTimeout(() => setNotification(null), 3000);
-                    // refetch(); // Убедитесь, что данные перезапрашиваются, если react-query не настроен на это автоматически после мутации
-                },
-                onError: (error) => {
-                    console.error("Ошибка удаления:", error);
-                    setNotification({ message: `Ошибка удаления: ${error.message}`, type: 'error' });
-                    // Скрываем уведомление об ошибке через 5 секунд
-                    setTimeout(() => setNotification(null), 5000);
-                }
-            });
+
+
+    // В Calendar компоненте
+    useEffect(() => {
+        console.log('📊 Calendar mounted/updated:', {
+            employeeId,
+            branchId,
+            hash: typeof window !== 'undefined' ? window.location.hash : 'SSR',
+            pathname: typeof window !== 'undefined' ? window.location.pathname : 'SSR'
+        });
+
+        // Если employeeId нет, но в URL есть hash, попробуем извлечь его
+        if (!employeeId && typeof window !== 'undefined') {
+            const match = window.location.hash.match(/master=(\d+)/);
+            if (match) {
+                // Можно принудительно обновить состояние
+            }
         }
-    };
+    }, [employeeId, branchId]);
 
+    // ПРОВЕРКИ СОСТОЯНИЙ
+    if (isPending) {
+        return <div>Создание записи...</div>;
+    }
+
+    if (isError) {
+        return <div>Ошибка: {appointmentsError?.message}</div>;
+    }
+
+    if (isLoadingAppointments) {
+        return (
+            <div className="fullscreen-spinner">
+                <Spinner />
+                <style jsx>{`
+                    .fullscreen-spinner {
+                        height: 100vh;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                `}</style>
+            </div>
+        );
+    }
+
+    if (isAppointmentsError) {
+        return (
+            <div className="error-message">
+                Ошибка загрузки данных: {appointmentsError?.message}
+                <button onClick={() => refetchAppointments()}>Повторить</button>
+                <style jsx>{`
+                    .error-message {
+                        padding: 40px;
+                        text-align: center;
+                        font-size: 1.2rem;
+                        color: #dc3545;
+                    }
+                    button {
+                        margin-top: 20px;
+                        padding: 10px 20px;
+                        background: #007bff;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                    }
+                `}</style>
+            </div>
+        );
+    }
+
+    // ОСНОВНОЙ RENDER - ТОЛЬКО ОДИН!
     return (
         <div className="calendar-container" ref={calendarRef}>
+            {/* DEBUG блок */}
+            {/* <div style={{
+                position: 'fixed',
+                top: '10px',
+                right: '10px',
+                background: 'red',
+                color: 'white',
+                padding: '10px',
+                zIndex: 9999
+            }}>
+                <div>DEBUG: employeeId = {employeeId || 'NULL'}</div>
+                <div>Type: {typeof employeeId}</div>
+                <div>BranchId: {branchId}</div>
+            </div>*/}
 
             {/* Уведомления */}
             {notification && (
@@ -488,8 +443,12 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 </div>
             )}
 
-            {/* === Конец блока уведомления === */}
-
+            {/* Индикатор загрузки */}
+            {isFetchingAppointments > 0 && (
+                <div className="loading-overlay">
+                    <Spinner />
+                </div>
+            )}
 
             {/* Навигация */}
             <MemoizedWeekNavigator
@@ -499,25 +458,16 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 onWeekChange={handleWeekChange}
             />
 
+            {/* КАЛЕНДАРНАЯ СЕТКА */}
             <div className="calendar-grid">
                 <div className="time-column">
-                    {/*
-                        times.map((time, index) => (
-                        <div key={time} className="time-slot">
-                            {index % 2 === 0 && (
-                                <span className="hour-marker">
-                  {time.split(':')[0]}
-                </span>
-                            )}
-                            <span className="time-text">{time}</span>
-                        </div>
-                    ))
-                    */}
                     {times.map((time) => {
                         const [hours] = time.split(':').map(Number);
+                        // Форматируем часы в "HH:00"
+                        const formattedHour = hours.toString().padStart(2, '0') + ":00";
                         return (
                             <div key={time} className="hour-slot">
-                                <span className="hour-marker">{hours}</span>
+                                <span className="hour-marker">{formattedHour}</span>
                                 <div className="half-hour-line"></div>
                             </div>
                         );
@@ -526,11 +476,13 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 </div>
 
                 {dates.map((currentDate) => {
-                    // 1. Проверяем наличие расписания для текущей даты
-                    const schedule = scheduleMap[currentDate];
-                    const isWorkingDay = !!schedule; // Простая проверка наличия расписания
+                    //const schedule = scheduleMap[currentDate];
+                    //const isWorkingDay = !!schedule;
 
-                    // 2. Проверяем валидность даты
+                    const isWorkingDay = !!scheduleMap[currentDate];
+
+
+
                     if (!Date.parse(currentDate)) {
                         console.error('Invalid date detected:', currentDate);
                         return null;
@@ -546,49 +498,150 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                                     weekday: 'short',
                                     day: 'numeric'
                                 })}
-                                {!isWorkingDay && <span className="day-off-badge">Day off</span>}
+                                {!isWorkingDay && <span className="day-off-badge">Day off (Выходной)</span>}
                             </div>
-                            <div className="day-content">
-                                {times.map(time => {
-                                    const [hours, minutes] = time.split(':').map(Number);
-                                    const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-                                    const currentEvents = groupedAppointments?.[currentDate]?.[formattedTime] || [];
-                                    const isAvailable = isTimeAvailable(currentDate, time);
-                                    const isPast = checkIfPast(currentDate, time);
+
+                            <div
+                                className="day-content relative"
+                                onMouseDown={(e) => {
+                                    if ((e.target as HTMLElement).classList.contains("day-content")) {
+                                        const clickY = e.nativeEvent.offsetY;
+
+                                        setSelection({
+                                            startMinutes: calculateMinutes(clickY),
+                                            endMinutes: calculateMinutes(clickY),
+                                        });
+                                    }
+                                }}
+                                onMouseMove={(e) => {
+                                    if (!selection) return;
+
+                                    const moveY = e.nativeEvent.offsetY;
+                                    setSelection((prev) =>
+                                        prev ? { ...prev, endMinutes: calculateMinutes(moveY) } : null
+                                    );
+                                }}
+                                onMouseUp={() => {
+                                    if (!selection) return;
+
+                                    const start = Math.min(selection.startMinutes!, selection.endMinutes!);
+                                    const end = Math.max(selection.startMinutes!, selection.endMinutes!);
+
+                                    const startH = Math.floor(start / 60);
+                                    const startM = start % 60;
+                                    const endH = Math.floor(end / 60);
+                                    const endM = end % 60;
+
+                                    setModalData({
+                                        date: currentDate,
+                                        time: `${startH.toString().padStart(2, "0")}:${startM
+                                            .toString()
+                                            .padStart(2, "0")}`,
+                                        //@ts-ignore
+                                        endTime: `${endH.toString().padStart(2, "0")}:${endM
+                                            .toString()
+                                            .padStart(2, "0")}`,
+                                        duration: end - start,
+                                        isWorkingDay: isWorkingDay, // передаем флаг
+                                    });
+
+                                    setSelection(null);
+                                }}
+                            >
+
+                                {/* ⬇️ подсветка рабочего периода */}
+                                {(scheduleMap[currentDate] ?? []).map((p, idx) => {
+                                    const startMinutes = convertTimeToMinutes(p.start);
+                                    const endMinutes = convertTimeToMinutes(p.end);
+                                    const topPx = startMinutes * pxPerMinute;
+                                    const heightPx = Math.max((endMinutes - startMinutes) * pxPerMinute, 2);
 
                                     return (
                                         <div
-                                            key={`${currentDate}-${time}`}
-                                            className={`time-slot 
-                                ${isPast ? 'past-slot' : 'future-slot'} 
-                                ${isAvailable ? 'available' : 'unavailable'}`}
-                                            onClick={() => isAvailable && handleCellClick(currentDate, time)}
-                                        >
-                                            {currentEvents.map(event => (
-                                                <MemoizedCalendarEvent
-                                                    key={event.id}
-                                                    event={event}
-                                                    onDelete={handleDeleteAppointment}
-                                                    onEdit={handleEditEvent}
-                                                />
-                                            ))}
-                                        </div>
+                                            key={`work-${currentDate}-${idx}`}
+                                            className="working-period"
+                                            style={{
+                                                position: "absolute",
+                                                top: `${topPx}px`,
+                                                height: `${heightPx}px`,
+                                                left: 0,
+                                                right: 0,
+                                                pointerEvents: "none",
+                                            }}
+                                        />
                                     );
                                 })}
+
+                                {/* тут дальше твои события */}
+
+                                {/* визуальное выделение */}
+                                {selection && (
+                                    <div
+                                        className="selection-highlight"
+                                        style={{
+                                            position: "absolute",
+                                            top: Math.min(selection.startMinutes!, selection.endMinutes!) + "px",
+                                            height:
+                                                Math.abs(selection.endMinutes! - selection.startMinutes!) + "px",
+                                            left: 0,
+                                            right: 0,
+                                            backgroundColor: "rgba(144, 238, 144, 0.5)",
+                                            pointerEvents: "none",
+                                        }}
+                                    />
+                                )}
+
+                                {/* отрисовка событий */}
+                                {Object.values(groupedAppointments?.[currentDate] || {})
+                                    .flat()
+                                    .map((event) => {
+                                        if (!event.appointment_datetime || !event.total_duration) return null;
+
+                                        const startDate = new Date(event.appointment_datetime);
+                                        const endDate = new Date(
+                                            startDate.getTime() + event.total_duration * 60000
+                                        );
+
+                                        const startMinutes =
+                                            startDate.getHours() * 60 + startDate.getMinutes();
+                                        const endMinutes =
+                                            endDate.getHours() * 60 + endDate.getMinutes();
+                                        const durationMinutes = endMinutes - startMinutes;
+
+                                        return (
+                                            <div
+                                                key={event.id}
+                                                style={{
+                                                    position: "absolute",
+                                                    top: `${startMinutes * pxPerMinute}px`,
+                                                    height: `${durationMinutes * pxPerMinute}px`,
+                                                    left: 0,
+                                                    right: 0,
+                                                }}
+                                            >
+                                                <MemoizedCalendarEvent
+                                                    event={event}
+                                                    onDelete={handleDeleteAppointment}
+                                                    onEdit={() => handleEditEvent(event)}
+                                                />
+                                            </div>
+                                        );
+                                    })}
                             </div>
                         </div>
                     );
                 })}
             </div>
-            {/* 3. Модалка создания */}
+
+            {/* Модалки */}
             {modalData && (
                 <Modal
                     data={modalData}
-                    employeeId={employeeId} // Передаем employeeId
+                    employeeId={employeeId}
                     onSave={data => {
                         handleAddEvent({
                             ...data,
-                            employee_id: employeeId,
+                            employee_id: employeeId || 0,
                             branch_id: branchId,
                             services: data.services || [],
                         });
@@ -598,7 +651,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 />
             )}
 
-            {/* 4. Модалка редактирования */}
             {isEditModalOpen && selectedEvent && (
                 <EditEventModal
                     event={selectedEvent}
@@ -607,14 +659,50 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                         setIsEditModalOpen(false);
                     }}
                     onClose={() => setIsEditModalOpen(false)}
-                    employeeId={employeeId} // Передаем employeeId
+                    employeeId={employeeId || null}
                 />
             )}
 
+            {/* ВСЕ СТИЛИ ИЗ РАБОЧЕГО ВАРИАНТА - ПОЛНАЯ ВЕРСИЯ */}
             <style jsx>{`
+
+
+              .working-period {
+                background: rgba(200, 230, 201, 0.6); /* светло-зелёный фон */
+                border-left: 3px solid rgba(76, 175, 80, 0.45);
+                border-radius: 4px;
+                z-index: 0;
+              }
+
+              .event {
+                z-index: 2;
+                position: absolute;
+              }
+              
+              
+              .loading-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255, 255, 255, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+                opacity: 0;
+                animation: fadeIn 0.3s ease forwards;
+              }
+
+              @keyframes fadeIn {
+                to { opacity: 1; }
+              }
+
               .day-content {
                 position: relative;
-                height: 1440px; /* 24 часа */
+                /*height: 1440px;*/ /* 24 часа */
+                height: 100%;
               }
 
               .event {
@@ -625,7 +713,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 border-left: 3px solid #2196f3;
                 box-sizing: border-box;
               }
-              
+
               .duration-selector {
                 margin: 10px 0;
                 text-align: center;
@@ -638,7 +726,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 background: white;
                 cursor: pointer;
               }
-              
+
               .calendar-container {
                 height: calc(100vh - 100px);
                 overflow: auto;
@@ -702,7 +790,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 margin-top: 4px;
               }
 
-
               .week-navigation button {
                 padding: 8px 16px;
                 border: none;
@@ -717,25 +804,10 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 opacity: 0.9;
               }
 
-              /*.calendar-grid {
-                display: grid;
-                grid-template-columns: 100px repeat(7, 1fr);
-                gap: 1px;
-                background: #e0e0e0;
-                border: 1px solid #e0e0e0;
-              }*/
-
               .calendar-grid {
                 display: grid;
                 grid-template-columns: 80px repeat(auto-fit, minmax(120px, 1fr));
               }
-
-             /* {
-                position: sticky;
-                left: 0;
-                background: white;
-                z-index: 2;
-              }*/
 
               .time-column {
                 width: 50px;
@@ -744,31 +816,14 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
               }
 
               .hour-slot {
+                height: 90px;
+                position: relative;
+              }
+
+              .time-slot {
                 height: 60px;
                 position: relative;
               }
-
-              /*.time-slot {
-                height: 40px;
-                position: relative;
-                background: white;
-                border-bottom: 1px solid #eee;
-                padding: 2px;
-              }*/
-
-              .time-slot {
-                height: 60px; // Высота слота = 1 час
-                position: relative;
-              }
-
-              /*.hour-marker {
-                position: absolute;
-                left: 4px;
-                top: 2px;
-                font-size: 0.8em;
-                color: #666;
-              }*/
-
 
               .hour-marker {
                 position: absolute;
@@ -796,10 +851,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 font-size: 0.7em;
                 color: #999;
               }
-
-             /* .day-column {
-                background: white;
-              }*/
 
               .day-column {
                 min-width: 150px;
@@ -839,16 +890,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
               .future-slot:hover {
                 background: #e9ecef;
               }
-
-              /*.current-time {
-                position: absolute;
-                left: 0;
-                right: 0;
-                height: 2px;
-                background: #ff4444;
-                z-index: 3;
-                pointer-events: none;
-              }*/
 
               .current-time {
                 height: 2px;
@@ -912,17 +953,14 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 margin-top: 2px;
               }
 
-
               .calendar-container {
                 height: 100vh;
                 display: flex;
                 flex-direction: column;
-                /* Добавляем отступ сверху для header'а */
                 padding-top: 60px;
                 padding-bottom: 80px;
                 box-sizing: border-box;
               }
-              
 
               .no-schedule {
                 background: repeating-linear-gradient(
@@ -935,15 +973,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 cursor: not-allowed;
               }
 
-
-              /* Стили для нерабочих дней */
-              /*.non-working-day {
-                background-color: rgba(248, 249, 250, 0.4);
-                position: relative;
-              }*/
-
-
-
               .non-working-day {
                 background: repeating-linear-gradient(
                         45deg,
@@ -953,7 +982,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                         #ffe0e0 20px
                 );
               }
-              
 
               .day-column.non-working-day {
                 background-color: rgba(248, 249, 250, 0.4) !important;
@@ -987,18 +1015,6 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 z-index: 1;
               }
 
-              /*.non-working-day .day-header {
-                opacity: 0.7; 
-              }
-
-              .non-working-day .time-slot {
-                background-color: transparent !important;
-                cursor: default !important;
-              }*/
-
-
-
-              /* Индикатор в заголовке */
               .day-off-badge {
                 background: rgba(220, 53, 69, 0.1);
                 color: #dc3545;
@@ -1008,16 +1024,13 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 border-radius: 4px;
               }
 
-
-
-
               .available {
                 background-color: #e8f5e9 !important;
                 cursor: pointer;
               }
 
               .unavailable {
-                background-color: transparent !important; /* Сбрасываем цвет */
+                background-color: transparent !important;
                 cursor: default;
               }
 
@@ -1025,47 +1038,9 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 background-color: #f8f9fa !important;
               }
 
-              /* Мобильная версия */
-              @media (max-width: 768px) {
-                .calendar-container {
-                  display: block;
-                  height: auto;
-                  min-height: 100vh;
-                }
-
-                .header {
-                  position: sticky;
-                  top: 0;
-                }
-
-                .week-navigation {
-                  position: sticky;
-                  top: 5px; /* Высота header'а */
-                  background: white;
-                  z-index: 3;
-                  padding: 12px 16px;
-                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-                }
-
-               /* .calendar-grid {
-                  height: calc(100vh - 120px); 
-                  margin-top: 0;
-                }*/
-                /*.calendar-grid {
-                  display: flex;
-                  overflow-x: auto;
-                  min-height: 80vh;
-                }*/
-
-                .calendar-grid {
-                  grid-template-columns: 50px repeat(auto-fit, minmax(120px, 1fr));
-                }
-              
-
               .event {
                 position: relative;
               }
-
 
               .delete-btn {
                 position: absolute;
@@ -1090,51 +1065,33 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 }
               }
 
-                /*.non-working-day {
-                  background: repeating-linear-gradient(
-                          45deg,
-                          #f8f9fa,
-                          #f8f9fa 10px,
-                          #ffe0e0 10px,
-                          #ffe0e0 20px
-                  );
-                }
-
-                .day-off-badge {
-                  font-size: 0.7em;
-                  background: #dc3545;
-                  color: white;
-                  padding: 2px 5px;
-                  border-radius: 3px;
-                  margin-left: 5px;
-                }*/
-
-  
-
               .notification {
-                position: fixed; /* Или absolute, если контейнер позиционирован */
-                top: 50%; /* Расположите по своему усмотрению */
+                position: fixed;
+                top: 50%;
                 left: 50%;
                 transform: translateX(-50%);
                 padding: 10px 20px;
                 border-radius: 5px;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-                z-index: 1010; /* Выше модального окна и других элементов */
+                z-index: 1010;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 min-width: 250px;
               }
+
               .notification.success {
                 background-color: #dff0d8;
                 color: #3c763d;
                 border: 1px solid #d6e9c6;
               }
+
               .notification.error {
                 background-color: #f2dede;
                 color: #a94442;
                 border: 1px solid #ebccd1;
               }
+
               .close-notification {
                 background: none;
                 border: none;
@@ -1145,22 +1102,161 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                 margin-left: 15px;
                 padding: 0;
               }
+
+              @media (max-width: 768px) {
+                .calendar-grid {
+                  display: flex !important;
+                  overflow-x: auto;
+                  width: 100%;
+                  scroll-snap-type: x mandatory;
+                  -webkit-overflow-scrolling: touch;
+                }
+
+                .time-column {
+                  position: sticky;
+                  left: 0;
+                  z-index: 10; /* выше остальных, чтобы не перекрывалось */
+                  background: #f8f9fa; /* такой же фон, чтобы не было перекрытий */
+                  flex: 0 0 60px;
+                  min-width: 60px;
+                  max-width: 60px;
+                  scroll-snap-align: start;
+                }
+
+                .day-column {
+                  flex: 0 0 70vw;
+                  min-width: 70vw;
+                  max-width: 70vw;
+                  scroll-snap-align: start;
+                  transition: width 0.3s ease;
+                }
+
+                /* По желанию — скрыть полосы прокрутки на определенных устройствах */
+                .calendar-grid::-webkit-scrollbar {
+                  display: none;
+                }
+                .calendar-grid {
+                  -ms-overflow-style: none;  /* IE и Edge */
+                  scrollbar-width: none;  /* Firefox */
+                }
+
+                .container {
+                  padding-left: 0 !important;
+                  padding-right: 0 !important;
+                  margin-left: 0 !important;
+                  margin-right: 0 !important;
+                  max-width: 100% !important;
+                }
               }
 
+              /* Мобильная версия */
+              @media (max-width: 768px) {
+                .calendar-container {
+                  display: block;
+                  height: auto;
+                  min-height: 100vh;
+                }
 
+                .header {
+                  position: sticky;
+                  top: 0;
+                }
+
+                .week-navigation {
+                  position: sticky;
+                  top: 5px;
+                  background: white;
+                  z-index: 3;
+                  padding: 12px 16px;
+                  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                }
+
+                .calendar-grid {
+                  grid-template-columns: 50px repeat(auto-fit, minmax(120px, 1fr));
+                }
+              }
+
+              /* Основные изменения для мобильной версии */
+              @media (max-width: 480px) {
+                .calendar-container {
+                  padding: 8px 0px;
+                }
+
+                .calendar-grid {
+                  grid-template-columns: 36px repeat(auto-fit, minmax(90px, 1fr));
+                  gap: 2px;
+                }
+
+                .day-column {
+                  min-width: 90px;
+                }
+
+                .day-header {
+                  padding: 6px 2px;
+                  font-size: 0.9em;
+                }
+
+                .hour-marker {
+                  font-size: 1.2em;
+                  font-weight: 500;
+                  left: 2px;
+                }
+
+                .half-hour-line {
+                  display: none;
+                }
+
+                .time-slot {
+                  height: 50px;
+                }
+              }
+
+              /* Дополнительные оптимизации для самых маленьких экранов */
+              @media (max-width: 360px) {
+                .calendar-container {
+                  padding: 8px 2px;
+                }
+
+                .calendar-grid {
+                  grid-template-columns: 30px repeat(auto-fit, minmax(80px, 1fr));
+                }
+
+                .day-column {
+                  min-width: 80px;
+                }
+
+                .hour-marker {
+                  font-size: 0.9em;
+                }
+              }
+
+              /* Улучшения для текущей временной линии */
+              .current-time {
+                height: 3px;
+              }
             `}</style>
         </div>
     );
 }
 
 
-interface ModalProps {
+/*interface ModalProps {
     data: { date: string; time: string };
     employeeId: number | null; // Добавляем пропс
     editingEvent?: AppointmentRequest | null;
     onSave: (data: AppointmentRequest | Omit<AppointmentRequest, 'id'>) => void;
     onClose: () => void;
+}*/
+
+
+interface ModalProps {
+    data: { date: string; time: string };
+    employeeId: number | null | undefined; // Добавляем undefined
+    editingEvent?: AppointmentRequest | null;
+    onSave: (data: AppointmentRequest | Omit<AppointmentRequest, 'id'>) => void;
+    onClose: () => void;
 }
+
 const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) => {
 
     // Внутри компонента:
@@ -1170,7 +1266,8 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
         services: ''
     });
 
-    const [form, setForm] = useState<AppointmentRequest | Omit<AppointmentRequest, 'id'>>(
+
+    /*const [form, setForm] = useState<AppointmentRequest | Omit<AppointmentRequest, 'id'>>(
         editingEvent || {
             client_name: "",
             client_last_name: "",
@@ -1182,8 +1279,28 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
             time_end: add30Minutes(data.time),
             services: [],
             comment: "",
+            // @ts-ignore
             total_duration: 30
-        });
+        });*/
+    const [form, setForm] = useState<AppointmentRequest>(// @ts-ignore
+        editingEvent || {
+            //@ts-ignore
+            client_name: "",
+            client_last_name: "",
+            client_phone: "",
+            employee_id: 0,
+            branch_id: 0,
+            date: data.date,
+            time_start: data.time,
+            time_end: add30Minutes(data.time),
+            appointment_datetime: `${data.date}T${data.time}`,
+            total_duration: 30,
+            //total_duration: data.date || 30, // берем рассчитанную длительность
+            services: [],
+            //comment: ""
+        }
+    );
+
 
 
     const {
@@ -1209,18 +1326,29 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
         }));
     };
 
+
+
 // В компоненте Modal
     const handleSubmit = () => {
         // Рассчет длительности
         const start = new Date(`${data.date}T${form.time_start}`);
         const end = new Date(`${data.date}T${form.time_end}`);
         const duration = (end.getTime() - start.getTime()) / 60000;
+        //const duration = (new Date(`${date}T${end}`)).getTime() - (new Date(`${date}T${start}`)).getTime();
 
         const errors = {
+            //@ts-ignore
             phone: validatePhone(form.client_phone),
+            //@ts-ignore
             name: validateName(form.client_name),
             services: form.services.length === 0 ? 'Добавьте хотя бы одну услугу' : ''
         };
+
+        if (duration <= 0) {
+            // Можно показать ошибку - время окончания должно быть позже начала
+            alert('Время окончания должно быть позже времени начала');
+            return;
+        }
 
         setValidationErrors(errors);
 
@@ -1228,6 +1356,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
 
         onSave({
             ...form,
+            // @ts-ignore
             total_duration: duration
         });
     };
@@ -1252,7 +1381,9 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 <div className="form-group">
                     <label className="block font-semibold mb-1">Клиент: Имя</label>
                     <input
+                        //@ts-ignore
                         value={form.client_name}
+                        //@ts-ignore
                         onChange={e => setForm({...form, client_name: e.target.value})}
                     />
                 </div>
@@ -1260,7 +1391,9 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                 <div className="form-group">
                     <label className="block font-semibold mb-1">Клиент: Фамилия</label>
                     <input
+                        //@ts-ignore
                         value={form.client_last_name}
+                        //@ts-ignore
                         onChange={e => setForm({...form, client_last_name: e.target.value})}
                     />
                 </div>
@@ -1269,6 +1402,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                     <label className="block font-semibold mb-1">Телефон:</label>
                     <input
                         type="tel"
+                        //@ts-ignore
                         value={form.client_phone}
                         onChange={(e) => {
                             const inputValue = e.target.value;
@@ -1277,7 +1411,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                                 .replace(/[^\d+]/g, '')
                                 .replace(/^\+?/, '+')
                                 .slice(0, 16);
-
+                            //@ts-ignore
                             setForm({ ...form, client_phone: filteredValue });
                             setValidationErrors(prev => ({
                                 ...prev,
@@ -1294,13 +1428,18 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                     )}
                 </div>
 
-                <div className="form-group">
+                {/*<div className="form-group">
                     <label className="block font-semibold mb-1">Комментарий:</label>
                     <textarea
                         value={form.comment}
                         onChange={e => setForm({...form, comment: e.target.value})}
+                        style={{
+                            border: "1px solid #ddd", // black solid border
+                            borderRadius: "5px",      // rounded corners
+                            padding: "8px"            // padding inside textarea
+                        }}
                     />
-                </div>
+                </div>*/}
 
                 <div className="time-selection">
                     <div className="form-group">
@@ -1328,12 +1467,16 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                             <select
                                 value={service.service_id}
                                 onChange={e => {
+                                    // @ts-ignore
                                     const selectedService = employeeServices?.find(s => s.service_id === Number(e.target.value));
                                     const newServices = [...form.services];
                                     newServices[index] = {
                                         ...service,
+                                        // @ts-ignore
                                         service_id: selectedService?.service_id || 0,
+                                        // @ts-ignore
                                         individual_price: selectedService?.individual_price || 0,
+                                        // @ts-ignore
                                         duration_minutes: selectedService?.duration_minutes || 0
                                     };
                                     setForm({...form, services: newServices});
@@ -1341,8 +1484,10 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                             >
                                 <option value={0}>Выберите услугу</option>
                                 {employeeServices?.map(svc => (
+                                    // @ts-ignore
                                     <option key={svc.id} value={svc.service_id}>
-                                        {svc.service.name} ({svc.individual_price} руб.)
+                                        {// @ts-ignore
+                                            svc.service.name} ({svc.individual_price} руб.)
                                     </option>
                                 ))}
                             </select>
@@ -1514,5 +1659,4 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
 };
 
 
-
-    export default Calendar;
+export default Calendar;

@@ -1,13 +1,20 @@
-import React, { ReactNode } from 'react';
+"use client";
 
-interface LayoutProps {
-    children: ReactNode;
-}
+import React, {ReactNode} from 'react';
 
-export default function Layout({ children }: LayoutProps) {
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+export default function Layout({
+                                   children,
+                               }: {
+    children: React.ReactNode
+}) {
     return (
-        <div className="layout">
-            <main>{children}</main>
-        </div>
-    );
+        <QueryClientProvider client={queryClient}>
+            <main className="font-work-sans">
+                {children}
+            </main>
+        </QueryClientProvider>
+    )
 }

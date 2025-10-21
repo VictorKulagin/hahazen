@@ -21,7 +21,7 @@ interface CycleSchedule {
 export type EmployeeSchedule = {
     id: number;
     employee_id: number;
-    schedule_type: 'weekly' | 'cycle';
+    schedule_type: 'weekly' /*| 'cycle'*/;
     start_date: string;
     end_date: string;
     periods: Array<[string, string, string]>;
@@ -98,9 +98,9 @@ export const createEmployeeSchedule = async (
     schedule: Omit<EmployeeSchedule, 'id'>
 ): Promise<EmployeeSchedule> => {
     // Проверка для cycle типа
-    if (schedule.schedule_type === 'cycle' && !('cycle_length' in schedule)) {
+    /*if (schedule.schedule_type === 'cycle' && !('cycle_length' in schedule)) {
         throw new Error('cycle_length is required for cycle schedules.');
-    }
+    }*/
 
     try {
         const response = await apiClient.post<EmployeeSchedule>("/employee-schedule/create", schedule);

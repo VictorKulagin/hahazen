@@ -13,6 +13,7 @@ import {
     BuildingStorefrontIcon,
     ChevronDownIcon,
     ChevronUpIcon, ArrowRightOnRectangleIcon,
+    CalendarIcon,
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
@@ -85,8 +86,12 @@ const Page: React.FC = () => {
                 const data = await branchesList(companyId);
                 console.log("response.data setBranchesData", data);
                 setBranchesData(data);
-            } catch (err) {
-                setError(`Ошибка: ${err?.message || "Неизвестная ошибка"}`);
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    setError(`Ошибка: ${err.message}`);
+                } else {
+                    setError("Неизвестная ошибка");
+                }
             } finally {
                 setIsLoading(false);
             }
@@ -110,9 +115,13 @@ const Page: React.FC = () => {
                 const data = await companiesList();
                 console.log("response.data companiesList", data);
                 setCompaniesData(data); // Сохраняем данные пользователя
-            } catch (err) {
-                setError(`Ошибка: ${err?.data?.message || "Неизвестная ошибка"}`);
-            } finally {
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    setError(`Ошибка: ${err.message}`);
+                } else {
+                    setError("Неизвестная ошибка");
+                }
+            }finally {
                 setIsLoading(false);
             }
         };
@@ -235,8 +244,6 @@ const Page: React.FC = () => {
                         <Link
                             key={client.id}
                             href={client.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
                             className="block text-gray-300 hover:text-white transition"
                         >
                             {client.name}
@@ -252,6 +259,14 @@ const Page: React.FC = () => {
                 </Link>
             ),
             icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
+        },
+        {
+            label: (
+                <Link href={`/schedule/${id}`} className="flex items-center">
+                    Расписание
+                </Link>
+            ),
+            icon: <CalendarIcon className="h-8 w-8 text-gray-400" />
         },
         {
             label: (

@@ -10,13 +10,12 @@ import {
     GlobeAltIcon,
     Cog8ToothIcon,
     ChevronUpIcon,
-    ChevronDownIcon, ArrowRightOnRectangleIcon
+    ChevronDownIcon, ArrowRightOnRectangleIcon, CalendarIcon
 } from "@heroicons/react/24/outline";
 import {branchesList} from "@/services/branchesList";
 import EmployeesList from "@/components/EmployeesList";
 import {companiesList} from "@/services/companiesList";
 import {useParams, useRouter} from "next/navigation";
-
 
 const Page: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -198,7 +197,15 @@ const Page: React.FC = () => {
                     Онлайн-запись
                 </Link>
             ),
-            icon: <GlobeAltIcon className="h-8 w-8 text-gray-200" />,
+            icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
+        },
+        {
+            label: (
+                <Link href={`/schedule/${id}`} className="flex items-center">
+                    Расписание
+                </Link>
+            ),
+            icon: <CalendarIcon className="h-8 w-8 text-gray-400" />
         },
         {
             label: (
@@ -239,7 +246,7 @@ const Page: React.FC = () => {
     ];
 
     return (
-        <div className="relative h-screen md:grid md:grid-cols-[15%_85%]">
+        <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -351,17 +358,17 @@ const Page: React.FC = () => {
 
                 {/* Заголовок */}
                 <header className="mb-6">
-                    <h1 className="text-2xl font-bold mb-2">Настройки</h1>
+                    <h1 className="text-2xl font-bold mb-2">Календарь событий</h1>
                 </header>
 
                 {/* Контент: две колонки */}
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                     {/* Первая колонка */}
                     <section className="bg-white text-black p-4 rounded shadow">
-                        <h2 className="text-lg font-semibold mb-2">Первая колонка</h2>
-                        <p>Контент первой колонки. Здесь можно разместить информацию о пользователях или другие параметры.</p>
-                        <div className="container mx-auto p-4">
-                            <h1 className="text-3xl font-bold mb-4">Календарь событий</h1>
+                        <h2 className="text-lg font-semibold mb-2">Календарь событий</h2>
+                        <p>Просмотр и управление записями. Календарь отображает занятость сотрудников
+                            цветовой индикацией. Для новой записи выберите свободный слот.</p>
+                        <div className="container mx-auto p-0">
                             {id !== null && employeeId !== undefined && (
                                 <Calendar
                                     branchId={id}
@@ -375,4 +382,5 @@ const Page: React.FC = () => {
         </div>
     );
 };
+
 export default withAuth(Page);

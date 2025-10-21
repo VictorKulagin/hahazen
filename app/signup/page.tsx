@@ -39,8 +39,11 @@ export default function RegisterPage() {
             console.log("Ответ сервера:", newUser);
 
             // Проверяем, есть ли токен в ответе
+            // @ts-ignore
             if (newUser.access_token) {
+                // @ts-ignore
                 localStorage.setItem("access_token", newUser.access_token); // Сохраняем токен
+                // @ts-ignore
                 console.log("Токен сохранён:", newUser.access_token);
             } else {
                 throw new Error("Ошибка: Сервер не вернул access_token.");

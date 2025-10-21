@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
-import { watchEmployees } from "@/lib/sseManager"; // Ваша реализация наблюдения за изменениями
+//import { watchEmployees } from "@/lib/sseManager"; // Ваша реализация наблюдения за изменениями
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     res.setHeader("Content-Type", "text/event-stream");
@@ -13,10 +13,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         res.write(`data: ${JSON.stringify(data)}\n\n`);
     };
 
-    const cleanup = watchEmployees(branchId, sendUpdate);
+   // const cleanup = watchEmployees(branchId, sendUpdate);
 
-    req.on("close", () => {
+   /* req.on("close", () => {
         cleanup();
         res.end();
-    });
+    });*/
 }

@@ -102,13 +102,78 @@ export const generateTimeSlots = () => {
     return slots;
 };
 
+
+
+
 export const getWeekRange = (startDate: Date) => {
     const start = new Date(startDate);
     const end = new Date(start);
     end.setDate(start.getDate() + 6);
 
     return `
-        ${start.toLocaleDateString('en-US', {day: 'numeric'})} - 
+        ${start.toLocaleDateString('en-US', {day: 'numeric'})} -
         ${end.toLocaleDateString('en-US', {day: 'numeric', month: 'short'})}
     `;
 };
+
+
+// Функция для прибавления минут к времени в формате HH:MM
+/*export function addMinutes(time: string, minutesToAdd: number): string {
+    const [h, m] = time.split(':').map(Number);
+    const totalMinutes = h * 60 + m + minutesToAdd;
+    const newH = Math.floor(totalMinutes / 60) % 24;
+    const newM = totalMinutes % 60;
+    return `${newH.toString().padStart(2,'0')}:${newM.toString().padStart(2,'0')}`;
+}
+
+// Функция для расчёта длительности в минутах
+export function calculateDuration(start: string, end: string): number {
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+    return (endH * 60 + endM) - (startH * 60 + startM);
+}*/
+
+// Прибавляем минуты к времени (без ограничений на сутки)
+export function addMinutes(time: string, minutesToAdd: number): string {
+    const [h, m] = time.split(':').map(Number);
+    let totalMinutes = h * 60 + m + minutesToAdd;
+
+    // поддержка любых значений, даже >24ч
+    if (totalMinutes < 0) totalMinutes = 0;
+
+    const newH = Math.floor(totalMinutes / 60) % 24;
+    const newM = totalMinutes % 60;
+    return `${newH.toString().padStart(2,'0')}:${newM.toString().padStart(2,'0')}`;
+}
+
+// Считаем длительность (поддержка "через полночь")
+/*export function calculateDuration(start: string, end: string): number {
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+
+    let startTotal = startH * 60 + startM;
+    let endTotal = endH * 60 + endM;
+
+    if (endTotal < startTotal) {
+        // значит, событие пересекает полночь → добавляем сутки
+        endTotal += 24 * 60;
+    }
+
+    return endTotal - startTotal;
+}*/
+
+
+export function calculateDuration(start: string, end: string): number {
+    const [startH, startM] = start.split(':').map(Number);
+    const [endH, endM] = end.split(':').map(Number);
+
+    let startTotal = startH * 60 + startM;
+    let endTotal = endH * 60 + endM;
+
+    if (endTotal < startTotal) {
+        // Event spans over midnight, add 24 hours to endTotal
+        endTotal += 24 * 60;
+    }
+
+    return endTotal - startTotal; // duration in minutes
+}

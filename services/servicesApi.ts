@@ -13,11 +13,7 @@ export interface Services {
     online_booking_description: string;
 }
 
-// Получение списка сотрудников
-/*export const fetchServices = async (): Promise<Services[]> => {
-    const response = await apiClient.get<Services[]>("/services");
-    return response.data;
-};*/
+
 
 // Интерфейс для связи мастера и услуги
 export interface EmployeeService {
@@ -27,13 +23,23 @@ export interface EmployeeService {
 }
 
 // Ответ с назначенными услугами мастера (расширяем базовую услугу)
-export interface EmployeeServiceResponse extends Services {
+/*export interface EmployeeServiceResponse extends Services {
     pivot: {
         employee_id: number;
         service_id: number;
         individual_price: number;
         duration_minutes: number;
     };
+}*/
+
+// Ответ с назначенными услугами мастера
+export interface EmployeeServiceResponse {
+    id: number;               // id связи
+    service_id: number;
+    employee_id: number;
+    individual_price: number;
+    duration_minutes: number;
+    service: Services;        // объект с полной информацией об услуге
 }
 
 export const fetchServices = async (): Promise<Services[]> => {

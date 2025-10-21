@@ -1,7 +1,14 @@
 // hooks/useEmployees.ts
 "use client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Employee, fetchEmployees } from "@/services/employeeApi";
+import {useQuery, useQueryClient, useMutation, UseMutationResult} from "@tanstack/react-query";
+import {
+    Employee,
+    fetchEmployees,
+    createEmployee,
+    updateEmployee,
+    deleteEmployee,
+    EmployeeCreatePayload
+} from "@/services/employeeApi";
 import { useEffect, useRef, useState } from "react";
 import { EventSourcePolyfill } from "event-source-polyfill";
 import { createSSEConnection } from "@/services/api";
@@ -13,18 +20,17 @@ export const useEmployees = (branchId?: number) => {
 
     const query = useQuery<Employee[], Error>({
         queryKey: ["employees", branchId],
-
         queryFn: () => fetchEmployees(branchId!),
         staleTime: 1000 * 60 * 5,
         enabled: !!branchId,
         retry: 2,
         retryDelay: 1000,
         // Используем актуальные названия опций
-        onSuccess: (data) => console.log('Query data set:', data),
-        onError: (err) => console.error('Query error:', err)
+        /*onSuccess: (data) => console.log('Query data set:', data),
+        onError: (err) => console.error('Query error:', err)*/
     });
 
-    debugger;
+    //debugger;
 
     useEffect(() => {
         if (query.data) {
@@ -62,7 +68,12 @@ export const useEmployees = (branchId?: number) => {
         };
 
         const handleSSEError = (error: Event) => {
-            console.error("SSE Connection Error:", error);
+            console.error("SSE Connection Error:", {
+                type: error.type,
+                target: error.target,
+                currentTarget: error.currentTarget,
+                eventPhase: error.eventPhase,
+            });
             setIsConnected(false);
             scheduleReconnect();
         };
@@ -71,15 +82,18 @@ export const useEmployees = (branchId?: number) => {
             setIsConnected(true);
             console.log('SSE connection established');
         };
-
+        // @ts-ignore
         newEventSource.addEventListener("message", handleSSEMessage);
+        // @ts-ignore
         newEventSource.addEventListener("error", handleSSEError);
         newEventSource.addEventListener("open", handleSSEOpen);
 
         eventSourceRef.current = newEventSource;
 
         return () => {
+            // @ts-ignore
             newEventSource.removeEventListener("message", handleSSEMessage);
+            // @ts-ignore
             newEventSource.removeEventListener("error", handleSSEError);
             newEventSource.removeEventListener("open", handleSSEOpen);
             newEventSource.close();
@@ -88,10 +102,19 @@ export const useEmployees = (branchId?: number) => {
         };
     }, [branchId, queryClient]);
 
-    const scheduleReconnect = () => {
+    /*const scheduleReconnect = () => {
         if (!branchId) return;
         setTimeout(() => {
             queryClient.invalidateQueries(["employees", branchId]);
+        }, 5000);
+    };*/
+    const scheduleReconnect = () => {
+        if (!branchId) return;
+
+        setTimeout(() => {
+            queryClient.invalidateQueries({
+                queryKey: ["employees", branchId],
+            });
         }, 5000);
     };
 
@@ -113,3 +136,53 @@ export const useEmployees = (branchId?: number) => {
 };
 
 
+
+export const useUpdateEmployee = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async (employee: Partial<Employee> & { id: number }) =>
+            updateEmployee(employee.id, employee),
+
+        onSuccess: () => {
+            // ⬇️ Обновляем список сотрудников
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+        },
+
+        onError: (error) => {
+            console.error("Ошибка при обновлении сотрудника:", error);
+        },
+    });
+};
+
+
+
+export const useCreateEmployee = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation<Employee, Error, EmployeeCreatePayload>({
+        mutationFn: (payload: EmployeeCreatePayload) => createEmployee(payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+        },
+    });
+};
+
+
+export const useDeleteEmployee = (): UseMutationResult<void, unknown, number, unknown> => {
+    const queryClient = useQueryClient();
+
+    return useMutation<void, unknown, number>({
+        mutationFn: async (id: number) => {
+            console.log("🟠 Попали в mutationFn, id:", id);
+            return deleteEmployee(id);
+        },
+        onSuccess: () => {
+            console.log("✅ Сотрудник удалён, обновляем employees");
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
+        },
+        onError: (error: any) => {
+            console.error("❌ Ошибка удаления:", error.response?.data || error.message);
+        },
+    });
+};
