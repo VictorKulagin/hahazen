@@ -6,17 +6,7 @@ import { withAuth } from "@/hoc/withAuth";
 import Image from "next/image";
 import Link from "next/link";
 import {
-    UserGroupIcon,
-    UsersIcon,
-    GlobeAltIcon,
-    Cog8ToothIcon,
-    WrenchIcon,
-    BuildingStorefrontIcon,
-    ChevronDownIcon,
-    ChevronUpIcon, ArrowRightOnRectangleIcon,
-    CalendarIcon,
-    ClockIcon,
-    PhoneIcon
+ Bars3Icon
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
@@ -24,7 +14,6 @@ import {companiesList} from "@/services/companiesList";
 import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
 import {Employee, fetchEmployees} from "@/services/employeeApi";
-import EmployeesList from "@/components/EmployeesList";
 import {
     groupAppointments,
     useBookedDays,
@@ -34,13 +23,10 @@ import {
 import CustomCalendarDesktop from "@/components/CustomCalendarDesktop";
 import ScheduleModule, {toMins, toTime} from "@/components/ScheduleModule";
 import {useCreateEmployee, useEmployees} from "@/hooks/useEmployees";
-import { useAppointments } from "@/hooks/useAppointments";
 import { flattenGroupedAppointments } from '@/components/utils/appointments';
 import { useAppointmentsByBranchAndDate } from '@/hooks/useAppointments';
 import { AppointmentRequest, AppointmentResponse } from "@/types/appointments";
-import {useEmployeeServices} from "@/hooks/useServices";
 import { formatDateLocal, formatTimeLocal } from "@/components/utils/date";
-import {Services} from "@/services/servicesApi";
 import CreateEventModal from "@/components/schedulePage/CreateEventModal";
 import { normalizeAppointments } from "@/components/utils/normalizeAppointments";
 import UpdateEventModal from "@/components/schedulePage/UpdateEventModal";
@@ -52,7 +38,8 @@ import {CreateMenuModal} from "@/components/schedulePage/CreateMenuModal";
 import { ServiceManager} from "@/components/schedulePage/ServiceManager";
 import {CreateEmployeeModal} from "@/components/schedulePage/CreateEmployeeModal";
 import CustomCalendarMobile from "@/components/CustomCalendarMobile";
-
+import usePhoneInput from '@/hooks/usePhoneInput';
+import SidebarMenu from "@/components/SidebarMenu";
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -102,11 +89,6 @@ const Page: React.FC = () => {
 
     const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
     const [isCreateServiceOpen, setIsCreateServiceOpen] = useState(false);
-    /*const appointments = [
-        { id: 1, start: "10:00", end: "11:00", client: "Иван Петров", service: "Массаж спины", phone: "+77771234567" },
-        { id: 2, start: "12:00", end: "13:30", client: "Анна Сидорова", service: "SPA программа", phone: "+77779876543" },
-        { id: 3, start: "15:00", end: "15:30", client: "Сергей К.", service: "Консультация", phone: "+77770000000" },
-    ];*/
 
 
     useEffect(() => {
@@ -271,11 +253,6 @@ const Page: React.FC = () => {
         client?: { id: number; name: string; last_name?: string; phone?: string };
     } | null>(null);
 
-    /*const handleOpenCreateModal = (startMinutes: number, masterIndex: number) => {
-        setSelectedStartMinutes(startMinutes);
-        setSelectedMasterIndex(masterIndex);
-        setIsCreateModalOpen(true);
-    };*/
 
     const handleOpenCreateModal = (startMinutes: number, masterIndex: number) => {
         const emp = employees[masterIndex];
@@ -306,12 +283,6 @@ const Page: React.FC = () => {
         const src = (appointments ?? []).find(a => a.id === Number(ev.id));
         console.log("📦 Исходная запись из appointments:", src);
 
-        // 3. Преобразуем услуги в формат { id, qty }
-        /*const initialSelected = (src?.services ?? []).map(s => ({
-            id: s.id,
-            qty: (s as any).qty ?? 1,
-        }));
-        console.log("🎯 Преобразованные услуги (initialSelected):", initialSelected);*/
 
         // 3. Преобразуем услуги в формат { id, qty }
         const initialSelected = (src?.services ?? []).map(s => ({
@@ -346,18 +317,6 @@ const Page: React.FC = () => {
 
         setEditingEvent(eventPayload);
     };
-
-
-    const handleCloseCreateModal = () => {
-        setIsCreateModalOpen(false);
-        setSelectedMasterIndex(null);
-        setSelectedStartMinutes(null);
-    };
-
-
-
-
-
 
 
     const handleSaveAppointment = async (data: {
@@ -453,84 +412,6 @@ const Page: React.FC = () => {
         { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
     ];
 
-    // Элементы меню
-    const menuItems = [
-        {
-            label: "Сотрудники",
-            icon: <UserGroupIcon className="h-8 w-8 text-gray-400" />,
-            content: (
-                <div className="ml-10 mt-2">
-                    <EmployeesList branchId={id}/>
-                </div>
-            ),
-        },
-        {
-            label: "Клиенты", // Новый пункт "Клиенты"
-            icon: <UsersIcon className="h-8 w-8 text-gray-400" />,
-            content: (
-                <div  className="ml-10 mt-2 flex flex-col gap-2">
-                    {clients.map((client) => (  // Список клиентов, аналогично сотрудникам
-                        <Link
-                            key={client.id}
-                            href={client.url}
-                            className="block text-gray-300 hover:text-white transition"
-                        >
-                            {client.name}
-                        </Link>
-                    ))}
-                </div>
-            ),
-        },
-        {
-            label: (
-                <Link href={`/online/booking_forms/${id}`} className="flex items-center">
-                    Онлайн-запись
-                </Link>
-            ),
-            icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
-        },
-        {
-            label: (
-                <Link href={`/schedule/${id}`} className="flex items-center">
-                    Расписание
-                </Link>
-            ),
-            icon: <CalendarIcon className="h-8 w-8 text-gray-200" />, isActive: true
-        },
-        {
-            label: (
-                <Link href={`/settings/menu/${id}`} className="flex items-center">
-                    Настройки
-                </Link>
-            ),
-            icon: <Cog8ToothIcon className="h-8 w-8 text-gray-200" />
-        },
-
-        { label: <hr className="border-gray-700 my-2" />, icon: null }, // Разделитель
-
-        {
-            label: (
-                <div className="flex flex-col items-start p-4 border-t border-gray-700">
-                    <Link href={`/cabinet`}>
-                        <p className="text-gray-300 font-medium text-sm">
-                            {userData?.name || "Имя пользователя"}
-                        </p>
-                        <p className="text-gray-500 text-xs">
-                            {userData?.email || "email@example.com"}
-                        </p>
-                    </Link>
-                    <button
-                        onClick={handleLogout}
-                        className="mt-2 text-green-500 hover:text-green-400 text-sm flex items-center"
-                    >
-                        <ArrowRightOnRectangleIcon className="h-5 w-5 mr-1" />
-                        Выйти
-                    </button>
-                </div>
-            ),
-            icon: null, // Значок не нужен, чтобы сохранить стиль
-        }
-    ];
 
 
     const handlePrevMonth = () => {
@@ -569,15 +450,16 @@ const Page: React.FC = () => {
                 ></div>
             )}
 
-            {/* Левая колонка (меню) */}
+            {/* Левая колонка (меню + календарь) */}
             <aside
-                className={`bg-darkBlue text-white p-4 fixed z-20 h-full transition-transform duration-300 md:relative md:translate-x-0 ${
+                className={`bg-darkBlue text-white p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
-                {/* Логотип */}
-                <div className="border-b border-gray-400 p-2 flex items-center"
-                     onClick={toggleFilModal} // Обработчик клика
+                {/* Верх: логотип */}
+                <div
+                    className="border-b border-gray-400 p-2 flex items-center cursor-pointer"
+                    onClick={toggleFilModal}
                 >
                     <Image
                         src="/logo.png"
@@ -586,12 +468,13 @@ const Page: React.FC = () => {
                         height={32}
                         className="mr-2"
                     />
-                    <span>{companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Компания не найдена"}</span>
+                    <span className="text-sm font-medium truncate">
+      {companiesData?.[0]?.name || "Компания не найдена"}
+    </span>
                 </div>
 
-                {/* Встроенный календарь дестоп*/}
-                <div className="hidden md:block mt-4 bg-[#f8f8f8] rounded-lg p-2 text-black shadow-inner">
-                    <section className="hidden md:flex justify-center">
+                {/* Средний блок: календарь */}
+                <div className="hidden md:block mt-4 bg-[#f8f8f8] rounded-lg p-2 text-black shadow-inner flex-shrink-0">
                     <CustomCalendarDesktop
                         year={year}
                         month={month}
@@ -600,50 +483,64 @@ const Page: React.FC = () => {
                         onPrevMonth={handlePrevMonth}
                         onNextMonth={handleNextMonth}
                     />
-                    </section>
                 </div>
 
-                <div>
-                    <nav className="mt-4">
-                        {menuItems.map((item, index) => (
-                            <div key={index}>
-                                <div
-                                    className={`flex items-center p-4 rounded transition-all ${
-                                        item.isActive ? "bg-green-500" : "hover:bg-gray-700" // Зеленая подсветка для активного пункта
-                                    }`}
-                                    onClick={() => {
-                                        if (item.label === "Сотрудники") {
-                                            setIsAccordionOpenEmployees(!isAccordionOpenEmployees);
-                                        } else if (item.label === "Клиенты") {
-                                            setIsAccordionOpenClients(!isAccordionOpenClients);
-                                        }
-                                    }}
-                                >
-                                    {item.icon}
-                                    <span className="ml-2 text-white font-medium text-lg">{item.label}</span>
-                                    {(item.label === "Сотрудники" || item.label === "Клиенты") && (
-                                        <span className="ml-auto text-white">
-                                    {item.label === "Сотрудники"
-                                        ? isAccordionOpenEmployees
-                                            ? <ChevronUpIcon className="h-5 w-5 inline" />
-                                            : <ChevronDownIcon className="h-5 w-5 inline" />
-                                        : item.label === "Клиенты" && (isAccordionOpenClients
-                                        ? <ChevronUpIcon className="h-5 w-5 inline" />
-                                        : <ChevronDownIcon className="h-5 w-5 inline" />)
-                                    }
-                                </span>
-                                    )}
-                                </div>
-
-                                {/* Показываем контент для "Сотрудников" или "Клиентов", если аккордеон открыт */}
-                                {item.label === "Сотрудники" && isAccordionOpenEmployees && item.content}
-                                {item.label === "Клиенты" && isAccordionOpenClients && item.content}
-                            </div>
-                        ))}
-                    </nav>
+                {/* Основное меню — тянется вниз, если экран высокий */}
+                {/* Меню */}
+                <div className="flex-grow mt-4 overflow-y-auto">
+                    <SidebarMenu
+                        id={id}
+                        companyName={companiesData?.[0]?.name}
+                        userData={userData}
+                        variant="desktop"
+                        onLogout={handleLogout}
+                    />
                 </div>
-
             </aside>
+
+
+            {/* ✅ Кнопка открытия меню (мобильная версия) */}
+            {/* Мобильная кнопка */}
+            <div className="md:hidden fixed top-3 left-3 z-30">
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
+                >
+                </button>
+            </div>
+
+            {/* Мобильное всплывающее меню */}
+            {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
+            <div className="md:hidden fixed top-3 left-3 z-30">
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
+                >
+                    <Bars3Icon className="h-6 w-6 text-white" />
+                </button>
+            </div>
+
+            {/* Мобильный дровер */}
+            {isMenuOpen && (
+                <div
+                    className="md:hidden fixed inset-0 z-20 bg-black/50"
+                    onClick={() => setIsMenuOpen(false)}
+                >
+                    <div
+                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 bg-darkBlue transform translate-x-0 transition-transform duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <SidebarMenu
+                            id={id}
+                            companyName={companiesData?.[0]?.name}
+                            userData={userData}
+                            variant="mobile"
+                            onLogout={handleLogout}
+                            onNavigate={() => setIsMenuOpen(false)} // закрываем при переходе
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* Правая колонка (контент) */}
             <main
@@ -671,20 +568,15 @@ const Page: React.FC = () => {
                         </div>
                     )}
                 </div>
-                {/* Бургер-иконка (для мобильных устройств) */}
-                <div className="flex justify-between items-center md:hidden">
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="text-white bg-blue-700 p-2 rounded"
-                    >
-                        {isMenuOpen ? "Закрыть меню" : "Открыть меню"}
-                    </button>
-                </div>
+
 
                 {/* Заголовок */}
-                <header className="mb-6">
-                    <h1 className="text-2xl font-bold mb-2">Расписание (Раздел в разработке)</h1>
-                </header>
+                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
+
+                    <span className="ml-auto font-semibold text-sm">
+                        Расписание
+                    </span>
+                </div>
 
                 {/* Календарь — показывать только на мобильных */}
                 <section className="block md:hidden bg-white text-black w-full px-4 py-2">
@@ -771,8 +663,6 @@ const Page: React.FC = () => {
                                 }
                             }}
                         />
-
-
 
                     </section>
                 </div>

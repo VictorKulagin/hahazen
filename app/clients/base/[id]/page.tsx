@@ -7,17 +7,12 @@ import { cabinetDashboard } from "@/services/cabinetDashboard";
 import { companiesList } from "@/services/companiesList";
 import { useClients, useClient } from '@/hooks/useClient';
 import Pagination from '@/components/Pagination';
+import SidebarMenu from "@/components/SidebarMenu";
 
 import {
-    UserGroupIcon,
-    UsersIcon,
     GlobeAltIcon,
-    Cog8ToothIcon,
-    ChevronDownIcon,
-    ChevronUpIcon,
     UserIcon,
     ArrowRightOnRectangleIcon,
-    AtSymbolIcon,
     PhoneIcon,
     CalendarIcon,
     ArrowLeftIcon,
@@ -25,35 +20,17 @@ import {
     StarIcon,
     GiftIcon,
     CreditCardIcon,
-    CakeIcon
+    CakeIcon,
+    PencilIcon,
+    SparklesIcon, UserGroupIcon, Bars3Icon,
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
-import EmployeesList from "@/components/EmployeesList";
 import {useQueryClient} from "@tanstack/react-query";
 import {fetchClients} from "@/services/clientApi";
-import { useUpdateClient } from "@/hooks/useClient";
-import { Client } from "@/services/clientApi";
 import ClientCardEditable from "@/components/ClientCardEditable";
-interface ApiError extends Error {
-    data?: {
-        message?: string;
-    };
-}
 
-interface Props {
-    selectedClient: Client;
-    onCancel: () => void;
-}
-
-interface PageProps {
-    search?: string;
-    pagination?: {
-        page: number;
-        perPage: number;
-    };
-}
 const Page: React.FC = () => {
 
     const search = ""; // или useState
@@ -83,41 +60,13 @@ const Page: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState(""); // Для поиска в будущем
     // ЕДИНСТВЕННЫЙ ВЫЗОВ useClients (с переименованным error):
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
-    /*const { data: clientsData, isLoading: isClientsLoading, error: clientsError } = useClients(searchQuery, {
-        page,
-        perPage
-    });*/
-
     const { data: clientsData, isLoading: isClientsLoading, error: clientsError } = useClients(filters, { page, perPage });
-
     const { data: selectedClient, isLoading: isClientLoading, error: clientError } = useClient(selectedClientId ?? undefined);
-
     const [isEditing, setIsEditing] = useState(false);
-
-
-
-
-    const handleSelectClient = (id: number) => {
-        setSelectedClientId(id);
-        setIsEditing(false);
-    };
-
-    const handleBackToList = () => {
-        setSelectedClientId(null);
-        setIsEditing(false);
-    };
-
-    const handleEditClick = () => {
-        setIsEditing(true);
-    };
 
     const handleCancelEdit = () => {
         setIsEditing(false);
     };
-
-
-
-
     const serializeFilters = (filters: { [key: string]: string }) => {
         return Object.entries(filters)
             .filter(([_, value]) => value.trim() !== '')
@@ -266,85 +215,6 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
     ];
 
 
-    // Элементы меню
-    const menuItems = [
-        {
-            label: "Сотрудники",
-            icon: <UserGroupIcon className="h-8 w-8 text-gray-400" />,
-            content: (
-                <div className="ml-10 mt-2">
-                    <EmployeesList branchId={id as number | undefined}/>
-                </div>
-            ),
-        },
-        {
-            label: "Клиенты", // Новый пункт "Клиенты"
-            icon: <UsersIcon className="h-8 w-8 text-gray-200" />, isActive: true,
-            content: (
-                <div className="ml-10 mt-2">
-                    {clients.map((client) => (  // Список клиентов, аналогично сотрудникам
-                        <Link
-                            key={client.id}
-                            href={client.url}
-                            className="block text-gray-300 hover:text-white transition"
-                        >
-                            {client.name}
-                        </Link>
-                    ))}
-                </div>
-            ),
-        },
-        {
-            label: (
-                <Link href={`/online/booking_forms/${id}`} className="flex items-center">
-                    Онлайн-запись
-                </Link>
-            ),
-            icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
-        },
-        {
-            label: (
-                <Link href={`/schedule/${id}`} className="flex items-center">
-                    Расписание
-                </Link>
-            ),
-            icon: <CalendarIcon className="h-8 w-8 text-gray-400" />
-        },
-        {
-            label: (
-                <Link href={`/settings/menu/${id}`} className="flex items-center">
-                    Настройки
-                </Link>
-            ),
-            icon: <Cog8ToothIcon className="h-8 w-8 text-gray-400" />
-        },
-
-        { label: <hr className="border-gray-700 my-2" />, icon: null }, // Разделитель
-
-        {
-            label: (
-                <div className="flex flex-col items-start p-4 border-t border-gray-700">
-                    <Link href={`/cabinet`}>
-                        <p className="text-gray-300 font-medium text-sm">
-                            {userData?.name || "Имя пользователя"}
-                        </p>
-                        <p className="text-gray-500 text-xs">
-                            {userData?.email || "email@example.com"}
-                        </p>
-                    </Link>
-                    <button
-                        onClick={handleLogout}
-                        className="mt-2 text-green-500 hover:text-green-400 text-sm flex items-center"
-                    >
-                        <ArrowRightOnRectangleIcon className="h-5 w-5 mr-1" />
-                        Выйти
-                    </button>
-                </div>
-            ),
-            icon: null, // Значок не нужен, чтобы сохранить стиль
-        }
-    ];
-
     return (
         <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
             {/* Подложка для клика вне меню */}
@@ -357,16 +227,17 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
 
 
             {/* Левая колонка (меню) */}
+            {/* Меню */}
             <aside
-                className={`bg-darkBlue text-white p-4 fixed z-20 h-full transition-transform duration-300 md:relative md:translate-x-0 ${
+                className={`bg-darkBlue text-white p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
 
-                {/* Шапка с логотипом */}
+                {/* Верх: логотип */}
                 <div
                     className="border-b border-gray-400 p-2 flex items-center cursor-pointer"
-                    onClick={toggleFilModal} // Обработчик клика
+                    onClick={toggleFilModal}
                 >
                     <Image
                         src="/logo.png"
@@ -375,50 +246,64 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                         height={32}
                         className="mr-2"
                     />
-                    <span>{companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Компания не найдена"}</span>
+                    <span className="text-sm font-medium truncate">
+      {companiesData?.[0]?.name || "Компания не найдена"}
+    </span>
                 </div>
+                {/* Меню */}
+            <div className="flex-grow mt-4 overflow-y-auto">
+            <SidebarMenu
+            id={id}
+            companyName={companiesData?.[0]?.name}
+            userData={userData}
+            variant="desktop"
+            onLogout={handleLogout}
+            />
+        </div>
+        </aside>
 
-                <div>
-                    <nav className="mt-4">
-                        {menuItems.map((item, index) => (
-                            <div key={index}>
-                                <div
-                                    className={`flex items-center p-4 rounded transition-all ${
-                                        item.isActive ? "bg-green-500" : "hover:bg-gray-700" // Зеленая подсветка для активного пункта
-                                    }`}
-                                    onClick={() => {
-                                        if (item.label === "Сотрудники") {
-                                            setIsAccordionOpenEmployees(!isAccordionOpenEmployees);
-                                        } else if (item.label === "Клиенты") {
-                                            setIsAccordionOpenClients(!isAccordionOpenClients);
-                                        }
-                                    }}
-                                >
-                                    {item.icon}
-                                    <span className="ml-2 text-white font-medium text-lg">{item.label}</span>
-                                    {(item.label === "Сотрудники" || item.label === "Клиенты") && (
-                                        <span className="ml-auto text-white">
-                                    {item.label === "Сотрудники"
-                                        ? isAccordionOpenEmployees
-                                            ? <ChevronUpIcon className="h-5 w-5 inline"/>
-                                            : <ChevronDownIcon className="h-5 w-5 inline"/>
-                                        : item.label === "Клиенты" && (isAccordionOpenClients
-                                        ? <ChevronUpIcon className="h-5 w-5 inline"/>
-                                        : <ChevronDownIcon className="h-5 w-5 inline"/>)
-                                    }
-                                </span>
-                                    )}
-                                </div>
+            {/* ✅ Кнопка открытия меню (мобильная версия) */}
+            {/* Мобильная кнопка */}
+            <div className="md:hidden fixed top-3 left-3 z-30">
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
+                >
+                </button>
+            </div>
 
-                                {/* Показываем контент для "Сотрудников" или "Клиентов", если аккордеон открыт */}
-                                {item.label === "Сотрудники" && isAccordionOpenEmployees && item.content}
-                                {item.label === "Клиенты" && isAccordionOpenClients && item.content}
-                            </div>
-                        ))}
-                    </nav>
+            {/* Мобильное всплывающее меню */}
+            {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
+            <div className="md:hidden fixed top-3 left-3 z-30">
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
+                >
+                    <Bars3Icon className="h-6 w-6 text-white" />
+                </button>
+            </div>
+
+            {/* Мобильный дровер */}
+            {isMenuOpen && (
+                <div
+                    className="md:hidden fixed inset-0 z-20 bg-black/50"
+                    onClick={() => setIsMenuOpen(false)}
+                >
+                    <div
+                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 bg-darkBlue transform translate-x-0 transition-transform duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <SidebarMenu
+                            id={id}
+                            companyName={companiesData?.[0]?.name}
+                            userData={userData}
+                            variant="mobile"
+                            onLogout={handleLogout}
+                            onNavigate={() => setIsMenuOpen(false)} // закрываем при переходе
+                        />
+                    </div>
                 </div>
-
-            </aside>
+            )}
 
             {/* Правая колонка (контент) */}
             <main
@@ -450,40 +335,90 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                 </div>
 
 
-                {/* Бургер-иконка (для мобильных устройств) */}
-                <div className="flex justify-between items-center md:hidden">
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="text-white bg-blue-700 p-2 rounded"
-                    >
-                        {isMenuOpen ? "Закрыть меню" : "Открыть меню"}
-                    </button>
-                </div>
-
                 {/* Заголовок */}
-                <header className="mb-6">
-                    <h1 className="text-2xl font-bold mb-2">Клиентская база (раздел в разработке)</h1>
-                </header>
+                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
+
+                    <span className="ml-auto font-semibold text-sm">
+                        Клиентская база
+                    </span>
+                </div>
 
 
                 {/* Контент: две колонки */}
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                     {/* Первая колонка */}
                     <section className="bg-white text-black p-4 rounded shadow">
-                        <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2">Личные данные</h2>
-                        </div>
+
                         {/* Ссылка с динамическим путем */}
                         <div className="mb-2">
 
                             <div className="space-y-3">
-                                <p className="text-2xl font-bold">Привет, {userData?.name}! Раздел ещё в режиме разработки</p>
                                 <section className="bg-white text-black p-4 rounded shadow">
-                                    <div className="flex items-center mb-2">
-                                        <h2 className="text-lg font-semibold mb-2">Клиенты</h2>
+                                    <div
+                                        className={`transition-all duration-300 ${
+                                            selectedClientId !== null ? "hidden" : "block"
+                                        }`}
+                                    >
+                                    {/* === Форма фильтра (ВСЕГДА показывается) === */}
+                                    <form
+                                        onSubmit={(e) => {
+                                            e.preventDefault();
+                                            setPage(1);
+                                            setSearchQuery(serializeFilters(filters));
+                                        }}
+                                        className="p-6 bg-white text-black rounded-xl shadow-lg border border-gray-200 max-w-2xl mx-auto mt-4 mb-6"
+                                    >
+                                        <h2 className="text-xl font-bold text-gray-900 mb-4">Фильтр клиентов</h2>
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <input
+                                                type="text"
+                                                placeholder="Имя"
+                                                value={filters.name}
+                                                onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                                                className="w-full border border-gray-300 rounded-lg p-2.5 text-black bg-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
+                                            />
+
+                                            <input
+                                                type="text"
+                                                placeholder="Фамилия"
+                                                value={filters.last_name}
+                                                onChange={(e) => setFilters({ ...filters, last_name: e.target.value })}
+                                                className="w-full border border-gray-300 rounded-lg p-2.5 text-black bg-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
+                                            />
+
+                                            <input
+                                                type="text"
+                                                placeholder="Телефон"
+                                                value={filters.phone}
+                                                onChange={(e) => setFilters({ ...filters, phone: e.target.value })}
+                                                className="w-full border border-gray-300 rounded-lg p-2.5 text-black bg-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
+                                            />
+
+                                            <select
+                                                value={filters.gender}
+                                                onChange={(e) => setFilters({ ...filters, gender: e.target.value })}
+                                                className="w-full border border-gray-300 rounded-lg p-2.5 text-black bg-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
+                                            >
+                                                <option value="">Пол (все)</option>
+                                                <option value="male">Мужской</option>
+                                                <option value="female">Женский</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="flex justify-end gap-3 mt-5">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setFilters({ name: "", last_name: "", phone: "", gender: "", vip: "" })
+                                                }
+                                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                                            >
+                                                Сбросить
+                                            </button>
+                                        </div>
+                                    </form>
                                     </div>
-
-
                                     {isClientsLoading ? (
                                         <div className="text-center py-4">
                                             <div className="flex items-center justify-center space-x-2">
@@ -573,95 +508,68 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                             ) : (
                                                 <>
 
-
-                                                    <form
-                                                        onSubmit={(e) => {
-                                                            e.preventDefault();
-                                                            setPage(1);
-                                                            setSearchQuery(serializeFilters(filters));
-                                                        }}
-                                                        className="p-4 bg-gray-50 rounded-xl shadow-md max-w-xl mx-auto"
-                                                    >
-                                                        <h2 className="text-lg font-semibold text-gray-900 mb-3">Фильтр клиентов</h2>
-
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Имя"
-                                                                value={filters.name}
-                                                                onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-                                                                className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                                                            />
-
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Фамилия"
-                                                                value={filters.last_name}
-                                                                onChange={(e) => setFilters({ ...filters, last_name: e.target.value })}
-                                                                className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                                                            />
-
-                                                            <input
-                                                                type="text"
-                                                                placeholder="Телефон"
-                                                                value={filters.phone}
-                                                                onChange={(e) => setFilters({ ...filters, phone: e.target.value })}
-                                                                className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                                                            />
-
-                                                            <select
-                                                                value={filters.gender}
-                                                                onChange={(e) => setFilters({ ...filters, gender: e.target.value })}
-                                                                className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
+                                                    {/* === Список клиентов / состояние === */}
+                                                    {isClientsLoading ? (
+                                                        <div className="text-center py-4 text-gray-500">Загрузка клиентов...</div>
+                                                    ) : clientsError ? (
+                                                        <div className="text-center py-8 text-gray-500 flex flex-col items-center">
+                                                            <UserIcon className="h-10 w-10 text-red-400 mb-2" />
+                                                            <p className="font-medium text-red-600">Не удалось загрузить список клиентов</p>
+                                                            <p className="text-sm text-gray-400 mt-1">
+                                                                {String((clientsError as any)?.message ?? clientsError ?? "Неизвестная ошибка")}
+                                                            </p>
+                                                            <button
+                                                                onClick={() => location.reload()}
+                                                                className="mt-3 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                                                             >
-                                                                <option value="">Пол (все)</option>
-                                                                <option value="male">Мужской</option>
-                                                                <option value="female">Женский</option>
-                                                            </select>
-
-                                                            <select
-                                                                value={filters.vip}
-                                                                onChange={(e) => setFilters({ ...filters, vip: e.target.value })}
-                                                                className="w-full border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400"
-                                                            >
-                                                                <option value="">VIP (все)</option>
-                                                                <option value="1">Да</option>
-                                                                <option value="0">Нет</option>
-                                                            </select>
+                                                                Повторить попытку
+                                                            </button>
                                                         </div>
+                                                    ) : clientsData?.clients && clientsData.clients.length > 0 ? (
+                                                        <>
+                                                            <ul className="space-y-3">
+                                                                {clientsData.clients.map((client) => (
+                                                                    <li
+                                                                        key={client.id}
+                                                                        onClick={() => setSelectedClientId(client.id ?? null)}
+                                                                        className="
+            bg-white text-black rounded-xl shadow-md p-4
+            flex justify-between items-center border border-gray-200
+            hover:shadow-lg hover:border-green-400 hover:bg-green-50
+            transition-all duration-200 cursor-pointer
+          "
+                                                                    >
+                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3">
+                                                                            <p className="font-semibold text-base">
+                                                                                {client.name} {client.last_name}
+                                                                            </p>
+                                                                            <p className="text-sm text-gray-600">📞 {client.phone}</p>
+                                                                        </div>
+                                                                        <button
+                                                                            onClick={() => setSelectedClientId(client.id ?? null)}
+                                                                            className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition"
+                                                                            title="Открыть профиль клиента"
+                                                                        >
+                                                                            👤
+                                                                        </button>
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
 
-                                                        <button
-                                                            type="submit"
-                                                            className="w-full mt-3 bg-green-600 text-white font-semibold px-4 py-2 rounded-lg hover:bg-green-700 transition"
-                                                        >
-                                                            Поиск
-                                                        </button>
-                                                    </form>
-
-                                                    <ul className="space-y-2">
-                                                        {clientsData.clients.map(client => (
-                                                            <li
-                                                                key={client.id}
-                                                                onClick={() => setSelectedClientId(client.id ?? null)}
-                                                                className="bg-gray-800 text-gray-200 rounded-xl shadow p-2 flex justify-between items-center hover:bg-gray-700 transition cursor-pointer"
-                                                            >
-                                                                <div className="flex flex-col sm:flex-row sm:space-x-2">
-                                                                    <p className="font-semibold">{client.name} {client.last_name}</p>
-                                                                    <p className="text-sm text-gray-400">📞 {client.phone}</p>
-                                                                </div>
-                                                                {/*<a href={`tel:${client.phone}`} className="p-2 rounded-full bg-indigo-500 hover:bg-indigo-600 text-white transition">
-                                                                    <PhoneIcon className="h-5 w-5" />
-                                                                </a>*/}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-
-                                                    <Pagination
-                                                        page={page}
-                                                        setPage={setPage}
-                                                        isClientsLoading={isClientsLoading}
-                                                        clientsData={clientsData}
-                                                    />
+                                                            <Pagination
+                                                                page={page}
+                                                                setPage={setPage}
+                                                                isClientsLoading={isClientsLoading}
+                                                                clientsData={clientsData}
+                                                            />
+                                                        </>
+                                                    ) : (
+                                                        <div className="text-center py-8 text-gray-500 flex flex-col items-center">
+                                                            <UserIcon className="h-10 w-10 text-gray-400 mb-2" />
+                                                            <p className="font-medium text-gray-600">Клиенты не найдены</p>
+                                                            <p className="text-sm text-gray-400">Попробуйте изменить фильтры поиска</p>
+                                                        </div>
+                                                    )}
                                                 </>
                                             )}
                                         </>

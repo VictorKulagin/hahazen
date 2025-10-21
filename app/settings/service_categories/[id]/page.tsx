@@ -1,13 +1,10 @@
+// app\settings\service_categories\[id]\page
 "use client";
 import React, {useEffect, useState, useRef} from "react";
-import Image from "next/image";
+
 import {
-    UserGroupIcon,
-    UsersIcon,
-    GlobeAltIcon,
-    Cog8ToothIcon, ArrowRightOnRectangleIcon, ChevronUpIcon, ChevronDownIcon,
     TrashIcon,
-    PencilIcon, CalendarIcon,  // Для редактирования
+    PencilIcon, Bars3Icon // Для редактирования
 } from "@heroicons/react/24/outline";
 import {withAuth} from "@/hoc/withAuth";
 import {useParams, useRouter} from "next/navigation";
@@ -15,15 +12,19 @@ import {branchesList} from "@/services/branchesList";
 import {companiesList} from "@/services/companiesList";
 import { Services, fetchServices } from "@/services/servicesApi";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
-import { createServices } from "@/services/servicesApi";
-//import { fetchEmployees } from "@/services/employeeApi"; // Импорт функции из API-файла
-import { deleteServices } from "@/services/servicesApi";
-import { updateServices } from "@/services/servicesApi";
-import apiClient from "../../../../services/api";
-import Link from "next/link";
+import SidebarMenu from "@/components/SidebarMenu";
+
+
+
+import { useServices, useDeleteService } from "@/hooks/useServices";
+
+import { ServiceManager } from "@/components/schedulePage/ServiceManager";
+import { ServiceManagerUpdateOne } from "@/components/schedulePage/ServiceManagerUpdateOne";
+
+
 import {AxiosError} from "axios";
-import EmployeesList from "@/components/EmployeesList";
-//import {fetchServices} from "@/services/servicesApi";
+import Image from "next/image";
+
 
 const Page: React.FC = ( ) => {
 
@@ -32,8 +33,6 @@ const Page: React.FC = ( ) => {
     const handleMenuItemClick = () => setIsMenuOpen(false);
 
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [editingServices, setEditingServices] = useState<Services | null>(null);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -48,15 +47,20 @@ const Page: React.FC = ( ) => {
     const [isAccordionOpenEmployees, setIsAccordionOpenEmployees] = useState(false);
     const [isAccordionOpenClients, setIsAccordionOpenClients] = useState(false);
 
-    const [services, setServices] = useState<Services[]>([]);
+    const [isServiceManagerOpen, setIsServiceManagerOpen] = useState(false);
+    const [isUpdateOpen, setIsUpdateOpen] = useState(false);
 
-    const [loading, setLoading] = useState(true);
+    const [selectedService, setSelectedService] = useState<Services | null>(null);
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
 
     const [isNotFound, setIsNotFound] = useState(false);
 
     const router = useRouter();
+
+    const { data: services = [], isLoading: servicesLoading, error: servicesError } = useServices();
+    const { mutateAsync: deleteService } = useDeleteService(); // ✅ Добавлено
 
     const toggleFilModal = () => {
         setIsModalFilOpen((prev) => !prev);
@@ -154,20 +158,6 @@ const Page: React.FC = ( ) => {
     }, []);
 
 
-    useEffect(() => {
-        const loadServices = async () => {
-            try {
-                const servicesData = await fetchServices(); // Используем функцию из API
-                setServices(servicesData); // Обновляем состояние сотрудников
-            } catch (error: any) {
-                setError(error.response?.data?.message || error.message); // Обработка ошибок
-            } finally {
-                setLoading(false); // Завершаем загрузку
-            }
-        };
-
-        loadServices(); // Запуск функции загрузки сотрудников
-    }, []);
 
     const id = branchesData?.[0]?.id ?? null;
 
@@ -195,11 +185,6 @@ const Page: React.FC = ( ) => {
     }, [isNotFound]);
 
 
-    /*useEffect(() => {
-        if (isModalOpen) {
-            document.querySelector("input[name='name']").focus();
-        }
-    }, [isModalOpen]);*/
 
     useEffect(() => {
         if (isModalOpen) {
@@ -208,75 +193,12 @@ const Page: React.FC = ( ) => {
     }, [isModalOpen]);
 
 
-    const [formData, setFormData] = useState({
-        name: "",
-        duration_minutes: 0,
-        base_price: 0,
-    });
-
-    // Обработчик изменения данных в форме
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
-    };
-
-
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm("Вы уверены, что хотите удалить сотрудника?")) {
-            return;
-        }
-
-        try {
-            await deleteServices(id);
-            setServices((prev) => prev.filter((services) => services.id !== id));
-        } catch (error) {
-            console.error("Ошибка при удалении сотрудника:", error);
-        }
+        if (!window.confirm("Удалить услугу?")) return;
+        await deleteService(id); // React Query сам инвалидацией обновит список
     };
 
-
-    const handleEdit = (services: Services) => {
-        setEditingServices(services);
-        setFormData({
-            name: services.name,
-            duration_minutes: services.duration_minutes,
-            base_price: services.base_price,
-        });
-        setIsEditModalOpen(true);
-    };
-
-
-    const handleAddSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        try {
-            const newServices = await createServices({ ...formData, branch_id: id, online_booking: 1, online_booking_name: '', online_booking_description: ''  });
-            setServices((prev) => [...prev, newServices]);
-            setFormData({ name: "", duration_minutes: 0, base_price: 0 });
-            setIsAddModalOpen(false);
-        } catch (error) {
-            console.error("Ошибка при добавлении услуги:", error);
-        }
-    };
-
-    const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!editingServices || editingServices.id === undefined) {
-            console.error("Ошибка: Нет услуги для редактирования или отсутствует ID");
-            return;
-        }
-        try {
-            const updatedServices = await updateServices(editingServices.id, formData);
-            setServices((prev) => prev.map(emp => emp.id === editingServices.id ? updatedServices : emp));
-            setFormData({ name: "", duration_minutes: 0, base_price: 0 });
-            setIsEditModalOpen(false);
-        } catch (error) {
-            console.error("Ошибка при обновлении сотрудника:", error);
-        }
-    };
 
     if (isNotFound) {
         return (
@@ -313,85 +235,6 @@ const Page: React.FC = ( ) => {
         { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
     ];
 
-    // Элементы меню
-    const menuItems = [
-        {
-            label: "Сотрудники",
-            icon: <UserGroupIcon className="h-8 w-8 text-gray-400" />,
-            content: (
-                <div className="ml-10 mt-2">
-                    <EmployeesList branchId={id as number | undefined}/>
-                </div>
-            ),
-        },
-        {
-            label: "Клиенты", // Новый пункт "Клиенты"
-            icon: <UsersIcon className="h-8 w-8 text-gray-400" />,
-            content: (
-                <div className="ml-10 mt-2">
-                    {clients.map((client) => (  // Список клиентов, аналогично сотрудникам
-                        <Link
-                            key={client.id}
-                            href={client.url}
-                            className="block text-gray-300 hover:text-white transition"
-                        >
-                            {client.name}
-                        </Link>
-                    ))}
-                </div>
-            ),
-        },
-        {
-            label: (
-                <Link href={`/online/booking_forms/${id}`} className="flex items-center">
-                    Онлайн-запись
-                </Link>
-            ),
-            icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
-        },
-        {
-            label: (
-                <Link href={`/schedule/${id}`} className="flex items-center">
-                    Расписание
-                </Link>
-            ),
-            icon: <CalendarIcon className="h-8 w-8 text-gray-400" />
-        },
-        {
-            label: (
-                <Link href={`/settings/menu/${id}`} className="flex items-center">
-                    Настройки
-                </Link>
-            ),
-            icon: <Cog8ToothIcon className="h-8 w-8 text-gray-200" />, isActive: true
-        },
-
-        { label: <hr className="border-gray-700 my-2" />, icon: null }, // Разделитель
-
-        {
-            label: (
-                <div className="flex flex-col items-start p-4 border-t border-gray-700">
-                    <Link href={`/cabinet`}>
-                        <p className="text-gray-300 font-medium text-sm">
-                            {userData?.name || "Имя пользователя"}
-                        </p>
-                        <p className="text-gray-500 text-xs">
-                            {userData?.email || "email@example.com"}
-                        </p>
-                    </Link>
-                    <button
-                        onClick={handleLogout}
-                        className="mt-2 text-green-500 hover:text-green-400 text-sm flex items-center"
-                    >
-                        <ArrowRightOnRectangleIcon className="h-5 w-5 mr-1" />
-                        Выйти
-                    </button>
-                </div>
-            ),
-            icon: null, // Значок не нужен, чтобы сохранить стиль
-        }
-    ];
-
 
     return (
         <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
@@ -403,15 +246,16 @@ const Page: React.FC = ( ) => {
                 ></div>
             )}
 
-            {/* Левая колонка (меню) */}
+            {/* Меню */}
             <aside
-                className={`bg-darkBlue text-white p-4 fixed z-20 h-full transition-transform duration-300 md:relative md:translate-x-0 ${
+                className={`bg-darkBlue text-white p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
-                {/* Логотип */}
-                <div className="border-b border-gray-400 p-2 flex items-center"
-                     onClick={toggleFilModal} // Обработчик клика
+                {/* Верх: логотип */}
+                <div
+                    className="border-b border-gray-400 p-2 flex items-center cursor-pointer"
+                    onClick={toggleFilModal}
                 >
                     <Image
                         src="/logo.png"
@@ -420,55 +264,70 @@ const Page: React.FC = ( ) => {
                         height={32}
                         className="mr-2"
                     />
-                    <span>{companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Компания не найдена"}</span>
+                    <span className="text-sm font-medium truncate">
+      {companiesData?.[0]?.name || "Компания не найдена"}
+    </span>
                 </div>
-
-                <div>
-                    <nav className="mt-4">
-                        {menuItems.map((item, index) => (
-                            <div key={index}>
-                                <div
-                                    className={`flex items-center p-4 rounded transition-all ${
-                                        item.isActive ? "bg-green-500" : "hover:bg-gray-700" // Зеленая подсветка для активного пункта
-                                    }`}
-                                    onClick={() => {
-                                        if (item.label === "Сотрудники") {
-                                            setIsAccordionOpenEmployees(!isAccordionOpenEmployees);
-                                        } else if (item.label === "Клиенты") {
-                                            setIsAccordionOpenClients(!isAccordionOpenClients);
-                                        }
-                                    }}
-                                >
-                                    {item.icon}
-                                    <span className="ml-2 text-white font-medium text-lg">{item.label}</span>
-                                    {(item.label === "Сотрудники" || item.label === "Клиенты") && (
-                                        <span className="ml-auto text-white">
-                                    {item.label === "Сотрудники"
-                                        ? isAccordionOpenEmployees
-                                            ? <ChevronUpIcon className="h-5 w-5 inline" />
-                                            : <ChevronDownIcon className="h-5 w-5 inline" />
-                                        : item.label === "Клиенты" && (isAccordionOpenClients
-                                        ? <ChevronUpIcon className="h-5 w-5 inline" />
-                                        : <ChevronDownIcon className="h-5 w-5 inline" />)
-                                    }
-                                </span>
-                                    )}
-                                </div>
-
-                                {/* Показываем контент для "Сотрудников" или "Клиентов", если аккордеон открыт */}
-                                {item.label === "Сотрудники" && isAccordionOpenEmployees && item.content}
-                                {item.label === "Клиенты" && isAccordionOpenClients && item.content}
-                            </div>
-                        ))}
-                    </nav>
+                {/* Меню */}
+                <div className="flex-grow mt-4 overflow-y-auto">
+                    <SidebarMenu
+                        id={id}
+                        companyName={companiesData?.[0]?.name}
+                        userData={userData}
+                        variant="desktop"
+                        onLogout={handleLogout}
+                    />
                 </div>
-
             </aside>
+
+            {/* ✅ Кнопка открытия меню (мобильная версия) */}
+            {/* Мобильная кнопка */}
+            <div className="md:hidden fixed top-3 left-3 z-30">
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
+                >
+                    <Bars3Icon className="h-6 w-6 text-white" />
+                </button>
+            </div>
+
+            {/* Мобильное всплывающее меню */}
+            {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
+            <div className="md:hidden fixed top-3 left-3 z-30">
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
+                >
+                    <Bars3Icon className="h-6 w-6 text-white" />
+                </button>
+            </div>
+
+            {/* Мобильный дровер */}
+            {isMenuOpen && (
+                <div
+                    className="md:hidden fixed inset-0 z-20 bg-black/50"
+                    onClick={() => setIsMenuOpen(false)}
+                >
+                    <div
+                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 bg-darkBlue transform translate-x-0 transition-transform duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <SidebarMenu
+                            id={id}
+                            companyName={companiesData?.[0]?.name}
+                            userData={userData}
+                            variant="mobile"
+                            onLogout={handleLogout}
+                            onNavigate={() => setIsMenuOpen(false)} // закрываем при переходе
+                        />
+                    </div>
+                </div>
+            )}
 
 
             {/* Правая колонка (контент) */}
             <main
-                className="bg-backgroundBlue text-white p-4 h-full md:h-auto"
+                className="bg-backgroundBlue  p-4 h-full md:h-auto"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
 
@@ -496,31 +355,18 @@ const Page: React.FC = ( ) => {
                     )}
                 </div>
 
-
-                {/* Бургер-иконка (для мобильных устройств) */}
-                <div className="flex justify-between items-center md:hidden">
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="text-white bg-blue-700 p-2 rounded"
-                    >
-                        {isMenuOpen ? "Закрыть меню" : "Открыть меню"}
-                    </button>
-                </div>
-
                 {/* Заголовок */}
-                <header className="mb-6">
-                    <>
-                        <nav aria-label="breadcrumb" className="text-sm mb-2">
-                            Настройки / Услуги
-                        </nav>
-                        <h1 className="text-2xl font-bold mb-2">Услуги</h1>
-                    </>
-                </header>
+                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
+
+                    <span className="ml-auto font-semibold text-sm">
+                        Услуги
+                    </span>
+                </div>
 
                 {/* Кнопка "Добавить услуги" */}
                 <div className="mb-4">
                     <button
-                        onClick={() => setIsAddModalOpen(true)}
+                        onClick={() => setIsServiceManagerOpen(true)}
                         className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                     >
                         + Добавить услуги
@@ -529,11 +375,12 @@ const Page: React.FC = ( ) => {
 
                 {/* Таблица Услуг */}
                 <ServicesTable
-                    loading={loading}
-                    error={error}
+                    loading={servicesLoading}
+                    error={servicesError?.message || ""}  // чтобы тип совпал
                     services={services}
-                    handleEdit={handleEdit}
                     handleDelete={handleDelete}
+                    setIsUpdateOpen={setIsUpdateOpen}
+                    setSelectedService={setSelectedService}
                 />
 
                 {/* Модальное окно */}
@@ -554,25 +401,19 @@ const Page: React.FC = ( ) => {
                     </div>
                 )}
 
-                {/* Модальное окно добавления */}
-                <ServiceModal
-                    isOpen={isAddModalOpen}
-                    onClose={() => setIsAddModalOpen(false)}
-                    onSubmit={handleAddSubmit}
-                    formData={formData}
-                    handleInputChange={handleInputChange}
-                    title="Добавить Услугу"
+                {isServiceManagerOpen && (
+                    <ServiceManager
+                        branchId={id}
+                        onClose={() => setIsServiceManagerOpen(false)}
+                    />
+                )}
+
+                <ServiceManagerUpdateOne
+                    service={selectedService}
+                    onClose={() => setSelectedService(null)}
                 />
 
-                {/* Модальное окно редактирования */}
-                <ServiceModal
-                    isOpen={isEditModalOpen}
-                    onClose={() => setIsEditModalOpen(false)}
-                    onSubmit={handleEditSubmit}
-                    formData={formData}
-                    handleInputChange={handleInputChange}
-                    title="Редактировать услугу"
-                />
+
             </main>
         </div>
     );
@@ -584,19 +425,21 @@ const ServicesTable = ({
                            loading,
                            error,
                            services,
-                           handleEdit,
                            handleDelete,
+                           setIsUpdateOpen,
+                           setSelectedService
                        }: {
     loading: boolean;
     error: string;
     services: Services[];
-    handleEdit: (service: Services) => void;
     handleDelete: (id: number) => void;
+    setIsUpdateOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setSelectedService: React.Dispatch<React.SetStateAction<Services | null>>;
 }) => {
     return (
         <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
             <section className="bg-white text-black p-4 rounded shadow">
-                <h2 className="text-lg font-semibold mb-2">Услуги</h2>
+                <h2 className="text-2xl font-bold mb-2 text-white">Услуги</h2>
 
                 <div className="overflow-auto">
                     {loading ? (
@@ -629,7 +472,7 @@ const ServicesTable = ({
                                         </td>
                                         <td className="border p-2">
                                             <button
-                                                onClick={() => handleEdit(service)}
+                                                onClick={() => setSelectedService(service)} // 👈 открываем конкретную услугу
                                                 className="p-1 hover:bg-gray-100 rounded-full"
                                             >
                                                 <PencilIcon className="h-6 w-6 text-blue-500" />
@@ -651,107 +494,6 @@ const ServicesTable = ({
                     )}
                 </div>
             </section>
-        </div>
-    );
-};
-
-
-type ServiceModalProps = {
-    isOpen: boolean;
-    onClose: () => void;
-    onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
-    formData: {
-        name: string;
-        duration_minutes: number;
-        base_price: number;
-    };
-    handleInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    title: string;
-};
-
-const ServiceModal = ({
-                          isOpen,
-                          onClose,
-                          onSubmit,
-                          formData,
-                          handleInputChange,
-                          title,
-                      }: ServiceModalProps) => {
-    const nameInputRef = useRef<HTMLInputElement>(null);
-
-    useEffect(() => {
-        if (isOpen) {
-            nameInputRef.current?.focus();
-        }
-    }, [isOpen]);
-
-    if (!isOpen) return null;
-
-    return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white text-black p-6 rounded shadow-lg w-96 relative">
-                <button
-                    onClick={onClose}
-                    className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                >
-                    ✖
-                </button>
-                <h2 className="text-xl font-bold mb-4">{title}</h2>
-                <form onSubmit={onSubmit}>
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Услуга</label>
-                        <input
-                            type="text"
-                            name="name"
-                            value={formData.name}
-                            ref={nameInputRef}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border rounded"
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Длительность минут</label>
-                        <input
-                            type="number"
-                            name="duration_minutes"
-                            value={formData.duration_minutes}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border rounded"
-                            required
-                        />
-                    </div>
-
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Базовая цена</label>
-                        <input
-                            type="number"
-                            name="base_price"
-                            value={formData.base_price}
-                            onChange={handleInputChange}
-                            className="w-full p-2 border rounded"
-                            required
-                        />
-                    </div>
-
-                    <div className="flex justify-end">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="bg-gray-500 text-white px-4 py-2 rounded mr-2 hover:bg-gray-600"
-                        >
-                            Отмена
-                        </button>
-                        <button
-                            type="submit"
-                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                        >
-                            Сохранить
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
     );
 };
