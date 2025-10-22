@@ -30,6 +30,7 @@ import { useParams } from 'next/navigation';
 import {useQueryClient} from "@tanstack/react-query";
 import {fetchClients} from "@/services/clientApi";
 import ClientCardEditable from "@/components/ClientCardEditable";
+import Loader from "@/components/Loader";
 
 const Page: React.FC = () => {
 
@@ -73,6 +74,14 @@ const Page: React.FC = () => {
             .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
             .join('&');
     };
+
+    const globalLoading =
+        isLoading ||
+        !companiesData ||
+        !branchesData ||
+        !userData
+
+    const globalError = error || !companiesData || !branchesData ? error : "";
 
 const queryClient = useQueryClient(); // Импортируйте из @tanstack/react-query
 
@@ -213,6 +222,34 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
     const clients = [
         { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
     ];
+
+
+    // 🔹 Если загрузка — показываем Loader
+    if (globalLoading) {
+        return (
+            <div className="h-screen bg-backgroundBlue">
+                <Loader type="default" visible={true} />
+            </div>
+        );
+    }
+
+// 🔹 Если ошибка — показываем fallback
+    if (globalError) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen bg-backgroundBlue text-red-400 text-center">
+                <p className="text-xl font-semibold mb-2">Ошибка загрузки данных</p>
+                <p>{globalError}</p>
+                <button
+                    onClick={() => location.reload()}
+                    className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition"
+                >
+                    Перезагрузить страницу
+                </button>
+            </div>
+        );
+    }
+
+
 
 
     return (

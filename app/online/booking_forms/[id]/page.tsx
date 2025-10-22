@@ -13,6 +13,7 @@ import {useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
 import SidebarMenu from "@/components/SidebarMenu";
+import Loader from "@/components/Loader";
 interface ApiError extends Error {
     data?: {
         message?: string;
@@ -48,6 +49,14 @@ const Page: React.FC = () => {
         router.push("/signin"); // Перенаправляем на страницу логина
     };
 
+
+    const globalLoading =
+        isLoading ||
+        !companiesData ||
+        !branchesData ||
+        !userData
+
+    const globalError = error || !companiesData || !branchesData ? error : "";
 
 
     useEffect(() => {
@@ -141,8 +150,7 @@ const Page: React.FC = () => {
         idFromUrl = params.id as string;
     }
 
-    console.log("ID из данных филиала:", id);
-    console.log("ID из URL:", idFromUrl);
+
 
     useEffect(() => {
         if (!idFromUrl || !id) return;
@@ -152,13 +160,33 @@ const Page: React.FC = () => {
         }
     }, [idFromUrl, id]);
 
-    // Пример клиентов
-    const clients = [
-        { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
-    ];
 
 
-    // Элементы меню
+    // 🔹 Единая обработка загрузки
+    if (globalLoading) {
+        return (
+            <div className="h-screen bg-backgroundBlue">
+                <Loader type="default" visible={true} />
+            </div>
+        );
+    }
+
+    // 🔹 Единая обработка ошибок
+    if (globalError) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen bg-backgroundBlue text-red-400 text-center">
+                <p className="text-xl font-semibold mb-2">Ошибка загрузки данных</p>
+                <p>{globalError}</p>
+                <button
+                    onClick={() => location.reload()}
+                    className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition"
+                >
+                    Перезагрузить страницу
+                </button>
+            </div>
+        );
+    }
+
 
 
     return (
@@ -278,7 +306,7 @@ const Page: React.FC = () => {
 
                 {/* Заголовок */}
                 <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
-                    <Bars3Icon className="h-5 w-5 text-blue-400" />
+
                     <span className="ml-auto font-semibold text-sm">
                         Онлайн-запись
                     </span>

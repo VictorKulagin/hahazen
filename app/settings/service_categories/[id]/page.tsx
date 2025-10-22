@@ -24,7 +24,7 @@ import { ServiceManagerUpdateOne } from "@/components/schedulePage/ServiceManage
 
 import {AxiosError} from "axios";
 import Image from "next/image";
-
+import Loader from "@/components/Loader";
 
 const Page: React.FC = ( ) => {
 
@@ -70,6 +70,13 @@ const Page: React.FC = ( ) => {
         router.push("/signin"); // Перенаправляем на страницу логина
     };
 
+    const globalLoading =
+        isLoading ||
+        !companiesData ||
+        !branchesData ||
+        !userData
+
+    const globalError = error || !companiesData || !branchesData ? error : "";
 
     useEffect(() => {
         if (!companiesData || companiesData.length === 0) return;
@@ -211,15 +218,29 @@ const Page: React.FC = ( ) => {
     }
 
 
-    if (isLoading) return <p>Загрузка...</p>;
-    if (error) return <p style={{color: "red"}}>{error}</p>;
-
-    if (isLoading) {
-        return <div>Загрузка...</div>;
+    // 🔹 Единая обработка загрузки
+    if (globalLoading) {
+        return (
+            <div className="h-screen bg-backgroundBlue">
+                <Loader type="default" visible={true} />
+            </div>
+        );
     }
 
-    if (error) {
-        return <div>{error}</div>;
+    // 🔹 Единая обработка ошибок
+    if (globalError) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen bg-backgroundBlue text-red-400 text-center">
+                <p className="text-xl font-semibold mb-2">Ошибка загрузки данных</p>
+                <p>{globalError}</p>
+                <button
+                    onClick={() => location.reload()}
+                    className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition"
+                >
+                    Перезагрузить страницу
+                </button>
+            </div>
+        );
     }
 
 

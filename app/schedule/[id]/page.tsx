@@ -40,6 +40,7 @@ import {CreateEmployeeModal} from "@/components/schedulePage/CreateEmployeeModal
 import CustomCalendarMobile from "@/components/CustomCalendarMobile";
 import usePhoneInput from '@/hooks/usePhoneInput';
 import SidebarMenu from "@/components/SidebarMenu";
+import Loader from "@/components/Loader";
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -89,7 +90,16 @@ const Page: React.FC = () => {
 
     const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
     const [isCreateServiceOpen, setIsCreateServiceOpen] = useState(false);
+    const [loading, setLoading] = useState(true);
 
+    const globalLoading =
+        isLoading ||
+        !companiesData ||
+        !branchesData ||
+        !userData ||
+        employeesList.length === 0;
+
+    const globalError = error || !companiesData || !branchesData ? error : "";
 
     useEffect(() => {
         const loadEmployees = async () => {
@@ -189,6 +199,11 @@ const Page: React.FC = () => {
 
             fetchUserData();
         }
+    }, []);
+
+    useEffect(() => {
+        const t = setTimeout(() => setLoading(false), 2000);
+        return () => clearTimeout(t);
     }, []);
 
     const id = branchesData?.[0]?.id ?? null;
@@ -396,16 +411,31 @@ const Page: React.FC = () => {
         );
     }
 
-    if (isLoading) return <p>Загрузка...</p>;
-    if (error) return <p style={{ color: "red" }}>{error}</p>;
-
-    if (isLoading) {
-        return <div>Загрузка...</div>;
+    // 🔹 Единая обработка загрузки
+    if (globalLoading) {
+        return (
+            <div className="h-screen bg-backgroundBlue">
+                <Loader type="default" visible={true} />
+            </div>
+        );
     }
 
-    if (error) {
-        return <div>{error}</div>;
+    // 🔹 Единая обработка ошибок
+    if (globalError) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen bg-backgroundBlue text-red-400 text-center">
+                <p className="text-xl font-semibold mb-2">Ошибка загрузки данных</p>
+                <p>{globalError}</p>
+                <button
+                    onClick={() => location.reload()}
+                    className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition"
+                >
+                    Перезагрузить страницу
+                </button>
+            </div>
+        );
     }
+
 
     // Пример клиентов
     const clients = [
