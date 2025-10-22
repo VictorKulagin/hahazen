@@ -276,6 +276,49 @@ const Page: React.FC = () => {
                 </div>
             )}
 
+            {/* ✅ Кнопка открытия меню (мобильная версия) */}
+            {/* Мобильная кнопка */}
+            <div className="md:hidden fixed top-3 left-3 z-30">
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
+                >
+                </button>
+            </div>
+
+            {/* Мобильное всплывающее меню */}
+            {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
+            <div className="md:hidden fixed top-3 left-3 z-30">
+                <button
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
+                >
+                    <Bars3Icon className="h-6 w-6 text-white" />
+                </button>
+            </div>
+
+            {/* Мобильный дровер */}
+            {isMenuOpen && (
+                <div
+                    className="md:hidden fixed inset-0 z-20 bg-black/50"
+                    onClick={() => setIsMenuOpen(false)}
+                >
+                    <div
+                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 bg-darkBlue transform translate-x-0 transition-transform duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <SidebarMenu
+                            id={id}
+                            companyName={companiesData?.[0]?.name}
+                            userData={userData}
+                            variant="mobile"
+                            onLogout={handleLogout}
+                            onNavigate={() => setIsMenuOpen(false)} // закрываем при переходе
+                        />
+                    </div>
+                </div>
+            )}
+
             {/* Правая колонка (контент) */}
             <main
                 className="bg-backgroundBlue text-white p-4 h-full md:h-auto"

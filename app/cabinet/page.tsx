@@ -20,6 +20,8 @@ import {
 import { useRouter } from "next/navigation";
 import { branchesList } from "@/services/branchesList";
 import EmployeesList from "@/components/EmployeesList";
+import SidebarMenu from "@/components/SidebarMenu";
+import Loader from "@/components/Loader";
 
 const Page: React.FC = () => {
     // ✅ ВСЕ STATE ПЕРЕМЕННЫЕ
@@ -43,6 +45,14 @@ const Page: React.FC = () => {
         localStorage.removeItem("access_token");
         router.push("/signin");
     };
+
+    const globalLoading =
+        isLoading ||
+        !companiesData ||
+        !branchesData ||
+        !userData
+
+    const globalError = error || !companiesData || !branchesData ? error : "";
 
     // useEffect для получения данных компаний
     useEffect(() => {
@@ -130,84 +140,32 @@ const Page: React.FC = () => {
         { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
     ];
 
-    // Элементы меню - ✅ ИСПРАВЛЕНО все ссылки
-    const menuItems = [
-        {
-            label: "Сотрудники",
-            icon: <UserGroupIcon className="h-8 w-8 text-gray-400" />,
-            content: (
-                <div className="ml-10 mt-2">
-                    <EmployeesList branchId={id as number | undefined}/>
-                </div>
-            ),
-        },
-        {
-            label: "Клиенты",
-            icon: <UsersIcon className="h-8 w-8 text-gray-400" />,
-            content: (
-                <div className="ml-10 mt-2">
-                    {clients.map((client) => (
-                        <Link
-                            key={client.id}
-                            href={client.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block text-gray-300 hover:text-white transition"
-                        >
-                            {client.name}
-                        </Link>
-                    ))}
-                </div>
-            ),
-        },
-        {
-            label: (
-                <Link href={`/online/booking_forms/${id}`} className="flex items-center">
-                    Онлайн-запись
-                </Link>
-            ),
-            icon: <GlobeAltIcon className="h-8 w-8 text-gray-400" />,
-        },
-        {
-            label: (
-                <Link href={`/schedule/${id}`} className="flex items-center">
-                    Расписание
-                </Link>
-            ),
-            icon: <CalendarIcon className="h-8 w-8 text-gray-400" />
-        },
-        {
-            label: (
-                <Link href={`/settings/menu/${id}`} className="flex items-center">
-                    Настройки
-                </Link>
-            ),
-            icon: <Cog8ToothIcon className="h-8 w-8 text-gray-400" />, isActive: false
-        },
-        { label: <hr className="border-gray-700 my-2" />, icon: null },
-        {
-            label: (
-                <div className="flex flex-col items-start p-4 border-t border-gray-700">
-                    <Link href={`/cabinet`}>
-                        <p className="text-gray-300 font-medium text-sm">
-                            {userData?.name || "Имя пользователя"}
-                        </p>
-                        <p className="text-gray-500 text-xs">
-                            {userData?.email || "email@example.com"}
-                        </p>
-                    </Link>
-                    <button
-                        onClick={handleLogout}
-                        className="mt-2 text-green-500 hover:text-green-400 text-sm flex items-center"
-                    >
-                        <ArrowRightOnRectangleIcon className="h-5 w-5 mr-1" />
-                        Выйти
-                    </button>
-                </div>
-            ),
-            icon: null,
-        }
-    ];
+
+    // 🔹 Единая обработка загрузки
+    if (globalLoading) {
+        return (
+            <div className="h-screen bg-backgroundBlue">
+                <Loader type="default" visible={true} />
+            </div>
+        );
+    }
+
+    // 🔹 Единая обработка ошибок
+    if (globalError) {
+        return (
+            <div className="flex flex-col items-center justify-center h-screen bg-backgroundBlue text-red-400 text-center">
+                <p className="text-xl font-semibold mb-2">Ошибка загрузки данных</p>
+                <p>{globalError}</p>
+                <button
+                    onClick={() => location.reload()}
+                    className="mt-4 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition"
+                >
+                    Перезагрузить страницу
+                </button>
+            </div>
+        );
+    }
+
 
     return (
         <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
@@ -235,46 +193,21 @@ const Page: React.FC = () => {
                         className="mr-2"
                     />
                     <span>{companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Компания не найдена"}</span>
+
+
                 </div>
 
-                <div>
-                    <nav className="mt-4">
-                        {menuItems.map((item, index) => (
-                            <div key={index}>
-                                <div
-                                    className={`flex items-center p-4 rounded transition-all ${
-                                        item.isActive ? "bg-green-500" : "hover:bg-gray-700"
-                                    }`}
-                                    onClick={() => {
-                                        if (item.label === "Сотрудники") {
-                                            setIsAccordionOpenEmployees(!isAccordionOpenEmployees);
-                                        } else if (item.label === "Клиенты") {
-                                            setIsAccordionOpenClients(!isAccordionOpenClients);
-                                        }
-                                    }}
-                                >
-                                    {item.icon}
-                                    <span className="ml-2 text-white font-medium text-lg">{item.label}</span>
-                                    {(item.label === "Сотрудники" || item.label === "Клиенты") && (
-                                        <span className="ml-auto text-white">
-                                            {item.label === "Сотрудники"
-                                                ? isAccordionOpenEmployees
-                                                    ? <ChevronUpIcon className="h-5 w-5 inline"/>
-                                                    : <ChevronDownIcon className="h-5 w-5 inline"/>
-                                                : item.label === "Клиенты" && (isAccordionOpenClients
-                                                ? <ChevronUpIcon className="h-5 w-5 inline"/>
-                                                : <ChevronDownIcon className="h-5 w-5 inline"/>)
-                                            }
-                                        </span>
-                                    )}
-                                </div>
-
-                                {item.label === "Сотрудники" && isAccordionOpenEmployees && item.content}
-                                {item.label === "Клиенты" && isAccordionOpenClients && item.content}
-                            </div>
-                        ))}
-                    </nav>
+                {/* Меню */}
+                <div className="flex-grow mt-4 overflow-y-auto">
+                    <SidebarMenu
+                        id={id}
+                        companyName={companiesData?.[0]?.name}
+                        userData={userData}
+                        variant="desktop"
+                        onLogout={handleLogout}
+                    />
                 </div>
+
             </aside>
 
             <main
