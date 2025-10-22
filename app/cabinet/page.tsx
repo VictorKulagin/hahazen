@@ -15,7 +15,7 @@ import {
     UserIcon,
     ArrowRightOnRectangleIcon,
     AtSymbolIcon,
-    PhoneIcon, CalendarIcon
+    PhoneIcon, CalendarIcon, Bars3Icon
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { branchesList } from "@/services/branchesList";
@@ -233,18 +233,34 @@ const Page: React.FC = () => {
                     </div>
                 )}
 
-                <div className="flex justify-between items-center md:hidden">
+                {/* ✅ Кнопка открытия меню (мобильная версия) */}
+                {/* Мобильная кнопка */}
+                <div className="md:hidden fixed top-3 left-3 z-30">
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="text-white bg-blue-700 p-2 rounded"
+                        className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
                     >
-                        {isMenuOpen ? "Закрыть меню" : "Открыть меню"}
                     </button>
                 </div>
 
-                <header className="mb-6">
-                    <h1 className="text-2xl font-bold mb-2">Кабинет</h1>
-                </header>
+                {/* Мобильное всплывающее меню */}
+                {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
+                <div className="md:hidden fixed top-3 left-3 z-30">
+                    <button
+                        onClick={() => setIsMenuOpen(!isMenuOpen)}
+                        className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
+                    >
+                        <Bars3Icon className="h-6 w-6 text-white" />
+                    </button>
+                </div>
+
+                {/* Заголовок */}
+                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
+
+                    <span className="ml-auto font-semibold text-sm">
+                        Кабинет
+                    </span>
+                </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <section className="bg-white text-black p-4 rounded shadow">
