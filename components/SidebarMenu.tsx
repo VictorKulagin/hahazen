@@ -38,9 +38,11 @@ export default function SidebarMenu({
 
     return (
         <div
-            className={`flex flex-col justify-between h-full text-white ${
-                variant === "mobile" ? "p-4" : "p-0"
-            }`}
+            className={`flex flex-col justify-between text-white
+    ${variant === "mobile"
+                ? "h-full p-4"
+                : "h-[20%] p-0"}`
+            }
         >
             {/* ===== Верхняя часть меню ===== */}
             <div>
@@ -72,7 +74,7 @@ export default function SidebarMenu({
                                 <Icon className="h-7 w-7" />
                                 <span
                                     className={`ml-3 font-medium ${
-                                        variant === "mobile" ? "text-[16px]" : "text-[15px]"
+                                        variant === "mobile" ? "text-[16px]" : "text-[18px]"
                                     }`}
                                 >
                   {title}
@@ -84,13 +86,25 @@ export default function SidebarMenu({
             </div>
 
             {/* ===== Нижняя часть (профиль + выход) ===== */}
-            <div className="mt-auto pt-4 border-t border-gray-700">
-                <p className="text-gray-300 font-medium text-sm">
-                    {userData?.name || "Test"}
-                </p>
-                <p className="text-gray-500 text-xs mb-2">
-                    {userData?.email || "test@mail.ru"}
-                </p>
+            <div className="mt-auto pt-4 ">
+                <Link
+                    href="/cabinet"
+                    className="flex items-center gap-3 p-4 border-t border-gray-700 mt-auto hover:bg-gray-800/40 transition-colors duration-300"
+                >
+                    <img
+                        src="/logo.png"
+                        alt="logo"
+                        className="h-8 w-8 rounded-full shadow-md bg-green-600/10 p-1 animate-pulse"
+                    />
+                    <div>
+                        <p className="text-gray-100 font-semibold text-sm drop-shadow-sm">
+                            {userData?.name || "Test"}
+                        </p>
+                        <p className="text-gray-400 text-xs italic">
+                            {userData?.email || "test@mail.ru"}
+                        </p>
+                    </div>
+                </Link>
                 <button
                     onClick={onLogout}
                     className="flex items-center text-green-500 hover:text-green-400 text-sm font-medium transition"
