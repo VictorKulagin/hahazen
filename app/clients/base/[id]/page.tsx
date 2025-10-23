@@ -570,21 +570,33 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                                         key={client.id}
                                                                         onClick={() => setSelectedClientId(client.id ?? null)}
                                                                         className="
-            bg-white text-black rounded-xl shadow-md p-4
-            flex justify-between items-center border border-gray-200
-            hover:shadow-lg hover:border-green-400 hover:bg-green-50
-            transition-all duration-200 cursor-pointer
-          "
+        group bg-white text-slate-900 rounded-xl shadow-sm
+        border border-slate-200 hover:border-emerald-400
+        hover:shadow-md hover:bg-emerald-50/60
+        transition-all duration-200 cursor-pointer p-4
+        flex justify-between items-center
+      "
                                                                     >
-                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3">
-                                                                            <p className="font-semibold text-base">
+                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 overflow-hidden">
+                                                                            <p className="font-semibold text-base truncate">
                                                                                 {client.name} {client.last_name}
                                                                             </p>
-                                                                            <p className="text-sm text-gray-600">📞 {client.phone}</p>
+                                                                            <p className="text-sm text-slate-600 flex items-center gap-1 truncate">
+                                                                                <span className="text-rose-500 group-hover:text-rose-600">📞</span>
+                                                                                {client.phone || <span className="text-slate-400 italic">–</span>}
+                                                                            </p>
                                                                         </div>
+
                                                                         <button
-                                                                            onClick={() => setSelectedClientId(client.id ?? null)}
-                                                                            className="p-2 rounded-full bg-blue-500 hover:bg-blue-600 text-white transition"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation(); // чтобы не триггерить выбор клиента повторно
+                                                                                setSelectedClientId(client.id ?? null);
+                                                                            }}
+                                                                            className="
+          p-2 rounded-full bg-emerald-100 text-emerald-700
+          hover:bg-emerald-600 hover:text-white
+          transition-all duration-200
+        "
                                                                             title="Открыть профиль клиента"
                                                                         >
                                                                             👤
