@@ -38,7 +38,7 @@ export default function SidebarMenu({
 
     return (
         <div
-            className={`flex flex-col justify-between text-white
+            className={`flex flex-col justify-between text-white font-sans text-[18px] leading-snug
     ${variant === "mobile"
                 ? "h-full p-4"
                 : "h-[20%] p-0"}`
@@ -57,7 +57,7 @@ export default function SidebarMenu({
                 )}
 
                 {/* Основные пункты меню */}
-                <nav className="space-y-1">
+                <nav className="space-y-1 text-[15px] font-medium">
                     {menuItems.map(({ title, href, icon: Icon }) => {
                         const active = pathname === href;
                         return (
@@ -74,7 +74,7 @@ export default function SidebarMenu({
                                 <Icon className="h-7 w-7" />
                                 <span
                                     className={`ml-3 font-medium ${
-                                        variant === "mobile" ? "text-[16px]" : "text-[18px]"
+                                        variant === "mobile" ? "text-[20px]" : "text-[22px]"
                                     }`}
                                 >
                   {title}
