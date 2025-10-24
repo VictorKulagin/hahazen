@@ -1,5 +1,21 @@
-@import url("https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap");
+@font-face {
+  font-family: 'Roboto';
+  /* Path is correct: Next.js serves from /public */
+  src: url('/fonts/Roboto/Roboto.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
+@font-face {
+  font-family: 'Roboto';
+  /* Path is correct: Next.js serves from /public */
+  src: url('/fonts/Roboto/Roboto-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+/* Tailwind core */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -52,11 +68,11 @@
   }
 
   .tag {
-    @apply bg-secondary px-6 py-3 font-work-sans font-bold rounded-sm uppercase relative tag-tri;
+    @apply bg-secondary px-6 py-3 font-sans font-bold rounded-sm uppercase relative tag-tri;
   }
 
   .heading {
-    @apply uppercase bg-black px-6 py-3 font-work-sans font-extrabold text-white sm:text-[54px] sm:leading-[64px] text-[36px] leading-[46px] max-w-5xl text-center my-5;
+    @apply uppercase bg-black px-6 py-3 font-sans font-extrabold text-white sm:text-[54px] sm:leading-[64px] text-[36px] leading-[46px] max-w-5xl text-center my-5;
   }
 
   .sub-heading {
@@ -115,7 +131,7 @@
   }
 
   .login {
-    @apply border-[5px] py-4 border-black bg-white text-black relative shadow-100 font-work-sans font-medium hover:shadow-none transition-all duration-500 !important;
+    @apply border-[5px] py-4 border-black bg-white text-black relative shadow-100 font-sans font-medium hover:shadow-none transition-all duration-500 !important;
   }
 
   /* searchform */
@@ -216,6 +232,7 @@
   }
 }
 
+/* Прочие стили */
 .w-md-editor-toolbar {
   padding: 10px !important;
 }
@@ -381,4 +398,19 @@
 
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-in-out;
+}
+
+
+body {
+  font-family: 'Roboto', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 400;
+  color: #fff;
+  -webkit-font-smoothing: antialiased; /* сглаживание для macOS */
+  -moz-osx-font-smoothing: grayscale;  /* сглаживание для Firefox/macOS */
+  text-rendering: optimizeLegibility;  /* улучшает читаемость */
+}
+
+html {
+  font-size: 15px;
+  letter-spacing: 0.2px;
 }

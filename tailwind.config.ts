@@ -35,7 +35,7 @@ const config: Config = {
 				blockInformation: '#011e2e',
 			},
 			fontFamily: {
-				"work-sans": ["var(--font-work-sans)"],
+				sans: ['Roboto', 'Segoe UI', 'Helvetica Neue', 'Arial', 'sans-serif'],
 			},
 			borderRadius: {
 				lg: "var(--radius)",
