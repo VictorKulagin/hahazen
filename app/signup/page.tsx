@@ -85,7 +85,7 @@ export default function RegisterPage() {
                     <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Регистрация</h2>
                     {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
                     {success && <p className="text-green-500 text-sm mb-4">{success}</p>}
-                    <form onSubmit={handleRegister} className="space-y-4">
+                    <form onSubmit={handleRegister} className="space-y-4 text-black">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700">
                                 Имя
