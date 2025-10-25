@@ -52,7 +52,7 @@ export default function Page() {
                 {error && (
                     <p className="text-red-500 text-sm mb-4">{error}</p>
                 )}
-                <form onSubmit={handleLogin} className="space-y-4">
+                <form onSubmit={handleLogin} className="space-y-4 text-black">
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                             Электронная почта
