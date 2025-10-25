@@ -190,7 +190,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                             onClick={() => setActiveTab(tab as any)}
                             className={`flex-1 py-3 text-sm capitalize transition ${
                                 activeTab === tab
-                                    ? "border-b-2 border-blue-500 font-semibold text-blue-600"
+                                    ? "border-b-2 border-green-500 font-semibold text-green-600"
                                     : "text-gray-500 hover:text-gray-700"
                             }`}
                         >
@@ -202,7 +202,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                 </div>
 
                 {/* Контент */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto p-4 text-black">
                     {activeTab === "info" && (
                         <>
                             <div className="mb-4">
@@ -301,7 +301,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                     prev.map((x, idx) => (idx === i ? { ...x, day: e.target.value } : x))
                                                 )
                                             }
-                                            className="p-2 border rounded"
+                                            className="p-2 border rounded  w-1/4"
                                         >
                                             <option value="mon">Пн</option>
                                             <option value="tue">Вт</option>
@@ -319,7 +319,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                     prev.map((x, idx) => (idx === i ? { ...x, start: e.target.value } : x))
                                                 )
                                             }
-                                            className="p-2 border rounded"
+                                            className="p-2 border rounded w-1/3"
                                         />
                                         <input
                                             type="time"
@@ -329,7 +329,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                     prev.map((x, idx) => (idx === i ? { ...x, end: e.target.value } : x))
                                                 )
                                             }
-                                            className="p-2 border rounded"
+                                            className="p-2 border rounded w-1/3"
                                         />
                                         <button
                                             type="button"
@@ -343,7 +343,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                 <button
                                     type="button"
                                     onClick={() => setPeriods((prev) => [...prev, { day: "mon", start: "09:00", end: "18:00" }])}
-                                    className="text-blue-600"
+                                    className="text-green-600"
                                 >
                                     + Добавить период
                                 </button>
@@ -382,7 +382,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                 />
                                 <button
                                     onClick={handleCreateService}
-                                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                                 >
                                     Добавить
                                 </button>
@@ -454,7 +454,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                     <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
                         Закрыть
                     </button>
-                    <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded">
+                    <button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded">
                         Создать
                     </button>
                 </div>

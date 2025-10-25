@@ -54,14 +54,14 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
             <div className="bg-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
                 {/* Заголовок */}
                 <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                    <h2 className="text-lg font-bold">Услуги</h2>
+                    <h2 className="text-lg font-bold text-black">Услуги</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
                         ✕
                     </button>
                 </div>
 
                 {/* Форма */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 text-black">
                     <div className="space-y-2">
                         <label className="font-semibold block">Название услуги</label>
                         <input

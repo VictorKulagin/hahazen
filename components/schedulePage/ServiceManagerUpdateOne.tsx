@@ -69,7 +69,7 @@ export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose }) =
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 text-black">
                     <div>
                         <label className="block font-semibold mb-1">Название</label>
                         <input

@@ -271,7 +271,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                             onClick={() => setActiveTab(tab as any)}
                             className={`flex-1 py-3 text-sm capitalize transition ${
                                 activeTab === tab
-                                    ? "border-b-2 border-blue-500 font-semibold text-blue-600"
+                                    ? "border-b-2 border-green-500 font-semibold text-green-600"
                                     : "text-gray-500 hover:text-gray-700"
                             }`}
                         >
@@ -283,7 +283,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 </div>
 
                 {/* Контент */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto p-4 text-black">
                     {activeTab === "info" && (
                         <>
                             <div className="mb-4">
@@ -487,7 +487,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                                 <button
                                     type="button"
                                     onClick={() => setPeriods(prev => [...prev, { day: "mon", start: "09:00", end: "18:00" }])}
-                                    className="text-blue-600 mt-2"
+                                    className="text-green-600 mt-2"
                                 >
                                     + Добавить период
                                 </button>

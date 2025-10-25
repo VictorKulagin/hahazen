@@ -463,7 +463,7 @@ const Page: React.FC = () => {
     };
 
     const handleDateSelect = (date: Date) => {
-        alert(`Выбрана дата: ${date.toLocaleDateString()}`);
+        //alert(`Выбрана дата: ${date.toLocaleDateString()}`);
         setSelectedDate(date);
     };
 
