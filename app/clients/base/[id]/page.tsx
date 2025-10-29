@@ -253,7 +253,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
 
 
     return (
-        <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
+        <div className="relative min-h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%] bg-backgroundBlue">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div

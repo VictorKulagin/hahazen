@@ -471,7 +471,7 @@ const Page: React.FC = () => {
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
-        <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
+        <div className="relative min-h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%] bg-backgroundBlue">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -574,7 +574,7 @@ const Page: React.FC = () => {
 
             {/* Правая колонка (контент) */}
             <main
-                className="bg-backgroundBlue text-white p-4 h-full md:h-auto"
+                className="bg-backgroundBlue text-white p-4 w-full min-h-screen md:min-h-0 md:h-auto"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
                 <div>
