@@ -38,25 +38,22 @@ export default function SidebarMenu({
 
     return (
         <div
-            className={`flex flex-col justify-between text-white font-sans text-[18px] leading-snug
-    ${variant === "mobile"
-                ? "h-full p-4"
-                : "h-[20%] p-0"}`
-            }
+            className={`flex flex-col text-white font-sans text-[18px] leading-snug transition-all duration-300
+            ${variant === "mobile" ? "h-full p-4 justify-between" : "h-full p-0"}`}
         >
             {/* ===== Верхняя часть меню ===== */}
             <div>
-                {/* Логотип — показываем только на мобиле */}
+                {/* Логотип — только для мобилки */}
                 {variant === "mobile" && (
                     <div className="border-b border-gray-700 pb-3 mb-4 flex items-center">
                         <Image src="/logo.png" alt="Логотип" width={28} height={28} className="mr-2 rounded" />
                         <span className="text-sm font-medium truncate">
-              {companyName || "Компания"}
-            </span>
+                            {companyName || "Компания"}
+                        </span>
                     </div>
                 )}
 
-                {/* Основные пункты меню */}
+                {/* Основное меню */}
                 <nav className="space-y-1 text-[15px] font-medium">
                     {menuItems.map(({ title, href, icon: Icon }) => {
                         const active = pathname === href;
@@ -77,27 +74,27 @@ export default function SidebarMenu({
                                         variant === "mobile" ? "text-[20px]" : "text-[22px]"
                                     }`}
                                 >
-                  {title}
-                </span>
+                                    {title}
+                                </span>
                             </Link>
                         );
                     })}
                 </nav>
             </div>
 
-            {/* ===== Нижняя часть (профиль + выход) ===== */}
-            <div className="mt-auto pt-4 ">
+            {/* ===== Профиль и выход (сразу под меню) ===== */}
+            <div className="border-t border-gray-700 mt-2 pt-3">
                 <Link
                     href="/cabinet"
-                    className="flex items-center gap-3 p-4 border-t border-gray-700 mt-auto hover:bg-gray-800/40 transition-colors duration-300"
+                    className="flex items-center gap-3 hover:bg-gray-800/40 transition-colors duration-300 rounded-md p-2"
                 >
                     <img
                         src="/logo.png"
                         alt="logo"
-                        className="h-8 w-8 rounded-full shadow-md bg-green-600/10 p-1 animate-pulse"
+                        className="h-8 w-8 rounded-full shadow-md bg-green-600/10 p-1"
                     />
                     <div>
-                        <p className="text-gray-100 font-semibold text-sm drop-shadow-sm">
+                        <p className="text-gray-100 font-semibold text-sm">
                             {userData?.name || "Test"}
                         </p>
                         <p className="text-gray-400 text-xs italic">
@@ -107,7 +104,7 @@ export default function SidebarMenu({
                 </Link>
                 <button
                     onClick={onLogout}
-                    className="flex items-center text-green-500 hover:text-green-400 text-sm font-medium transition"
+                    className="flex items-center text-green-500 hover:text-green-400 text-sm font-medium transition mt-2"
                 >
                     <ArrowRightOnRectangleIcon className="h-5 w-5 mr-1" />
                     Выйти
