@@ -97,7 +97,7 @@ export default function Page() {
                         </a>
                     </p>
                     <p className="text-sm text-gray-600 mt-2">
-                        <a href="/forgot-password" className="text-green-500 hover:underline">
+                        <a href="/request-password-reset" className="text-green-500 hover:underline">
                             Забыли пароль?
                         </a>
                     </p>
