@@ -2,6 +2,8 @@
 import apiClient from "./api";
 
 // Интерфейс для сотрудника
+export type EmployeeRole = "gd" | "admin" | "master";
+// Интерфейс для сотрудника
 export interface Employee {
     id: number;
     name: string;
@@ -16,6 +18,7 @@ export interface Employee {
     patronymic: string | null;
     phone: string | null;
     photo: string | null;
+    role: string;
 }
 
 
@@ -25,6 +28,7 @@ export interface EmployeeCreatePayload {
     specialty: string;
     hire_date: string;
     online_booking: 0 | 1;
+    role: string;          // <<< ДОЛЖЕН БЫТЬ NUMBER
     last_name?: string | null;
     phone?: string | null;
     email?: string | null;
@@ -87,8 +91,3 @@ export const updateEmployee = async (id: number, updatedData: Partial<Employee>)
     return response.data;
 };
 
-export class fetchServices {
-}
-
-export class Services {
-}

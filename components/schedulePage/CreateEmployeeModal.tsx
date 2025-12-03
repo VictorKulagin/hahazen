@@ -5,7 +5,7 @@ import { useCreateEmployee } from "@/hooks/useEmployees";
 import { useCreateEmployeeSchedule } from "@/hooks/useEmployeeSchedules";
 import {useCreateService, useServices, useSyncEmployeeServices} from "@/hooks/useServices";
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
-import {EmployeeCreatePayload} from "@/services/employeeApi";
+import { EmployeeCreatePayload, EmployeeRole } from "@/services/employeeApi";
 import {useQueryClient} from "@tanstack/react-query";
 
 
@@ -27,6 +27,18 @@ type EmployeeService = {
     individual_price?: number;
     duration_minutes?: number;
 };
+
+const ROLE_MAP = {
+    gd: 1,
+    admin: 2,
+    master: 3,
+} as const;
+
+const ROLE_OPTIONS: { value: EmployeeRole; label: string }[] = [
+    { value: "gd", label: "ГД (владелец)" },
+    { value: "admin", label: "Админ" },
+    { value: "master", label: "Мастер" },
+];
 
 export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose, onSave }) => {
     const [name, setName] = useState("");
@@ -55,6 +67,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
     const [newServiceName, setNewServiceName] = useState("");
     const [newServicePrice, setNewServicePrice] = useState(0);
     const [newServiceDuration, setNewServiceDuration] = useState(30);
+    const [role, setRole] = useState<EmployeeRole>("master");
 
 
     const queryClient = useQueryClient();
@@ -108,7 +121,8 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                 name,
                 specialty,
                 hire_date: hireDate,
-                online_booking: 1,      // обязательное поле
+                online_booking: 1,
+                role,        // <-- ВСТАВИТЬ СЮДА
                 last_name: lastName || null,
                 phone: phone || null,
                 email: email || null,
@@ -235,6 +249,23 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                     className="w-full p-2 border rounded"
                                     placeholder="Например: массажист"
                                 />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-1">Роль в системе</label>
+                                <select
+                                    value={role}
+                                    onChange={(e) => setRole(e.target.value as EmployeeRole)}
+                                    className="w-full p-2 border rounded bg-white"
+                                >
+                                    {ROLE_OPTIONS.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Статус сотрудника: ГД, админ или мастер.
+                                </p>
                             </div>
                             <div className="mb-4">
                                 <label className="block font-semibold mb-1">Email</label>
