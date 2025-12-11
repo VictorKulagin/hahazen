@@ -1,0 +1,8 @@
+node_modules
+.git
+.next
+proxy_cache_dir
+studio-hahazen.live
+npm-debug.log
+Dockerfile
+docker-compose.yml
