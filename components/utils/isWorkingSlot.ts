@@ -1,6 +1,6 @@
 // components/utils/isWorkingSlot.ts
 import { formatDateLocal } from "@/components/utils/date";
-import type { EmployeeSchedule } from "@/services/еmployeeScheduleApi";
+import type { EmployeeSchedule } from "@/services/employeeScheduleApi";
 
 /**
  * Универсальная проверка: является ли указанный слот рабочим.

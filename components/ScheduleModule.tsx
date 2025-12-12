@@ -2,7 +2,7 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useEmployees } from "@/hooks/useEmployees";
 import { isWorkingSlot } from "@/components/utils/isWorkingSlot";
-import type { EmployeeSchedule } from "@/services/еmployeeScheduleApi";
+import type { EmployeeSchedule } from "@/services/employeeScheduleApi";
 import { Employee } from "@/services/employeeApi";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { UserPlusIcon } from "@heroicons/react/24/solid"; // 👈 вместо PlusIcon
