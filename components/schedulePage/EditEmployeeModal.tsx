@@ -1,7 +1,7 @@
 // components\schedulePage\EditEmployeeModal.tsx
 "use client";
 import React, { useEffect, useState } from "react";
-import { Employee } from "@/services/employeeApi";
+import { Employee, EmployeeRole } from "@/services/employeeApi";
 import { useEmployeeSchedules, useCreateEmployeeSchedule, useUpdateEmployeeSchedule } from "@/hooks/useEmployeeSchedules";
 import { useServices, useEmployeeServices, useSyncEmployeeServices } from "@/hooks/useServices";
 //import { EmployeeService } from "@/services/servicesApi";
@@ -27,6 +27,12 @@ type EmployeeService = {
     duration_minutes?: number;
 };
 
+const ROLE_OPTIONS: { value: EmployeeRole; label: string }[] = [
+    { value: "gd", label: "ГД (владелец)" },
+    { value: "admin", label: "Админ" },
+    { value: "master", label: "Мастер" },
+];
+
 export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, onSave }) => {
     const [name, setName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -35,6 +41,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const [email, setEmail] = useState<string>("");
     const [hireDate, setHireDate] = useState<string>("");
     const [activeTab, setActiveTab] = useState<"info" | "schedule" | "services">("info");
+    const [role, setRole] = useState<EmployeeRole>("master");
 
     // --- Состояния для графика ---
     const [startDate, setStartDate] = useState<string>("");
@@ -71,7 +78,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
             setSpecialty(employee.specialty ?? "");
             setEmail(employee.email ?? "");
             setHireDate(employee.hire_date ?? "");
-
+            setRole((employee.role ?? "master") as EmployeeRole);
 
             // Загружаем график
             const today = new Date();
@@ -218,6 +225,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 specialty,
                 email,
                 hire_date: hireDate,
+                role
             });
 
             // 2. Сохраняем график
@@ -318,6 +326,24 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                                     className="w-full p-2 border rounded"
                                     placeholder="Например: массажист"
                                 />
+                            </div>
+
+                            <div className="mb-4">
+                                <label className="block font-semibold mb-1">Роль в системе</label>
+                                <select
+                                    value={role}
+                                    onChange={(e) => setRole(e.target.value as EmployeeRole)}
+                                    className="w-full p-2 border rounded bg-white"
+                                >
+                                    {ROLE_OPTIONS.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    Статус сотрудника: ГД, админ или мастер.
+                                </p>
                             </div>
 
                             <div className="mb-4">
