@@ -8,8 +8,25 @@ interface SigninPayload {
 }
 
 // Интерфейс для ответа от сервера
-interface SigninResponse {
+/*interface SigninResponse {
     access_token: string;
+}*/
+
+export interface SigninResponse {
+    access_token: string;
+    token_type: "Bearer";
+    user: {
+        id: number;
+        username: string;
+        email: string;
+        name: string;
+    };
+    employee?: {
+        id: number;
+        branch_id: number;
+    } | null;
+    roles: Record<string, any>;
+    permissions: string[];
 }
 
 // Функция для регистрации пользователя

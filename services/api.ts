@@ -1,50 +1,50 @@
 // services/api.ts
 import axios, { AxiosInstance } from "axios";
-import { EventSourcePolyfill } from 'event-source-polyfill';
+import { EventSourcePolyfill } from "event-source-polyfill";
+import { authStorage } from "@/services/authStorage";
 
-// Создаем экземпляр axios для работы с API
 const apiClient: AxiosInstance = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL, // Базовый URL для API
-    headers: {
-        "Content-Type": "application/json", // Тип данных
-    },
+    baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
+    headers: { "Content-Type": "application/json" },
 });
 
-// Добавляем токен авторизации автоматически
 apiClient.interceptors.request.use((config) => {
-    //const token = localStorage.getItem("access_token"); // Получаем токен из localStorage
-    const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : null;
+    const token = authStorage.getToken();
     if (token) {
-        config.headers.Authorization = `Bearer ${token}`; // Добавляем токен в запрос
+        config.headers = config.headers ?? {};
+        config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
 });
 
-// SSE клиент с авторизацией
-export const createSSEConnection = (path: string): EventSourcePolyfill => {
-    const token = typeof window !== "undefined"
-        ? localStorage.getItem("access_token")
-        : null;
+apiClient.interceptors.response.use(
+    (res) => res,
+    (err) => {
+        if (typeof window !== "undefined" && err?.response?.status === 401) {
+            authStorage.clear();
+            // optional:
+            // window.location.href = "/signin";
+        }
+        return Promise.reject(err);
+    }
+);
 
-    // Добавляем параметры переподключения
-    const retryStrategy = (attempt: number): number =>
-        Math.min(1000 * Math.pow(2, attempt), 30000);
+export const createSSEConnection = (path: string): EventSourcePolyfill => {
+    const token = authStorage.getToken();
+    const retryStrategy = (attempt: number): number => Math.min(1000 * Math.pow(2, attempt), 30000);
 
     return new EventSourcePolyfill(`${apiClient.defaults.baseURL}${path}`, {
-        headers: {
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         withCredentials: false,
-        heartbeatTimeout: 120000, // 2 минуты
-        //@ts-ignore
+        heartbeatTimeout: 120000,
+        // @ts-ignore
         connectionTimeout: 20000,
         retryInterval: retryStrategy,
         withEventSource: {
-            //@ts-ignore
-            errorHandler: (error) => {
-                console.log('[SSE] Protocol Error:', error);
-            }
-        }
+            // @ts-ignore
+            errorHandler: (error) => console.log("[SSE] Protocol Error:", error),
+        },
     });
 };
+
 export default apiClient;

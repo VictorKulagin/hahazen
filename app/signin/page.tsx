@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signinApi } from "@/services/signinApi";
+import { authStorage } from "@/services/authStorage";
 
 export default function Page() {
     const [email, setEmail] = useState('');
@@ -16,27 +17,18 @@ export default function Page() {
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
-            try {
-                const newSignin = await signinApi({
-                    email,
-                    password
-                });
+        try {
+            const newSignin = await signinApi({ email, password });
 
-            // Если успешный ответ, сохраняем токен
-            const { access_token } = newSignin;
+            console.log(newSignin);
 
-             console.log(newSignin);
+            // ✅ Сохраняем ВСЁ: token + user + employee + roles + permissions
+            authStorage.setAuth(newSignin);
 
-            // Сохраняем токен в localStorage или в куки
-            localStorage.setItem('access_token', access_token);
-
-            // Перенаправляем пользователя на главную страницу
-            //router.push('/dashboard');
-            router.push('/cabinet');
+            router.push("/cabinet");
         } catch (error) {
-            // Обработка ошибки
             console.log(error);
-            setError('Неправильное имя пользователя или пароль');
+            setError("Неправильное имя пользователя или пароль");
         }
     };
 
