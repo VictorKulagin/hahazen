@@ -24,6 +24,7 @@ import {useEmployeeServices, useSyncEmployeeServices} from "@/hooks/useServices"
 import SidebarMenu from "@/components/SidebarMenu";
 import Image from "next/image";
 import Loader from "@/components/Loader";
+import { authStorage } from "@/services/authStorage";
 
 const Page: React.FC = ( ) => {
 
@@ -229,7 +230,6 @@ const Page: React.FC = ( ) => {
         // Изменяем заголовок страницы
         document.title = isNotFound ? "404 - Страница не найдена" : "Название вашей страницы";
     }, [isNotFound]);
-
 
 
 
@@ -448,13 +448,14 @@ const Page: React.FC = ( ) => {
                 </div>
 
                 {/* Кнопка "Добавить сотрудника" */}
-                <button
-                    onClick={() => setIsAddModalOpen(true)}
-                    className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                >
-                    + Добавить сотрудника
-                </button>
-
+                {authStorage.has("master:create") && (
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                    >
+                        + Добавить сотрудника
+                    </button>
+                )}
                 {/* Таблица сотрудников */}
                 <EmployeesTable
                     loading={loading}
@@ -536,8 +537,12 @@ const EmployeesTable = ({
                                     <th className="border p-2 text-left hidden sm:table-cell">Email</th>
                                     <th className="border p-2 text-left hidden xs:table-cell">Телефон</th>
                                     <th className="border p-2 text-left">Дата найма</th>
-                                    <th className="border p-2 w-0.5"></th>
-                                    <th className="border p-2 w-0.5"></th>
+                                    {authStorage.has("master:create") && (
+                                        <th className="border p-2 w-0.5"></th>
+                                    )}
+                                    {authStorage.has("master:create") && (
+                                        <th className="border p-2 w-0.5"></th>
+                                    )}
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -550,22 +555,26 @@ const EmployeesTable = ({
                                         </td>
                                         <td className="border p-2 hidden xs:table-cell">{employee.phone}</td>
                                         <td className="border p-2">{employee.hire_date}</td>
-                                        <td className="border p-2">
-                                            <button
-                                                onClick={() => handleEdit(employee)}
-                                                className="block mx-auto"
-                                            >
-                                                <PencilIcon className="h-5 w-5 text-blue-500 hover:text-blue-700" />
-                                            </button>
-                                        </td>
-                                        <td className="border p-2">
-                                            <button
-                                                onClick={() => handleDelete(employee.id)}
-                                                className="block mx-auto"
-                                            >
-                                                <TrashIcon className="h-5 w-5 text-red-500 hover:text-red-700" />
-                                            </button>
-                                        </td>
+                                        {authStorage.has("master:create") && (
+                                            <td className="border p-2">
+                                                <button
+                                                    onClick={() => handleEdit(employee)}
+                                                    className="block mx-auto"
+                                                >
+                                                    <PencilIcon className="h-5 w-5 text-blue-500 hover:text-blue-700"/>
+                                                </button>
+                                            </td>
+                                        )}
+                                        {authStorage.has("master:create") && (
+                                            <td className="border p-2">
+                                                <button
+                                                    onClick={() => handleDelete(employee.id)}
+                                                    className="block mx-auto"
+                                                >
+                                                    <TrashIcon className="h-5 w-5 text-red-500 hover:text-red-700"/>
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                                 </tbody>

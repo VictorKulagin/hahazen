@@ -5,7 +5,8 @@ import { isWorkingSlot } from "@/components/utils/isWorkingSlot";
 import type { EmployeeSchedule } from "@/services/employeeScheduleApi";
 import { Employee } from "@/services/employeeApi";
 import { PlusIcon } from "@heroicons/react/24/solid";
-import { UserPlusIcon } from "@heroicons/react/24/solid"; // 👈 вместо PlusIcon
+import { UserPlusIcon } from "@heroicons/react/24/solid";
+import {authStorage} from "@/services/authStorage"; // 👈 вместо PlusIcon
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -111,26 +112,34 @@ export default function ScheduleModule({
                         Время
                     </div>
                     {masters.map((m, i) => (
-                        <div
-                            key={i}
-                            className="col-master flex-1 min-w-[180px] border-r border-gray-300 p-1 text-center font-medium cursor-pointer hover:bg-gray-100"
-                            onClick={() => onMasterClick?.(employees[i])}
-                            title="Редактировать сотрудника"
-                        >
-                            ✏️ {m}
+
+                            <div
+                                key={i}
+                                className="col-master flex-1 min-w-[180px] border-r border-gray-300 p-1 text-center font-medium cursor-pointer hover:bg-gray-100"
+                                onClick={authStorage.has("master:create")
+                                    ? () => onMasterClick?.(employees[i])
+                                    : undefined
+                                }
+                                title="Редактировать сотрудника"
+                            >
+
+                            {authStorage.has("master:create") && ( <span>✏️</span> )} {m}
                         </div>
                     ))}
                     {/* 👉 ОТДЕЛЬНАЯ КОЛОНКА */}
-                    <div className="hidden sm:flex flex-none min-w-[180px] border-r border-gray-300 p-2 justify-center">
-                        <button
-                            onClick={onAddEntity}
-                            className="px-3 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition flex items-center gap-2"
-                            title="Добавить"
-                        >
-                            <UserPlusIcon className="h-5 w-5" />
-                            <span className="hidden md:inline">Добавить</span>
-                        </button>
-                    </div>
+                    {authStorage.has("master:create") && (
+                        <div
+                            className="hidden sm:flex flex-none min-w-[180px] border-r border-gray-300 p-2 justify-center">
+                            <button
+                                onClick={onAddEntity}
+                                className="px-3 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition flex items-center gap-2"
+                                title="Добавить"
+                            >
+                                <UserPlusIcon className="h-5 w-5"/>
+                                <span className="hidden md:inline">Добавить</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Сетка */}
@@ -152,12 +161,20 @@ export default function ScheduleModule({
                                         className={`col-master flex-1 min-w-[180px] h-[40px] border-t border-l border-gray-200 ${
                                             working ? "bg-white hover:bg-gray-50" : "bg-[repeating-linear-gradient(45deg,#fafafa_0,#fafafa_6px,#f0f0f0_6px,#f0f0f0_12px)]"
                                         }`}
-                                        onClick={() => onCellClick?.(min, masterIdx)}
+
+                                        onClick={
+                                            authStorage.has("master:create")
+                                            ? () => onCellClick?.(min, masterIdx)
+                                            : undefined
+                                        }
                                     />
                                 );
                             })}
                             {/* 👇 ВАЖНО: добавляем пустую колонку внутри flex */}
-                            <div className="hidden sm:block flex-none min-w-[180px] h-[40px] border-t border-l border-gray-200 bg-white" />
+                            {authStorage.has("master:create") && (
+                                <div
+                                    className="hidden sm:block flex-none min-w-[180px] h-[40px] border-t border-l border-gray-200 bg-white"/>
+                            )}
                         </div>
                     ))}
                 </div>
@@ -182,13 +199,15 @@ export default function ScheduleModule({
             </div>
 
             {/* 👇 FAB для мобильных */}
-            <button
-                onClick={onAddEntity}
-                className="sm:hidden fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition"
-                title="Добавить"
-            >
-                <UserPlusIcon className="h-6 w-6" />
-            </button>
+            {authStorage.has("master:create") && (
+                <button
+                    onClick={onAddEntity}
+                    className="sm:hidden fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition"
+                    title="Добавить"
+                >
+                    <UserPlusIcon className="h-6 w-6"/>
+                </button>
+            )}
         </div>
     );
 }

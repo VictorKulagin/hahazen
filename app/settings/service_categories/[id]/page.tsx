@@ -25,6 +25,7 @@ import { ServiceManagerUpdateOne } from "@/components/schedulePage/ServiceManage
 import {AxiosError} from "axios";
 import Image from "next/image";
 import Loader from "@/components/Loader";
+import {authStorage} from "@/services/authStorage";
 
 const Page: React.FC = ( ) => {
 
@@ -385,15 +386,16 @@ const Page: React.FC = ( ) => {
                 </div>
 
                 {/* Кнопка "Добавить услуги" */}
-                <div className="mb-4">
-                    <button
-                        onClick={() => setIsServiceManagerOpen(true)}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                    >
-                        + Добавить услуги
-                    </button>
-                </div>
-
+                {authStorage.has("master:create") && (
+                    <div className="mb-4">
+                        <button
+                            onClick={() => setIsServiceManagerOpen(true)}
+                            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                        >
+                            + Добавить услуги
+                        </button>
+                    </div>
+                )}
                 {/* Таблица Услуг */}
                 <ServicesTable
                     loading={servicesLoading}
@@ -460,7 +462,7 @@ const ServicesTable = ({
     return (
         <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
             <section className="bg-white text-black p-4 rounded shadow">
-                <h2 className="text-2xl font-bold mb-2 text-white">Услуги</h2>
+                <h2 className="text-lg font-semibold mb-2">Услуги</h2>
 
                 <div className="overflow-auto">
                     {loading ? (
@@ -477,8 +479,12 @@ const ServicesTable = ({
                                     <th className="border p-2 text-left whitespace-nowrap">Услуга</th>
                                     <th className="border p-2 text-left whitespace-nowrap">Длительность</th>
                                     <th className="border p-2 text-left whitespace-nowrap">Цена</th>
-                                    <th className="border p-2 w-0.5"></th>
-                                    <th className="border p-2 w-0.5"></th>
+                                    {authStorage.has("master:create") && (
+                                        <th className="border p-2 w-0.5"></th>
+                                    )}
+                                    {authStorage.has("master:create") && (
+                                        <th className="border p-2 w-0.5"></th>
+                                    )}
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -491,22 +497,26 @@ const ServicesTable = ({
                                         <td className="border p-2 whitespace-nowrap">
                                             {service.base_price} ₽
                                         </td>
-                                        <td className="border p-2">
-                                            <button
-                                                onClick={() => setSelectedService(service)} // 👈 открываем конкретную услугу
-                                                className="p-1 hover:bg-gray-100 rounded-full"
-                                            >
-                                                <PencilIcon className="h-6 w-6 text-blue-500" />
-                                            </button>
-                                        </td>
-                                        <td className="border p-2">
-                                            <button
-                                                onClick={() => handleDelete(service.id)}
-                                                className="p-1 hover:bg-gray-100 rounded-full"
-                                            >
-                                                <TrashIcon className="h-6 w-6 text-red-500" />
-                                            </button>
-                                        </td>
+                                        {authStorage.has("master:create") && (
+                                            <td className="border p-2">
+                                                <button
+                                                    onClick={() => setSelectedService(service)} // 👈 открываем конкретную услугу
+                                                    className="p-1 hover:bg-gray-100 rounded-full"
+                                                >
+                                                    <PencilIcon className="h-6 w-6 text-blue-500"/>
+                                                </button>
+                                            </td>
+                                        )}
+                                        {authStorage.has("master:create") && (
+                                            <td className="border p-2">
+                                                <button
+                                                    onClick={() => handleDelete(service.id)}
+                                                    className="p-1 hover:bg-gray-100 rounded-full"
+                                                >
+                                                    <TrashIcon className="h-6 w-6 text-red-500"/>
+                                                </button>
+                                            </td>
+                                        )}
                                     </tr>
                                 ))}
                                 </tbody>
