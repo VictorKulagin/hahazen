@@ -31,6 +31,7 @@ import {useQueryClient} from "@tanstack/react-query";
 import {fetchClients} from "@/services/clientApi";
 import ClientCardEditable from "@/components/ClientCardEditable";
 import Loader from "@/components/Loader";
+import {authStorage} from "@/services/authStorage";
 
 const Page: React.FC = () => {
 
@@ -568,7 +569,10 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                                 {clientsData.clients.map((client) => (
                                                                     <li
                                                                         key={client.id}
-                                                                        onClick={() => setSelectedClientId(client.id ?? null)}
+                                                                        onClick={authStorage.has("master:create")
+                                                                            ? () => setSelectedClientId(client.id ?? null)
+                                                                            : undefined
+                                                                        }
                                                                         className="
         group bg-white text-slate-900 rounded-xl shadow-sm
         border border-slate-200 hover:border-emerald-400
@@ -581,10 +585,14 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                                             <p className="font-semibold text-base truncate">
                                                                                 {client.name} {client.last_name}
                                                                             </p>
-                                                                            <p className="text-sm text-slate-600 flex items-center gap-1 truncate">
-                                                                                <span className="text-rose-500 group-hover:text-rose-600">📞</span>
-                                                                                {client.phone || <span className="text-slate-400 italic">–</span>}
-                                                                            </p>
+                                                                            {authStorage.has("master:create") && (
+                                                                                <p className="text-sm text-slate-600 flex items-center gap-1 truncate">
+                                                                                    <span
+                                                                                        className="text-rose-500 group-hover:text-rose-600">📞</span>
+                                                                                    {client.phone || <span
+                                                                                        className="text-slate-400 italic">–</span>}
+                                                                                </p>
+                                                                            )}
                                                                         </div>
 
                                                                         <button
