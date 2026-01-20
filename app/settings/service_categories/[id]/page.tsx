@@ -479,10 +479,10 @@ const ServicesTable = ({
                                     <th className="border p-2 text-left whitespace-nowrap">Услуга</th>
                                     <th className="border p-2 text-left whitespace-nowrap">Длительность</th>
                                     <th className="border p-2 text-left whitespace-nowrap">Цена</th>
-                                    {authStorage.has("master:create") && (
+                                    {authStorage.has("master:update") && (
                                         <th className="border p-2 w-0.5"></th>
                                     )}
-                                    {authStorage.has("master:create") && (
+                                    {authStorage.has("master:delete") && (
                                         <th className="border p-2 w-0.5"></th>
                                     )}
                                 </tr>
@@ -497,7 +497,7 @@ const ServicesTable = ({
                                         <td className="border p-2 whitespace-nowrap">
                                             {service.base_price} ₽
                                         </td>
-                                        {authStorage.has("master:create") && (
+                                        {authStorage.has("master:update") && (
                                             <td className="border p-2">
                                                 <button
                                                     onClick={() => setSelectedService(service)} // 👈 открываем конкретную услугу
@@ -507,7 +507,7 @@ const ServicesTable = ({
                                                 </button>
                                             </td>
                                         )}
-                                        {authStorage.has("master:create") && (
+                                        {authStorage.has("master:delete") && (
                                             <td className="border p-2">
                                                 <button
                                                     onClick={() => handleDelete(service.id)}

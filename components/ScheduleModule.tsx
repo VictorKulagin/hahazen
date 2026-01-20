@@ -123,7 +123,7 @@ export default function ScheduleModule({
                                 title="Редактировать сотрудника"
                             >
 
-                            {authStorage.has("master:create") && ( <span>✏️</span> )} {m}
+                            {authStorage.has("master:update") && ( <span>✏️</span> )} {m}
                         </div>
                     ))}
                     {/* 👉 ОТДЕЛЬНАЯ КОЛОНКА */}

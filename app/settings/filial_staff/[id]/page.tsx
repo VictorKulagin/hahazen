@@ -537,10 +537,10 @@ const EmployeesTable = ({
                                     <th className="border p-2 text-left hidden sm:table-cell">Email</th>
                                     <th className="border p-2 text-left hidden xs:table-cell">Телефон</th>
                                     <th className="border p-2 text-left">Дата найма</th>
-                                    {authStorage.has("master:create") && (
+                                    {authStorage.has("master:update") && (
                                         <th className="border p-2 w-0.5"></th>
                                     )}
-                                    {authStorage.has("master:create") && (
+                                    {authStorage.has("master:delete") && (
                                         <th className="border p-2 w-0.5"></th>
                                     )}
                                 </tr>
@@ -555,7 +555,7 @@ const EmployeesTable = ({
                                         </td>
                                         <td className="border p-2 hidden xs:table-cell">{employee.phone}</td>
                                         <td className="border p-2">{employee.hire_date}</td>
-                                        {authStorage.has("master:create") && (
+                                        {authStorage.has("master:update") && (
                                             <td className="border p-2">
                                                 <button
                                                     onClick={() => handleEdit(employee)}
@@ -565,7 +565,7 @@ const EmployeesTable = ({
                                                 </button>
                                             </td>
                                         )}
-                                        {authStorage.has("master:create") && (
+                                        {authStorage.has("master:delete") && (
                                             <td className="border p-2">
                                                 <button
                                                     onClick={() => handleDelete(employee.id)}

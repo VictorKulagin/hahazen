@@ -569,7 +569,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                                 {clientsData.clients.map((client) => (
                                                                     <li
                                                                         key={client.id}
-                                                                        onClick={authStorage.has("master:create")
+                                                                        onClick=  {authStorage.has("master:create")
                                                                             ? () => setSelectedClientId(client.id ?? null)
                                                                             : undefined
                                                                         }
