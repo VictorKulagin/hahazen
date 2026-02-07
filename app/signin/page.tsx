@@ -54,7 +54,9 @@ export default function Page() {
                             type="text"
                             id="email"
                             value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => setEmail(
+                                e.target.value.replace(/^[\s\u00A0]+|[\s\u00A0]+$/g, "")
+                            )}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                             placeholder="example@mail.com"
                             required
@@ -68,7 +70,9 @@ export default function Page() {
                             type="password"
                             id="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => setPassword(
+                                e.target.value.replace(/^[\s\u00A0]+|[\s\u00A0]+$/g, "")
+                            )}
                             className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                             placeholder="Введите ваш пароль"
                             required
