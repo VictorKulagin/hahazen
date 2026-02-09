@@ -1,7 +1,5 @@
 'use client'; // Указывает на использование клиентского рендеринга
 
-import {useState} from 'react';
-//import axios from 'axios';
 import {useRouter} from 'next/navigation';
 import { useRegisterForm } from "@/hooks/useRegisterForm";
 import { registerUser } from "@/services/userApi";
@@ -20,6 +18,18 @@ export default function RegisterPage() {
     } = useRegisterForm();
 
     const router = useRouter();
+
+    const handleEmailKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === " ") e.preventDefault();
+    };
+
+    const handlePasswordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        const input = e.currentTarget;
+
+        if (e.key === " " && input.selectionStart === 0) {
+            e.preventDefault();
+        }
+    };
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -123,6 +133,7 @@ export default function RegisterPage() {
                                 id="email"
                                 value={email}
                                 onChange={handleInputChange}
+                                onKeyDown={handleEmailKeyDown}
                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                                 placeholder="example@mail.com"
                                 required
@@ -151,6 +162,7 @@ export default function RegisterPage() {
                                 id="password"
                                 value={password}
                                 onChange={handleInputChange}
+                                onKeyDown={handlePasswordKeyDown}
                                 className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
                                 placeholder="Введите пароль"
                                 required
