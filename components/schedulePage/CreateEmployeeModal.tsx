@@ -69,6 +69,9 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
     const [newServiceDuration, setNewServiceDuration] = useState(30);
     const [role, setRole] = useState<EmployeeRole>("master");
 
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
 
     const queryClient = useQueryClient();
 
@@ -84,6 +87,13 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
             setLocalStartDate(defaultStart);
             setLocalEndDate(defaultEnd);
             setPeriods([{ day: "mon", start: "09:00", end: "18:00" }]);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen) {
+            setSubmitError(null);
+            setIsSubmitting(false);
         }
     }, [isOpen]);
 
@@ -108,11 +118,28 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
         });
     };
 
+
+    const getErrorMessage = (err: any) => {
+        // axios style
+        const msg =
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            err?.message;
+
+        if (!msg) return "Не удалось создать сотрудника. Попробуйте ещё раз.";
+
+        // чуть “причесать” дубли типа "Не удалось создать...: Не удалось создать..."
+        return String(msg).replace(/^(Не удалось создать учётную запись:\s*)+/i, "Не удалось создать учётную запись: ");
+    };
+
     const handleSave = async () => {
         if (!branchId) {
             alert("Филиал не выбран");
             return;
         }
+
+        setSubmitError(null);
+        setIsSubmitting(true);
 
         try {
             // ✨ Формируем payload строго по EmployeeCreatePayload
@@ -159,8 +186,12 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
             onSave();
             onClose();
         } catch (err) {
+            /*console.error("❌ Ошибка при создании сотрудника:", err);
+            alert("Не удалось создать сотрудника");*/
             console.error("❌ Ошибка при создании сотрудника:", err);
-            alert("Не удалось создать сотрудника");
+           setSubmitError(getErrorMessage(err)); // ✅ вот тут
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -482,13 +513,46 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
 
                 {/* Футер */}
                 <div className="p-4 border-t flex justify-end gap-2">
-                    <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
+
+                    <div className="p-4">
+                        {submitError && (
+                            <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                                {submitError}
+                            </div>
+                        )}
+
+                        <div className="flex justify-end gap-2">
+                            <button
+                                onClick={onClose}
+                                className="px-4 py-2 bg-gray-300 rounded"
+                            >
+                                Закрыть
+                            </button>
+
+                            <button
+                                onClick={handleSave}
+                                disabled={isSubmitting}
+                                className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-60"
+                            >
+                                {isSubmitting ? "Создание..." : "Создать"}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/*<button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
                         Закрыть
-                    </button>
-                    <button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded">
+                    </button>*/}
+                    {/*<button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded">
                         Создать
-                    </button>
+                    </button>*/}
                 </div>
+
+                {/*submitError && (
+                    <div className="mx-4 mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                        {submitError}
+                    </div>
+                )*/}
+
             </div>
         </div>
     );
