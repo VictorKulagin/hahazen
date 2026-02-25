@@ -71,6 +71,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [success, setSuccess] = useState(false);
 
 
     useEffect(() => {
@@ -244,7 +245,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
         try {
             // 1. Сохраняем изменения сотрудника
-            await onSave({
+            /*await onSave({
                 ...employee,
                 name,
                 last_name: lastName,
@@ -253,7 +254,18 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 email,
                 hire_date: hireDate,
                 role
-            });
+            });*/
+
+            const updatedEmployee: Employee = {
+                ...employee,
+                name,
+                last_name: lastName,
+                phone,
+                specialty,
+                email,
+                hire_date: hireDate,
+                role,
+            };
 
             // 2. Сохраняем график
             const payload = {
@@ -287,7 +299,18 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
             console.log("✅ Сотрудник, график и услуги успешно сохранены");
 
             // 4. Закрываем модалку
-            onClose();
+            //onClose();
+
+            setSuccess(true);
+
+
+            setTimeout(() => {
+                setSuccess(false);
+                onSave(updatedEmployee); // ⚠️ тут может закрыть
+                onClose();
+            }, 4000);
+
+            return; // важно
 
         } catch (err) {
             console.error("❌ Ошибка сохранения:", err);
@@ -634,55 +657,67 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 </div>
 
                 {/* Футер */}
-                <div className="p-4 border-t bg-white flex justify-between items-center">
+                <div className="p-4 border-t bg-white">
 
+                    {/* Сообщения */}
                     {submitError && (
                         <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                             {submitError}
                         </div>
                     )}
 
-                    {/* Левая часть — удалить */}
-                    <button
-                        onClick={async () => {
-                            if (!employee?.id) return;
-                            if (confirm("Удалить этого сотрудника?")) {
-                                try {
-                                    await deleteEmployeeMutation.mutateAsync(employee.id);
-                                    onClose();
-                                } catch (err) {
-                                    alert("Ошибка при удалении");
-                                }
-                            }
-                        }}
-                        className="px-4 py-2 text-sm font-medium rounded-md
-               bg-red-50 text-red-600 hover:bg-red-100
-               border border-red-200 transition-all duration-200"
-                    >
-                        Удалить
-                    </button>
+                    {success && (
+                        <div className="mb-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                            ✅ Изменения сохранены!
+                        </div>
+                    )}
 
-                    {/* Правая часть — основные кнопки */}
-                    <div className="flex gap-2">
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 text-sm font-medium rounded-md
+                    {/* Кнопки */}
+                    <div className="flex justify-between items-center">
+
+                        {/* Левая часть */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={async () => {
+                                    if (!employee?.id) return;
+                                    if (confirm("Удалить этого сотрудника?")) {
+                                        try {
+                                            await deleteEmployeeMutation.mutateAsync(employee.id);
+                                            onClose();
+                                        } catch {
+                                            alert("Ошибка при удалении");
+                                        }
+                                    }
+                                }}
+                                className="px-4 py-2 text-sm font-medium rounded-md
+          bg-red-50 text-red-600 hover:bg-red-100
+          border border-red-200 transition-all duration-200"
+                            >
+                                Удалить
+                            </button>
+
+                            <button
+                                onClick={onClose}
+                                className="px-4 py-2 text-sm font-medium rounded-md
           bg-gray-50 text-gray-700 hover:bg-gray-100
           border border-gray-200 transition-all duration-200"
-                        >
-                            Закрыть
-                        </button>
+                            >
+                                Закрыть
+                            </button>
+                        </div>
 
+                        {/* Правая часть */}
                         <button
                             onClick={handleSave}
                             disabled={isSubmitting}
                             className="px-4 py-2 text-sm font-medium rounded-md
-          bg-green-600 text-white hover:bg-green-700
-          shadow-sm hover:shadow-md transition-all duration-200
-          disabled:opacity-60 disabled:cursor-not-allowed"
+        bg-green-600 text-white hover:bg-green-700
+        shadow-sm hover:shadow-md transition-all duration-200
+        disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? "Сохранение..." : "Сохранить"}
                         </button>
+
                     </div>
                 </div>
             </div>

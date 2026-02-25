@@ -71,6 +71,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
 
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [success, setSuccess] = useState(false);
 
 
     const queryClient = useQueryClient();
@@ -94,6 +95,13 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
         if (isOpen) {
             setSubmitError(null);
             setIsSubmitting(false);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen) {
+            setSuccess(false);
+            setSubmitError(null);
         }
     }, [isOpen]);
 
@@ -182,9 +190,19 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                 });
             }
 
+            //console.log("✅ Сотрудник успешно создан:", newEmployee);
+
             console.log("✅ Сотрудник успешно создан:", newEmployee);
-            onSave();
-            onClose();
+
+            setSuccess(true);
+
+            setTimeout(() => {
+                setSuccess(false);
+                onSave();
+                onClose();
+            }, 4000);
+
+            return; // важно
         } catch (err) {
             /*console.error("❌ Ошибка при создании сотрудника:", err);
             alert("Не удалось создать сотрудника");*/
@@ -514,10 +532,17 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                 {/* Футер */}
                 <div className="p-4 border-t flex justify-end gap-2">
 
+
                     <div className="p-4">
                         {submitError && (
                             <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                                 {submitError}
+                            </div>
+                        )}
+
+                        {success && (
+                            <div className="mb-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
+                                ✅ Сотрудник успешно создан!
                             </div>
                         )}
 

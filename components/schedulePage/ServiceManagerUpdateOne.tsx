@@ -22,6 +22,9 @@ export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose }) =
     const [duration, setDuration] = useState<number | string>(service?.duration_minutes ?? "");
     const [success, setSuccess] = useState(false);
 
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+
     // если service обновился (например, выбрали новую услугу)
     useEffect(() => {
         if (service) {
@@ -31,9 +34,38 @@ export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose }) =
         }
     }, [service]);
 
+
+    useEffect(() => {
+        if (service) {
+            setName(service.name);
+            setBasePrice(service.base_price);
+            setDuration(service.duration_minutes);
+            setSubmitError(null);
+            setSuccess(false);
+        }
+    }, [service]);
+
+
+    const getErrorMessage = (err: any) => {
+        const msg =
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            err?.message;
+
+        if (!msg) return "Не удалось сохранить услугу. Попробуйте ещё раз.";
+        return String(msg);
+    };
+
     const handleSave = async () => {
         if (!service) return;
-        if (!name.trim() || !basePrice || !duration) return;
+        //if (!name.trim() || !basePrice || !duration) return;
+
+        if (!name.trim() || !basePrice || !duration) {
+            setSubmitError("Заполните название, цену и длительность.");
+            return;
+        }
+
+        setSubmitError(null);
 
         try {
             await updateService({
@@ -51,8 +83,9 @@ export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose }) =
                 setSuccess(false);
                 onClose();
             }, 1000);
-        } catch (error) {
-            console.error("Ошибка при обновлении услуги:", error);
+        } catch (err) {
+            console.error("Ошибка при обновлении услуги:", err);
+            setSubmitError(getErrorMessage(err)); // ✅ вместо молчания
         }
     };
 
@@ -108,6 +141,13 @@ export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose }) =
                 </div>
 
                 <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+
+                    {submitError && (
+                        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                            {submitError}
+                        </div>
+                    )}
+
                     <button
                         onClick={onClose}
                         className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"

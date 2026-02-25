@@ -17,8 +17,28 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
     const [duration, setDuration] = useState<number | string>(30);
     const [success, setSuccess] = useState(false);
 
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+
+    const getErrorMessage = (err: any) => {
+        const msg =
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            err?.message;
+
+        if (!msg) return "Не удалось добавить услугу. Попробуйте ещё раз.";
+        return String(msg);
+    };
     const handleSave = async () => {
-        if (!name.trim() || !price || !duration) return;
+        //if (!name.trim() || !price || !duration) return;
+
+        if (!name.trim() || !price || !duration) {
+            setSubmitError("Заполните название, цену и длительность.");
+            return;
+        }
+
+        setSubmitError(null);
+
 
         try {
             await createService({
@@ -44,8 +64,9 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
                 setSuccess(false);
                 onClose();
             }, 1000);
-        } catch (error) {
-            console.error("Ошибка при добавлении услуги:", error);
+        } catch (err) {
+            console.error("Ошибка при добавлении услуги:", err);
+            setSubmitError(getErrorMessage(err));
         }
     };
 
@@ -104,6 +125,13 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
 
                 {/* Кнопки */}
                 <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+
+                    {submitError && (
+                        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                            {submitError}
+                        </div>
+                    )}
+
                     <button
                         type="button" // ✅ предотвращает случайный submit формы
                         onClick={onClose}
