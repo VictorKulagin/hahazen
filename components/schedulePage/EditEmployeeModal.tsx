@@ -308,7 +308,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 setSuccess(false);
                 onSave(updatedEmployee); // ⚠️ тут может закрыть
                 onClose();
-            }, 4000);
+            }, 2000);
 
             return; // важно
 

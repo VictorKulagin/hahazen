@@ -82,7 +82,7 @@ export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose }) =
             setTimeout(() => {
                 setSuccess(false);
                 onClose();
-            }, 1000);
+            }, 2000);
         } catch (err) {
             console.error("Ошибка при обновлении услуги:", err);
             setSubmitError(getErrorMessage(err)); // ✅ вместо молчания

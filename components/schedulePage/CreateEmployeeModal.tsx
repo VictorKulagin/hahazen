@@ -200,7 +200,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                 setSuccess(false);
                 onSave();
                 onClose();
-            }, 4000);
+            }, 2000);
 
             return; // важно
         } catch (err) {

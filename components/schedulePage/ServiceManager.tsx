@@ -63,7 +63,7 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
             setTimeout(() => {
                 setSuccess(false);
                 onClose();
-            }, 1000);
+            }, 2000);
         } catch (err) {
             console.error("Ошибка при добавлении услуги:", err);
             setSubmitError(getErrorMessage(err));
