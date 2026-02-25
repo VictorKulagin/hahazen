@@ -69,6 +69,9 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const [localStartDate, setLocalStartDate] = useState<string>("");
     const [localEndDate, setLocalEndDate] = useState<string>("");
 
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
 
     useEffect(() => {
         if (employee && isOpen) {
@@ -129,6 +132,14 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
             setLocalEndDate(defaultEnd);
         }
     }, [employee, isOpen]);
+
+
+    useEffect(() => {
+        if (isOpen) {
+            setSubmitError(null);
+            setIsSubmitting(false);
+        }
+    }, [isOpen]);
 
 // когда пришли данные из API
     useEffect(() => {
@@ -211,9 +222,25 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
     if (!isOpen || !employee) return null;
 
+
+    const getErrorMessage = (err: any) => {
+        const msg =
+            err?.response?.data?.message ||
+            err?.response?.data?.error ||
+            err?.message;
+
+        if (!msg) return "Не удалось сохранить изменения. Попробуйте ещё раз.";
+
+        return String(msg)
+            .replace(/^(Не удалось создать учётную запись:\s*)+/i, "Не удалось создать учётную запись: ")
+            .replace(/^(Не удалось обновить учётную запись:\s*)+/i, "Не удалось обновить учётную запись: ");
+    };
 // Сохранение данных
     const handleSave = async () => {
         if (!employee) return;
+
+        setSubmitError(null);
+        setIsSubmitting(true);
 
         try {
             // 1. Сохраняем изменения сотрудника
@@ -264,7 +291,9 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
         } catch (err) {
             console.error("❌ Ошибка сохранения:", err);
-            alert("Не удалось сохранить данные. Проверьте соединение и попробуйте снова.");
+            setSubmitError(getErrorMessage(err));   // ✅ вместо alert
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -606,6 +635,13 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
                 {/* Футер */}
                 <div className="p-4 border-t bg-white flex justify-between items-center">
+
+                    {submitError && (
+                        <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                            {submitError}
+                        </div>
+                    )}
+
                     {/* Левая часть — удалить */}
                     <button
                         onClick={async () => {
@@ -631,19 +667,21 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                         <button
                             onClick={onClose}
                             className="px-4 py-2 text-sm font-medium rounded-md
-                 bg-gray-50 text-gray-700 hover:bg-gray-100
-                 border border-gray-200 transition-all duration-200"
+          bg-gray-50 text-gray-700 hover:bg-gray-100
+          border border-gray-200 transition-all duration-200"
                         >
                             Закрыть
                         </button>
 
                         <button
                             onClick={handleSave}
+                            disabled={isSubmitting}
                             className="px-4 py-2 text-sm font-medium rounded-md
-                 bg-green-600 text-white hover:bg-green-700
-                 shadow-sm hover:shadow-md transition-all duration-200"
+          bg-green-600 text-white hover:bg-green-700
+          shadow-sm hover:shadow-md transition-all duration-200
+          disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            Сохранить
+                            {isSubmitting ? "Сохранение..." : "Сохранить"}
                         </button>
                     </div>
                 </div>
