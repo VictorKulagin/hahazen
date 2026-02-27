@@ -9,6 +9,9 @@ import { useClients, useClient } from '@/hooks/useClient';
 import Pagination from '@/components/Pagination';
 import SidebarMenu from "@/components/SidebarMenu";
 
+/*import { CreateClientModal } from "@/components/schedulePage/CreateСlientModal";
+import { EditClientModal } from "@/components/schedulePage/EditСlientModal";*/
+
 import {
     GlobeAltIcon,
     UserIcon,
@@ -32,6 +35,27 @@ import {fetchClients} from "@/services/clientApi";
 import ClientCardEditable from "@/components/ClientCardEditable";
 import Loader from "@/components/Loader";
 import {authStorage} from "@/services/authStorage";
+import {fetchEmployees} from "@/services/employeeApi";
+import {EditClientModal} from "@/components/schedulePage/EditСlientModal";
+import {CreateClientModal} from "@/components/schedulePage/CreateСlientModal";
+
+/*function CreateСlientModal(props: {
+    branchId: number | null,
+    onClose: () => void,
+    isOpen: boolean,
+    onSave: () => void
+}) {
+    return null;
+}*/
+
+/*function EditСlientModal(props: {
+    onClose: () => any,
+    isOpen: any,
+    onSave: (updated) => Promise<void>,
+    employee: any
+}) {
+    return null;
+}*/
 
 const Page: React.FC = () => {
 
@@ -65,6 +89,13 @@ const Page: React.FC = () => {
     const { data: clientsData, isLoading: isClientsLoading, error: clientsError } = useClients(filters, { page, perPage });
     const { data: selectedClient, isLoading: isClientLoading, error: clientError } = useClient(selectedClientId ?? undefined);
     const [isEditing, setIsEditing] = useState(false);
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+
+    //const [clients, setClients] = useState<Client[]>([]);
+    //const [editingClient, setEditingClient] = useState<Client | null>(null);
+
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const handleCancelEdit = () => {
         setIsEditing(false);
@@ -195,11 +226,16 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
     //const id = branchesData?.[0]?.company_id ?? null;
 
 
-    const getCompanyId = (data: any[]): number | null => {
+    /*const getCompanyId = (data: any[]): number | null => {
         return data?.[0]?.id ?? null;
     };
 // Использование:
-    const id = getCompanyId(branchesData);
+    const id = getCompanyId(branchesData);*/
+
+    const branchId = branchesData?.[0]?.id ?? null;
+
+// ✅ временно оставляем старое имя, чтобы ничего не ломать
+    const id = branchId;
 
     const params = useParams();
     //const idFromUrl = params.id as string || null;
@@ -207,6 +243,9 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
     if (params && 'id' in params) {
         idFromUrl = params.id as string;
     }
+
+    const companyId = companiesData?.[0]?.id ?? null;
+    const userId = userData?.id ?? null; // у тебя внизу уже есть userData?.id
 
     console.log("ID из данных филиала:", id);
     console.log("ID из URL:", idFromUrl);
@@ -382,8 +421,59 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                 </div>
 
 
+                {/* Кнопка "Добавить сотрудника" */}
+                {authStorage.has("master:create") && (
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                    >
+                        + Добавить клиента
+                    </button>
+                )}
+
+
+                {/* ✅ Новое окно — добавление сотрудника */}
+                <CreateClientModal
+                    isOpen={isAddModalOpen}
+                    companyId={companyId}
+                    userId={userId ?? 0}
+                    onClose={() => setIsAddModalOpen(false)}
+                    onSave={() => {
+                        setIsAddModalOpen(false);
+                        // если список клиентов на другой странице — тут можно ничего не делать
+                        // если ты всё же держишь клиентов локально — тогда refetch/перезагрузка там
+                    }}
+                />
+
+
+                <EditClientModal
+                    isOpen={isEditModalOpen}
+                    client={selectedClient ?? null}
+                    companyId={companyId}
+                    userId={userId}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSave={(updated) => {
+                        // если ты показываешь карточку — можно обновить selectedClientId/refetch
+                        setIsEditModalOpen(false);
+                    }}
+                />
+
+                {/* ✅ Новое окно — редактирование сотрудника */}
+                {/* <EditClientModal
+                    isOpen={isEditModalOpen}
+                    client={editingClient}
+                    onClose={() => setIsEditModalOpen(false)}
+                    onSave={(updated) => {
+                        setClients((prev) =>
+                            prev.map((c) => (c.id === updated.id ? updated : c))
+                        );
+                        setIsEditModalOpen(false);
+                    }}
+                /> */}
+
+
                 {/* Контент: две колонки */}
-                <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
                     {/* Первая колонка */}
                     <section className="bg-white text-black p-4 rounded shadow">
 
