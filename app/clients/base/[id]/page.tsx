@@ -236,7 +236,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
     }, []);
 
 
-    useEffect(() => {
+    /*useEffect(() => {
         const apply = () => {
             const mobile = window.innerWidth < 768;
             setIsFilterOpen(!mobile);
@@ -245,6 +245,13 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
         apply();
         window.addEventListener("resize", apply);
         return () => window.removeEventListener("resize", apply);
+    }, []);*/
+
+    useEffect(() => {
+        // один раз при первом рендере (когда уже есть window)
+        if (window.matchMedia("(max-width: 767px)").matches) {
+            setIsFilterOpen(false); // свернуть только один раз
+        }
     }, []);
 
     //const id = branchesData?.[0]?.company_id ?? null;
