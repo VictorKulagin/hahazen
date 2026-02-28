@@ -9,6 +9,9 @@ import { useClients, useClient } from '@/hooks/useClient';
 import Pagination from '@/components/Pagination';
 import SidebarMenu from "@/components/SidebarMenu";
 
+
+import { Phone, Pencil } from "lucide-react";
+
 /*import { CreateClientModal } from "@/components/schedulePage/CreateСlientModal";
 import { EditClientModal } from "@/components/schedulePage/EditСlientModal";*/
 
@@ -91,11 +94,20 @@ const Page: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+    const [editingClientId, setEditingClientId] = useState<number | null>(null);
+    const { data: editingClient } = useClient(editingClientId ?? undefined);
+
 
     //const [clients, setClients] = useState<Client[]>([]);
     //const [editingClient, setEditingClient] = useState<Client | null>(null);
 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+    const [isFilterOpen, setIsFilterOpen] = useState(true);
+    const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+
+    const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
 
     const handleCancelEdit = () => {
         setIsEditing(false);
@@ -221,6 +233,18 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
         };
 
         fetchUserData();
+    }, []);
+
+
+    useEffect(() => {
+        const apply = () => {
+            const mobile = window.innerWidth < 768;
+            setIsFilterOpen(!mobile);
+        };
+
+        apply();
+        window.addEventListener("resize", apply);
+        return () => window.removeEventListener("resize", apply);
     }, []);
 
     //const id = branchesData?.[0]?.company_id ?? null;
@@ -448,13 +472,22 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
 
                 <EditClientModal
                     isOpen={isEditModalOpen}
-                    client={selectedClient ?? null}
+                    //client={selectedClient ?? null}
+                    client={editingClient ?? null}
                     companyId={companyId}
                     userId={userId}
-                    onClose={() => setIsEditModalOpen(false)}
+                    /*onClose={() => setIsEditModalOpen(false)}
                     onSave={(updated) => {
                         // если ты показываешь карточку — можно обновить selectedClientId/refetch
                         setIsEditModalOpen(false);
+                    }}*/
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setEditingClientId(null);
+                    }}
+                    onSave={() => {
+                        setIsEditModalOpen(false);
+                        setEditingClientId(null);
                     }}
                 />
 
@@ -488,64 +521,81 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                         }`}
                                     >
                                     {/* === Форма фильтра (ВСЕГДА показывается) === */}
-                                    <form
-                                        onSubmit={(e) => {
-                                            e.preventDefault();
-                                            setPage(1);
-                                            setSearchQuery(serializeFilters(filters));
-                                        }}
-                                        className="p-6 bg-white text-black rounded-xl shadow-lg border border-gray-200 max-w-2xl mx-auto mt-4 mb-6"
-                                    >
-                                        <h2 className="text-xl font-bold text-gray-900 mb-4">Фильтр клиентов</h2>
+                                        <form
+                                            onSubmit={(e) => {
+                                                e.preventDefault();
+                                                setPage(1);
+                                                setSearchQuery(serializeFilters(filters));
+                                            }}
+                                            className="p-4 bg-white text-black rounded-lg border border-slate-200 mb-6"
+                                        >
+                                            <div className="flex items-center justify-between mb-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setIsFilterOpen((v) => !v)}
+                                                    className="text-lg font-bold text-gray-900"
+                                                >
+                                                    Фильтр клиентов {isFilterOpen ? "▲" : "▼"}
+                                                </button>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <input
-                                                type="text"
-                                                placeholder="Имя"
-                                                value={filters.name}
-                                                onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-                                                className="w-full border border-gray-300 rounded-lg p-2.5 text-black bg-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
-                                            />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFilters({ name: "", last_name: "", phone: "", gender: "", vip: "" })}
+                                                    className="text-sm text-gray-500 hover:text-gray-800"
+                                                >
+                                                    Сбросить
+                                                </button>
+                                            </div>
 
-                                            <input
-                                                type="text"
-                                                placeholder="Фамилия"
-                                                value={filters.last_name}
-                                                onChange={(e) => setFilters({ ...filters, last_name: e.target.value })}
-                                                className="w-full border border-gray-300 rounded-lg p-2.5 text-black bg-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
-                                            />
+                                            {isFilterOpen && (
+                                             <>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                                                <input
+                                                    type="text"
+                                                    placeholder="Имя"
+                                                    value={filters.name}
+                                                    onChange={(e) => setFilters({ ...filters, name: e.target.value })}
+                                                    className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none"
+                                                />
 
-                                            <input
-                                                type="text"
-                                                placeholder="Телефон"
-                                                value={filters.phone}
-                                                onChange={(e) => setFilters({ ...filters, phone: e.target.value })}
-                                                className="w-full border border-gray-300 rounded-lg p-2.5 text-black bg-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
-                                            />
+                                                <input
+                                                    type="text"
+                                                    placeholder="Фамилия"
+                                                    value={filters.last_name}
+                                                    onChange={(e) => setFilters({ ...filters, last_name: e.target.value })}
+                                                    className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none"
+                                                />
 
-                                            <select
-                                                value={filters.gender}
-                                                onChange={(e) => setFilters({ ...filters, gender: e.target.value })}
-                                                className="w-full border border-gray-300 rounded-lg p-2.5 text-black bg-white focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-green-400"
-                                            >
-                                                <option value="">Пол (все)</option>
-                                                <option value="male">Мужской</option>
-                                                <option value="female">Женский</option>
-                                            </select>
-                                        </div>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Телефон"
+                                                    value={filters.phone}
+                                                    onChange={(e) => setFilters({ ...filters, phone: e.target.value })}
+                                                    className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none"
+                                                />
 
-                                        <div className="flex justify-end gap-3 mt-5">
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setFilters({ name: "", last_name: "", phone: "", gender: "", vip: "" })
-                                                }
-                                                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
-                                            >
-                                                Сбросить
-                                            </button>
-                                        </div>
-                                    </form>
+                                                <select
+                                                    value={filters.gender}
+                                                    onChange={(e) => setFilters({ ...filters, gender: e.target.value })}
+                                                    className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none"
+                                                >
+                                                    <option value="">Пол (все)</option>
+                                                    <option value="male">Мужской</option>
+                                                    <option value="female">Женский</option>
+                                                </select>
+                                            </div>
+
+                                            <div className="flex justify-end mt-4">
+                                                <button
+                                                    type="submit"
+                                                    className="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition"
+                                                >
+                                                    Найти
+                                                </button>
+                                            </div>
+                                             </>
+                                            )}
+                                        </form>
                                     </div>
                                     {isClientsLoading ? (
                                         <div className="text-center py-4">
@@ -580,7 +630,26 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                         <h1 className="text-2xl font-bold text-gray-900 truncate">{selectedClient.name}</h1>
 
                                                         {/* Сетка информации */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-gray-700">
+                                                        {/* Header с аватаром */}
+                                                        <div className="flex items-center gap-5 mb-6">
+                                                            <div className="h-16 w-16 rounded-full bg-slate-200 flex items-center justify-center text-xl font-semibold text-slate-700 shadow-sm">
+                                                                {selectedClient.name?.[0] ?? "?"}
+                                                            </div>
+
+                                                            <div className="min-w-0">
+                                                                <h1 className="text-2xl font-semibold text-slate-900 leading-tight truncate">
+                                                                    {selectedClient.name}
+                                                                </h1>
+                                                                <p className="text-base text-slate-500 truncate">
+                                                                    {selectedClient.last_name ?? "-"}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+
+
+                                                        {/* Сетка информации */}
+                                                        {/* Сетка информации */}
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-base">
                                                             {[
                                                                 { icon: IdentificationIcon, label: "ID", value: selectedClient.user_id },
                                                                 { icon: UserIcon, label: "Фамилия", value: selectedClient.last_name },
@@ -594,43 +663,39 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                                 { icon: CakeIcon, label: "День рождения", value: selectedClient.birth_date },
                                                                 { icon: CakeIcon, label: "Запрет онлайн", value: selectedClient.forbid_online_booking === 1 ? "Да" : "Нет" },
                                                             ].map((item, idx) => (
-                                                                <div key={idx} className="flex items-center space-x-2 truncate">
-                                                                    <item.icon className="h-4 w-4 text-indigo-400 flex-shrink-0" />
-                                                                    <span className="truncate">
-          <strong>{item.label}:</strong> {item.value ?? "-"}
-        </span>
+                                                                <div key={idx} className="flex items-start gap-2 py-1.5">
+                                                                    <item.icon className="h-5 w-5 text-slate-400 mt-0.5 shrink-0" />
+                                                                    <div className="truncate">
+                                                                        <span className="font-semibold text-slate-800">{item.label}:</span>{" "}
+                                                                        <span className="text-slate-600">{item.value ?? "-"}</span>
+                                                                    </div>
                                                                 </div>
                                                             ))}
-
-                                                            {/* Комментарий */}
-                                                            <div className="col-span-1 md:col-span-2">
-                                                                <span className="font-semibold">Комментарий:</span>
-                                                                <p className="mt-1 text-gray-600 truncate">{selectedClient.comment ?? "-"}</p>
-                                                            </div>
-
-                                                            {/* Фото */}
-                                                            <div className="col-span-1 md:col-span-2">
-                                                                <span className="font-semibold">Фото:</span>
-                                                                {selectedClient.photo ? (
-                                                                    <img
-                                                                        src={selectedClient.photo}
-                                                                        alt="Фото клиента"
-                                                                        className="mt-1 max-h-36 w-full object-contain rounded-lg shadow-sm"
-                                                                    />
-                                                                ) : (
-                                                                    <p className="mt-1 text-gray-400">-</p>
-                                                                )}
-                                                            </div>
                                                         </div>
 
                                                         {/* Редактировать */}
-                                                        <button
+                                                        {/*<button
                                                             onClick={() => setIsEditing(true)}
                                                             className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition flex items-center justify-center space-x-2"
                                                         >
                                                             <CakeIcon className="h-4 w-4" />
                                                             <span>Редактировать</span>
-                                                        </button>
+                                                        </button>*/}
+
+                                                        {authStorage.has("master:create") && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setEditingClientId(selectedClient.id ?? null);
+                                                                    setIsEditModalOpen(true);
+                                                                }}
+                                                                className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition flex items-center justify-center space-x-2"
+                                                            >
+                                                                <Pencil size={16} />
+                                                                <span>Редактировать</span>
+                                                            </button>
+                                                        )}
+
                                                     </div>
                                                 )
                                             ) : (
@@ -655,50 +720,58 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                         </div>
                                                     ) : clientsData?.clients && clientsData.clients.length > 0 ? (
                                                         <>
-                                                            <ul className="space-y-3">
+                                                            <ul className="divide-y divide-slate-200 border border-slate-200 rounded-lg bg-white">
                                                                 {clientsData.clients.map((client) => (
                                                                     <li
                                                                         key={client.id}
-                                                                        onClick=  {authStorage.has("master:create")
-                                                                            ? () => setSelectedClientId(client.id ?? null)
-                                                                            : undefined
+                                                                        onClick={
+                                                                            authStorage.has("master:create")
+                                                                                ? () => setSelectedClientId(client.id ?? null)
+                                                                                : undefined
                                                                         }
-                                                                        className="
-        group bg-white text-slate-900 rounded-xl shadow-sm
-        border border-slate-200 hover:border-emerald-400
-        hover:shadow-md hover:bg-emerald-50/60
-        transition-all duration-200 cursor-pointer p-4
-        flex justify-between items-center
-      "
+                                                                        className={`
+        grid grid-cols-[1.4fr_1fr_.3fr]
+        items-center
+        px-4 py-4
+        bg-white
+        hover:bg-slate-50
+        transition-colors
+        ${authStorage.has("master:create") ? "cursor-pointer" : "cursor-default"}
+      `}
                                                                     >
-                                                                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 overflow-hidden">
-                                                                            <p className="font-semibold text-base truncate">
+                                                                        <div className="min-w-0 pr-4">
+                                                                            <p className="font-semibold truncate text-slate-900">
                                                                                 {client.name} {client.last_name}
                                                                             </p>
+                                                                        </div>
+
+                                                                        <div className="truncate text-slate-800">
                                                                             {authStorage.has("master:create") && (
-                                                                                <p className="text-sm text-slate-600 flex items-center gap-1 truncate">
-                                                                                    <span
-                                                                                        className="text-rose-500 group-hover:text-rose-600">📞</span>
-                                                                                    {client.phone || <span
-                                                                                        className="text-slate-400 italic">–</span>}
+                                                                                <p className="flex items-center gap-2 text-slate-700">
+                                                                                    <Phone size={16} className="text-slate-400 shrink-0" />
+                                                                                    {client.phone || (
+                                                                                        <span className="text-slate-400 italic">–</span>
+                                                                                    )}
                                                                                 </p>
                                                                             )}
                                                                         </div>
 
-                                                                        <button
-                                                                            onClick={(e) => {
-                                                                                e.stopPropagation(); // чтобы не триггерить выбор клиента повторно
-                                                                                setSelectedClientId(client.id ?? null);
-                                                                            }}
-                                                                            className="
-          p-2 rounded-full bg-emerald-100 text-emerald-700
-          hover:bg-emerald-600 hover:text-white
-          transition-all duration-200
-        "
-                                                                            title="Открыть профиль клиента"
-                                                                        >
-                                                                            👤
-                                                                        </button>
+                                                                        <div className="flex justify-end pr-2 font-medium text-slate-800">
+                                                                            {authStorage.has("master:create") && (
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation();
+                                                                                        setEditingClientId(client.id ?? null); // если модалке нужен selectedClient
+                                                                                        setIsEditModalOpen(true);
+                                                                                    }}
+                                                                                    className="p-1 rounded hover:bg-slate-100 transition-colors"
+                                                                                    title="Редактировать"
+                                                                                >
+                                                                                    <Pencil size={16} className="text-slate-400 hover:text-slate-700 transition-colors" />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
                                                                     </li>
                                                                 ))}
                                                             </ul>
