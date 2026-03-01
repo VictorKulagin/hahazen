@@ -12,22 +12,17 @@ import SidebarMenu from "@/components/SidebarMenu";
 
 import { Phone, Pencil } from "lucide-react";
 
-/*import { CreateClientModal } from "@/components/schedulePage/CreateСlientModal";
-import { EditClientModal } from "@/components/schedulePage/EditСlientModal";*/
+
 
 import {
-    GlobeAltIcon,
     UserIcon,
-    ArrowRightOnRectangleIcon,
     PhoneIcon,
-    CalendarIcon,
     ArrowLeftIcon,
     IdentificationIcon,
     StarIcon,
     GiftIcon,
     CreditCardIcon,
     CakeIcon,
-    PencilIcon,
     SparklesIcon, UserGroupIcon, Bars3Icon,
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
@@ -42,23 +37,7 @@ import {fetchEmployees} from "@/services/employeeApi";
 import {EditClientModal} from "@/components/schedulePage/EditСlientModal";
 import {CreateClientModal} from "@/components/schedulePage/CreateСlientModal";
 
-/*function CreateСlientModal(props: {
-    branchId: number | null,
-    onClose: () => void,
-    isOpen: boolean,
-    onSave: () => void
-}) {
-    return null;
-}*/
 
-/*function EditСlientModal(props: {
-    onClose: () => any,
-    isOpen: any,
-    onSave: (updated) => Promise<void>,
-    employee: any
-}) {
-    return null;
-}*/
 
 const Page: React.FC = () => {
 
@@ -97,17 +76,12 @@ const Page: React.FC = () => {
     const [editingClientId, setEditingClientId] = useState<number | null>(null);
     const { data: editingClient } = useClient(editingClientId ?? undefined);
 
-
-    //const [clients, setClients] = useState<Client[]>([]);
-    //const [editingClient, setEditingClient] = useState<Client | null>(null);
-
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
     const [isFilterOpen, setIsFilterOpen] = useState(true);
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-
 
     const handleCancelEdit = () => {
         setIsEditing(false);
@@ -147,18 +121,13 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
         setIsModalFilOpen((prev) => !prev);
     };
 
-
     //const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
-
-
 
     const handleLogout = () => {
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
     };
-
-
 
     useEffect(() => {
         if (!companiesData || companiesData.length === 0) return;

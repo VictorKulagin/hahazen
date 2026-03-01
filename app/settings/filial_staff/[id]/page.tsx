@@ -26,6 +26,8 @@ import Image from "next/image";
 import Loader from "@/components/Loader";
 import { authStorage } from "@/services/authStorage";
 
+import { Pencil, Trash2 } from "lucide-react";
+
 const Page: React.FC = ( ) => {
 
 
@@ -561,7 +563,7 @@ const EmployeesTable = ({
                                                     onClick={() => handleEdit(employee)}
                                                     className="block mx-auto"
                                                 >
-                                                    <PencilIcon className="h-5 w-5 text-blue-500 hover:text-blue-700"/>
+                                                    <Pencil size={16} className="text-slate-400 hover:text-slate-600 transition" />
                                                 </button>
                                             </td>
                                         )}
@@ -571,7 +573,10 @@ const EmployeesTable = ({
                                                     onClick={() => handleDelete(employee.id)}
                                                     className="block mx-auto"
                                                 >
-                                                    <TrashIcon className="h-5 w-5 text-red-500 hover:text-red-700"/>
+                                                    <Trash2
+                                                        size={16}
+                                                        className="text-slate-400 hover:text-red-500 transition"
+                                                    />
                                                 </button>
                                             </td>
                                         )}

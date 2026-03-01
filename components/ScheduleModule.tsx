@@ -7,6 +7,7 @@ import { Employee } from "@/services/employeeApi";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 import {authStorage} from "@/services/authStorage"; // 👈 вместо PlusIcon
+import { Pencil } from "lucide-react";
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -123,7 +124,14 @@ export default function ScheduleModule({
                                 title="Редактировать сотрудника"
                             >
 
-                            {authStorage.has("master:update") && ( <span>✏️</span> )} {m}
+                                {authStorage.has("master:update") && (
+                                    <button className="p-1 rounded opacity-40 group-hover:opacity-100 hover:bg-slate-100 transition">
+                                        <Pencil
+                                            size={14}
+                                            className="text-slate-500 hover:text-slate-700 transition"
+                                        />
+                                    </button>
+                                )} {m}
                         </div>
                     ))}
                     {/* 👉 ОТДЕЛЬНАЯ КОЛОНКА */}

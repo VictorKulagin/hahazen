@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import { useEffect } from 'react';
 import { withAuth } from "@/hoc/withAuth";
 import Image from "next/image";
-import Link from "next/link";
 import {
  Bars3Icon
 } from "@heroicons/react/24/outline";
@@ -38,7 +37,6 @@ import {CreateMenuModal} from "@/components/schedulePage/CreateMenuModal";
 import { ServiceManager} from "@/components/schedulePage/ServiceManager";
 import {CreateEmployeeModal} from "@/components/schedulePage/CreateEmployeeModal";
 import CustomCalendarMobile from "@/components/CustomCalendarMobile";
-import usePhoneInput from '@/hooks/usePhoneInput';
 import SidebarMenu from "@/components/SidebarMenu";
 import Loader from "@/components/Loader";
 export interface ScheduleEvent {

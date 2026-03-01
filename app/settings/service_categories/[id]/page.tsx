@@ -27,6 +27,8 @@ import Image from "next/image";
 import Loader from "@/components/Loader";
 import {authStorage} from "@/services/authStorage";
 
+import { Pencil, Trash2 } from "lucide-react";
+
 const Page: React.FC = ( ) => {
 
 
@@ -503,7 +505,7 @@ const ServicesTable = ({
                                                     onClick={() => setSelectedService(service)} // 👈 открываем конкретную услугу
                                                     className="p-1 hover:bg-gray-100 rounded-full"
                                                 >
-                                                    <PencilIcon className="h-6 w-6 text-blue-500"/>
+                                                    <Pencil size={16} className="text-slate-400 hover:text-slate-600 transition" />
                                                 </button>
                                             </td>
                                         )}
@@ -513,7 +515,10 @@ const ServicesTable = ({
                                                     onClick={() => handleDelete(service.id)}
                                                     className="p-1 hover:bg-gray-100 rounded-full"
                                                 >
-                                                    <TrashIcon className="h-6 w-6 text-red-500"/>
+                                                    <Trash2
+                                                        size={16}
+                                                        className="text-slate-400 hover:text-red-500 transition"
+                                                    />
                                                 </button>
                                             </td>
                                         )}
