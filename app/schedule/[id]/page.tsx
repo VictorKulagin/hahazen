@@ -38,6 +38,7 @@ import { ServiceManager} from "@/components/schedulePage/ServiceManager";
 import {CreateEmployeeModal} from "@/components/schedulePage/CreateEmployeeModal";
 import CustomCalendarMobile from "@/components/CustomCalendarMobile";
 import SidebarMenu from "@/components/SidebarMenu";
+import { CreateClientModal } from "@/components/schedulePage/CreateСlientModal";
 import Loader from "@/components/Loader";
 export interface ScheduleEvent {
     id: string;
@@ -67,6 +68,7 @@ const Page: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
     const [isCreateEmployeeOpen, setIsCreateEmployeeOpen] = useState(false);
+    const [isCreateClientOpen, setIsCreateClientOpen] = useState(false);
 
     // const { employees } = useEmployees();
 
@@ -647,6 +649,8 @@ const Page: React.FC = () => {
                             eventData={editingEvent}
                         />
 
+
+
                         {isCreateModalOpen && selectedStartMinutes !== null && (
                             <CreateEventModal
                                 isOpen={isCreateModalOpen}
@@ -683,12 +687,26 @@ const Page: React.FC = () => {
                             isOpen={isCreateMenuOpen}
                             onClose={() => setIsCreateMenuOpen(false)}
                             onSelect={(type) => {
+                                if (type === "client") {
+                                    setIsCreateClientOpen(true);
+                                }
+
                                 if (type === "employee") {
                                     setIsCreateEmployeeOpen(true); // ✅ открываем создание
                                 }
                                 if (type === "service") {
                                     setIsCreateServiceOpen(true);
                                 }
+                            }}
+                        />
+
+                        <CreateClientModal
+                            isOpen={isCreateClientOpen}
+                            companyId={companiesData?.[0]?.id ?? null}
+                            userId={userData?.id ?? null}
+                            onClose={() => setIsCreateClientOpen(false)}
+                            onSave={() => {
+                                setIsCreateClientOpen(false);
                             }}
                         />
 

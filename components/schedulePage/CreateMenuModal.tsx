@@ -1,11 +1,11 @@
 "use client";
 import React from "react";
-import { UserPlusIcon, WrenchScrewdriverIcon } from "@heroicons/react/24/solid";
+import { UserPlusIcon, WrenchScrewdriverIcon,UserIcon, } from "@heroicons/react/24/solid";
 
 type Props = {
     isOpen: boolean;
     onClose: () => void;
-    onSelect: (type: "employee" | "service") => void;
+    onSelect: (type: "client" | "employee" | "service" ) => void;
 };
 
 export const CreateMenuModal: React.FC<Props> = ({ isOpen, onClose, onSelect }) => {
@@ -28,6 +28,17 @@ export const CreateMenuModal: React.FC<Props> = ({ isOpen, onClose, onSelect }) 
 
                 {/* Контент */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    <button
+                        onClick={() => {
+                            onSelect("client");
+                            onClose();
+                        }}
+                        className="flex items-center gap-3 w-full p-3 border rounded-lg hover:bg-gray-50 transition"
+                    >
+                        <UserIcon className="h-6 w-6 text-indigo-600" />
+                        <span className="text-lg">Клиента</span>
+                    </button>
+
                     <button
                         onClick={() => {
                             onSelect("employee");
