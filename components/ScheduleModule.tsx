@@ -8,12 +8,24 @@ import { PlusIcon } from "@heroicons/react/24/solid";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 import {authStorage} from "@/services/authStorage"; // 👈 вместо PlusIcon
 import { Pencil } from "lucide-react";
+/*export interface ScheduleEvent {
+    id: string;
+    start: string;
+    end: string;
+    text: string;
+    master: number;
+}*/
+
 export interface ScheduleEvent {
     id: string;
     start: string;
     end: string;
     text: string;
     master: number;
+    payment_status?: "unpaid" | "paid" | "partial";
+    payment_method?: "cash" | "card" | "transfer" | null;
+    visit_status?: "expected" | "arrived" | "no_show";
+    cost?: number;
 }
 
 export type ScheduleModuleProps = {
@@ -73,6 +85,30 @@ export default function ScheduleModule({
     const headerRowRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => setEvents(appointments), [appointments]);
+
+    const getEventColors = (event: ScheduleEvent) => {
+        if (event.visit_status === "no_show") {
+            return "bg-red-100 border border-red-300 border-l-4 border-l-red-500";
+        }
+
+        if (event.payment_status === "paid") {
+            return "bg-green-100 border border-green-300 border-l-4 border-l-green-500";
+        }
+
+        if (event.payment_status === "partial") {
+            return "bg-yellow-100 border border-yellow-300 border-l-4 border-l-yellow-500";
+        }
+
+        if (event.visit_status === "arrived") {
+            return "bg-emerald-100 border border-emerald-300 border-l-4 border-l-emerald-500";
+        }
+
+        if (event.visit_status === "expected") {
+            return "bg-blue-100 border border-blue-300 border-l-4 border-l-blue-500";
+        }
+
+        return "bg-gray-100 border border-gray-300 border-l-4 border-l-gray-500";
+    };
 
     const recalcColRects = () => {
         if (!headerRowRef.current || !scheduleRef.current) return;
@@ -191,7 +227,7 @@ export default function ScheduleModule({
                 {cards.map((c) => (
                     <div
                         key={c.id}
-                        className="absolute bg-blue-100 border border-blue-300 rounded-lg shadow-sm p-1.5 flex flex-col justify-center cursor-pointer hover:bg-blue-200 transition-colors text-xs"
+                        className={`absolute border rounded-lg shadow-sm p-1.5 flex flex-col justify-center cursor-pointer transition-colors text-xs ${getEventColors(c.ev)}`}
                         style={{
                             top: isNaN(c.top) ? 0 : c.top,
                             left: isNaN(c.left) ? 0 : c.left,
@@ -202,6 +238,24 @@ export default function ScheduleModule({
                     >
                         <span className="font-semibold">{c.ev.text}</span>
                         <span className="text-[11px] opacity-80">{c.ev.start} – {c.ev.end}</span>
+
+                        <div className="flex items-center justify-between mt-1 pr-1">
+                            {/*{c.ev.cost && (
+                                <span className="text-[11px] font-medium">{c.ev.cost} сом</span>
+                            )}*/}
+                            {typeof c.ev.cost === "number" && (
+                                <span className="text-[11px] font-medium">{c.ev.cost} сом</span>
+                            )}
+
+                            <div className="flex items-center gap-1">
+                                {c.ev.visit_status === "expected" && <span className="opacity-70" title="Ожидается">🕒</span>}
+                                {c.ev.visit_status === "arrived" && <span className="opacity-70" title="Пришел">✅</span>}
+                                {c.ev.visit_status === "no_show" && <span className="opacity-70" title="Не пришел">❌</span>}
+
+                                {c.ev.payment_status === "paid" && <span className="opacity-70" title="Оплачено">💰</span>}
+                                {c.ev.payment_status === "partial" && <span className="opacity-70" title="Частично">🟡</span>}
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>

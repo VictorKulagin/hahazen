@@ -15,6 +15,11 @@ export function normalizeAppointments(apiAppointments: any[], employees: any[]):
             master: masterIndex !== -1 ? masterIndex : 0,
             client: appt.client,        // 👈 сохраняем клиента
             services: appt.services,    // 👈 сохраняем услуги
+
+            payment_status: appt.payment_status,
+            payment_method: appt.payment_method,
+            visit_status: appt.visit_status,
+            cost: appt.cost,
         };
     });
 }

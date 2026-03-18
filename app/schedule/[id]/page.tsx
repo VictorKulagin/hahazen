@@ -266,6 +266,11 @@ const Page: React.FC = () => {
         employeeId: number;
         services: { id: number; qty: number }[];
         client?: { id: number; name: string; last_name?: string; phone?: string };
+
+        cost?: number;
+        payment_status?: "unpaid" | "paid" | "partial";
+        payment_method?: "cash" | "card" | "transfer" | null;
+        visit_status?: "expected" | "arrived" | "no_show";
     } | null>(null);
 
 
@@ -328,6 +333,11 @@ const Page: React.FC = () => {
                     phone: src.client.phone,
                 }
                 : undefined,
+
+            cost: src?.cost ?? 0,
+            payment_status: src?.payment_status ?? "unpaid",
+            payment_method: src?.payment_method ?? null,
+            visit_status: src?.visit_status ?? "expected",
         };
 
         setEditingEvent(eventPayload);
@@ -342,6 +352,10 @@ const Page: React.FC = () => {
         services: { id: number; qty: number }[];
         timeStart: string;
         timeEnd: string;
+        cost: number;
+        paymentStatus: "unpaid" | "paid" | "partial";
+        paymentMethod: "cash" | "card" | "transfer" | null;
+        visitStatus: "expected" | "arrived" | "no_show";
     }) => {
         if (!id || selectedMasterIndex === null) return;
 
@@ -352,6 +366,12 @@ const Page: React.FC = () => {
             date: formatDateLocal(selectedDate),
             time_start: data.timeStart,
             time_end: data.timeEnd,
+
+            cost: data.cost ?? 0,
+            payment_status: data.paymentStatus ?? "unpaid",
+            payment_method: data.paymentMethod ?? null,
+            visit_status: data.visitStatus ?? "expected",
+
             services: data.services.map(s => ({
                 service_id: s.id,
                 qty: s.qty,

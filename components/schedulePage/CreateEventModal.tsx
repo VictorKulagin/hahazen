@@ -59,6 +59,10 @@ interface CreateEventModalProps {
         services: { id: number; qty: number }[];
         timeStart: string;
         timeEnd: string;
+        cost: number;
+        paymentStatus: "unpaid" | "paid" | "partial";
+        paymentMethod: "cash" | "card" | "transfer" | null;
+        visitStatus: "expected" | "arrived" | "no_show";
     }) => Promise<void>;
     loading: boolean;
     employeeId: number | null;
@@ -90,6 +94,12 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     const [timeStart, setTimeStart] = useState(defaultStartTime || "09:00");
     const [timeEnd, setTimeEnd] = useState(defaultEndTime || "09:30");
 
+    const [cost, setCost] = useState(0);
+    const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid" | "partial">("unpaid");
+    const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "transfer" | null>(null);
+    const [visitStatus, setVisitStatus] = useState<"expected" | "arrived" | "no_show">("expected");
+    const [isManualCost, setIsManualCost] = useState(false);
+
     const { data: services = [], isLoading } = useEmployeeServices(
         employeeId ?? undefined
     );
@@ -107,7 +117,31 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         setIsEditingClient(false);
         setTimeStart(defaultStartTime || "09:00");
         setTimeEnd(defaultEndTime || "09:30");
+
+        setCost(0);
+        setPaymentStatus("unpaid");
+        setPaymentMethod(null);
+        setVisitStatus("expected");
     }, [employeeId, isOpen]);
+
+    useEffect(() => {
+        if (paymentStatus === "unpaid") {
+            setPaymentMethod(null);
+        }
+    }, [paymentStatus]);
+
+
+    useEffect(() => {
+        if (isManualCost) return;
+
+        const total = selectedServices.reduce((sum, s) => {
+            const service = services.find((item) => item.service_id === s.id);
+            const price = service?.individual_price ?? service?.base_price ?? 0;
+            return sum + price * s.qty;
+        }, 0);
+
+        setCost(total);
+    }, [selectedServices, services, isManualCost]);
 
     const [success, setSuccess] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -196,6 +230,14 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
     };*/
 
+    const calculateServicesCost = () => {
+        return selectedServices.reduce((sum, s) => {
+            const service = services.find((item) => item.service_id === s.id);
+            const price = service?.individual_price ?? service?.base_price ?? 0;
+            return sum + price * s.qty;
+        }, 0);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -215,6 +257,10 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 services: selectedServices,
                 timeStart,
                 timeEnd,
+                cost,
+                paymentStatus,
+                paymentMethod,
+                visitStatus,
             });
 
             setSuccess(true);
@@ -475,6 +521,145 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                             </ul>
                         )}
                     </div>
+
+
+
+                            {/* 4. Статусы и оплата */}
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label className="block mb-1 font-semibold">Стоимость</label>
+                                    <input
+                                        type="number"
+                                        min={0}
+                                        step="1"
+                                        value={cost}
+                                        onChange={(e) => {
+                                            setIsManualCost(true);
+                                            setCost(Number(e.target.value) || 0);
+                                        }}
+                                        className="w-full p-2 border rounded"
+                                    />
+
+                                    {isManualCost && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsManualCost(false);
+                                                setCost(calculateServicesCost());
+                                            }}
+                                            className="text-xs text-blue-600 mt-1"
+                                        >
+                                            Сбросить к расчету
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <span className="block mb-2 font-semibold">Статус визита</span>
+                                    <div className="space-y-2 rounded border p-3">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="visitStatus"
+                                                value="expected"
+                                                checked={visitStatus === "expected"}
+                                                onChange={() => setVisitStatus("expected")}
+                                                className="accent-blue-600"
+                                            />
+                                            <span>Ожидается</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="visitStatus"
+                                                value="arrived"
+                                                checked={visitStatus === "arrived"}
+                                                onChange={() => setVisitStatus("arrived")}
+                                                className="accent-blue-600"
+                                            />
+                                            <span>Пришел</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="visitStatus"
+                                                value="no_show"
+                                                checked={visitStatus === "no_show"}
+                                                onChange={() => setVisitStatus("no_show")}
+                                                className="accent-blue-600"
+                                            />
+                                            <span>Не пришел</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <span className="block mb-2 font-semibold">Статус оплаты</span>
+                                    <div className="space-y-2 rounded border p-3">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="paymentStatus"
+                                                value="unpaid"
+                                                checked={paymentStatus === "unpaid"}
+                                                onChange={() => setPaymentStatus("unpaid")}
+                                                className="accent-blue-600"
+                                            />
+                                            <span>Не оплачено</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="paymentStatus"
+                                                value="paid"
+                                                checked={paymentStatus === "paid"}
+                                                onChange={() => setPaymentStatus("paid")}
+                                                className="accent-blue-600"
+                                            />
+                                            <span>Оплачено</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="radio"
+                                                name="paymentStatus"
+                                                value="partial"
+                                                checked={paymentStatus === "partial"}
+                                                onChange={() => setPaymentStatus("partial")}
+                                                className="accent-blue-600"
+                                            />
+                                            <span>Частично</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block mb-1 font-semibold">Способ оплаты</label>
+                                    <select
+                                        value={paymentMethod ?? ""}
+                                        disabled={paymentStatus === "unpaid"}
+                                        onChange={(e) =>
+                                            setPaymentMethod(
+                                                e.target.value === ""
+                                                    ? null
+                                                    : (e.target.value as "cash" | "card" | "transfer")
+                                            )
+                                        }
+                                        className="w-full p-2 border rounded disabled:bg-gray-100 disabled:text-gray-400"
+                                    >
+                                        <option value="">Не выбрано</option>
+                                        <option value="cash">Наличные</option>
+                                        <option value="card">Карта</option>
+                                        <option value="transfer">Перевод</option>
+                                    </select>
+                                </div>
+                            </div>
+
+
+
                         </div>
 
                     {/* 5. Кнопки сохранения события */}
