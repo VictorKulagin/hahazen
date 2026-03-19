@@ -73,6 +73,8 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
 
+    const [serviceSearch, setServiceSearch] = useState("");
+    const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
 
     useEffect(() => {
         if (employee && isOpen) {
@@ -160,6 +162,15 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
         }
     }, [schedules]);
 
+    useEffect(() => {
+        if (!isOpen) return;
+        setActiveTab("info");
+        setServiceSearch("");
+        setIsServiceDropdownOpen(false);
+        setSubmitError(null);
+        setSuccess(false);
+    }, [isOpen]);
+
 
     // Загружаем выбранные услуги при открытии
     useEffect(() => {
@@ -187,7 +198,10 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
         });
     }, [employee?.id, isOpen, employeeServices]);
 
-    const toggleService = (serviceId: number) => {
+
+
+
+    /*const toggleService = (serviceId: number) => {
         setSelectedServices((prev) => {
             const exists = prev.find((s) => s.service_id === serviceId);
             if (exists) {
@@ -204,15 +218,55 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 ];
             }
         });
+    };*/
+
+    const addService = (serviceId: number) => {
+        const service = allServices.find((s) => s.id === serviceId);
+        if (!service) return;
+
+        setSelectedServices((prev) => {
+            const exists = prev.some((s) => s.service_id === serviceId);
+            if (exists) return prev;
+
+            return [
+                ...prev,
+                {
+                    service_id: service.id,
+                    individual_price: service.base_price,
+                    duration_minutes: service.duration_minutes,
+                },
+            ];
+        });
+
+        setServiceSearch("");
+        setIsServiceDropdownOpen(false);
     };
 
-    const updateField = (serviceId: number, field: "price" | "duration", value: number) => {
+    const removeService = (serviceId: number) => {
+        setSelectedServices((prev) => prev.filter((s) => s.service_id !== serviceId));
+    };
+
+    const filteredServices = allServices.filter((service) => {
+        const matchesSearch = service.name
+            .toLowerCase()
+            .includes(serviceSearch.toLowerCase());
+
+        const alreadySelected = selectedServices.some(
+            (s) => s.service_id === service.id
+        );
+
+        return matchesSearch && !alreadySelected;
+    });
+
+    /*const updateField = (serviceId: number, field: "price" | "duration", value: number) => {
         setSelectedServices(prev =>
             prev.map(s =>
                 s.service_id === serviceId ? { ...s, [field]: value } : s
             )
         );
-    };
+    };*/
+
+
 
 
     const addPeriod = () => setPeriods(prev => [...prev, { day: "mon", start: "09:00", end: "18:00" }]);
@@ -244,18 +298,6 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
         setIsSubmitting(true);
 
         try {
-            // 1. Сохраняем изменения сотрудника
-            /*await onSave({
-                ...employee,
-                name,
-                last_name: lastName,
-                phone,
-                specialty,
-                email,
-                hire_date: hireDate,
-                role
-            });*/
-
             const updatedEmployee: Employee = {
                 ...employee,
                 name,
@@ -267,13 +309,16 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 role,
             };
 
+            // 1. Сохраняем сотрудника
+            await onSave(updatedEmployee);
+
             // 2. Сохраняем график
             const payload = {
                 id: scheduleId ?? 0,
                 employee_id: employee.id,
                 schedule_type: "weekly" as const,
-                start_date: localStartDate, // 🔥 теперь берём локальное
-                end_date: localEndDate,     // 🔥 теперь берём локальное
+                start_date: localStartDate,
+                end_date: localEndDate,
                 night_shift: 0,
                 periods: periods.map((p) => [p.day, p.start, p.end]) as [string, string, string][],
             };
@@ -296,25 +341,15 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                 services: normalized,
             });
 
-            console.log("✅ Сотрудник, график и услуги успешно сохранены");
-
-            // 4. Закрываем модалку
-            //onClose();
-
             setSuccess(true);
-
 
             setTimeout(() => {
                 setSuccess(false);
-                onSave(updatedEmployee); // ⚠️ тут может закрыть
                 onClose();
-            }, 2000);
-
-            return; // важно
-
+            }, 1500);
         } catch (err) {
             console.error("❌ Ошибка сохранения:", err);
-            setSubmitError(getErrorMessage(err));   // ✅ вместо alert
+            setSubmitError(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);
         }
@@ -574,78 +609,150 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                     )}
 
                     {activeTab === "services" && (
-                        <div className="space-y-3">
-                            {allServices.map((service) => {
-                                const selected = selectedServices.find((s) => s.service_id === service.id);
-                                const isChecked = !!selected;
+                        <div className="space-y-4">
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h4 className="font-semibold">Выберите услуги</h4>
+                                </div>
 
-                                return (
-                                    <div
-                                        key={service.id}
-                                        className="flex flex-col p-3 border rounded-lg hover:bg-gray-50 transition"
-                                    >
-                                        {/* Чекбокс + имя услуги */}
-                                        <div className="flex items-center justify-between">
-                                            <label className="flex items-center gap-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={isChecked}
-                                                    onChange={() => toggleService(service.id)}
-                                                    className="h-4 w-4 accent-blue-600"
-                                                />
-                                                <span className="font-medium text-gray-800">{service.name}</span>
-                                            </label>
-                                            <span className="text-gray-500 text-sm">
-              Базовая: {service.base_price}₽ · {service.duration_minutes} мин
-            </span>
+                                <div className="border rounded-lg p-2 bg-white relative">
+                                    {selectedServices.length > 0 && (
+                                        <div className="space-y-2 mb-3">
+                                            {selectedServices.map((selected) => {
+                                                const service = allServices.find(
+                                                    (s) => s.id === selected.service_id
+                                                );
+                                                if (!service) return null;
+
+                                                return (
+                                                    <div
+                                                        key={selected.service_id}
+                                                        className="rounded-lg border bg-gray-50 px-3 py-3"
+                                                    >
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <div className="min-w-0">
+                                                                <div className="font-medium text-gray-800 truncate">
+                                                                    {service.name}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500 mt-1">
+                                                                    Базовая: {service.base_price}₽ · {service.duration_minutes} мин
+                                                                </div>
+                                                            </div>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeService(selected.service_id)}
+                                                                className="text-gray-400 hover:text-red-500 text-lg leading-none"
+                                                            >
+                                                                ×
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-2 gap-3 mt-3">
+                                                            <div>
+                                                                <label className="block text-xs text-gray-500 mb-1">
+                                                                    Инд. цена
+                                                                </label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={selected.individual_price ?? service.base_price}
+                                                                    onChange={(e) =>
+                                                                        setSelectedServices((prev) =>
+                                                                            prev.map((s) =>
+                                                                                s.service_id === service.id
+                                                                                    ? {
+                                                                                        ...s,
+                                                                                        individual_price: Number(e.target.value),
+                                                                                    }
+                                                                                    : s
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    className="w-full p-2 border rounded"
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-xs text-gray-500 mb-1">
+                                                                    Минут
+                                                                </label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={5}
+                                                                    step={5}
+                                                                    value={selected.duration_minutes ?? service.duration_minutes}
+                                                                    onChange={(e) =>
+                                                                        setSelectedServices((prev) =>
+                                                                            prev.map((s) =>
+                                                                                s.service_id === service.id
+                                                                                    ? {
+                                                                                        ...s,
+                                                                                        duration_minutes: Number(e.target.value),
+                                                                                    }
+                                                                                    : s
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    className="w-full p-2 border rounded"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
+                                    )}
 
-                                        {/* Индивидуальные настройки — показываем только если услуга выбрана */}
-                                        {isChecked && (
-                                            <div className="grid grid-cols-2 gap-4 mt-2">
-                                                <div>
-                                                    <label className="block text-xs text-gray-500">Инд. цена</label>
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        value={selected?.individual_price ?? service.base_price}
-                                                        onChange={(e) =>
-                                                            setSelectedServices((prev) =>
-                                                                prev.map((s) =>
-                                                                    s.service_id === service.id
-                                                                        ? { ...s, individual_price: Number(e.target.value) }
-                                                                        : s
-                                                                )
-                                                            )
-                                                        }
-                                                        className="w-full p-2 border rounded"
-                                                    />
-                                                </div>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="text"
+                                            value={serviceSearch}
+                                            onChange={(e) => {
+                                                setServiceSearch(e.target.value);
+                                                setIsServiceDropdownOpen(true);
+                                            }}
+                                            onFocus={() => setIsServiceDropdownOpen(true)}
+                                            placeholder="Поиск услуги"
+                                            className="flex-1 p-2 border rounded-lg"
+                                        />
 
-                                                <div>
-                                                    <label className="block text-xs text-gray-500">Минут</label>
-                                                    <input
-                                                        type="number"
-                                                        min={5}
-                                                        step={5}
-                                                        value={selected?.duration_minutes ?? service.duration_minutes}
-                                                        onChange={(e) =>
-                                                            setSelectedServices((prev) =>
-                                                                prev.map((s) =>
-                                                                    s.service_id === service.id
-                                                                        ? { ...s, duration_minutes: Number(e.target.value) }
-                                                                        : s
-                                                                )
-                                                            )
-                                                        }
-                                                        className="w-full p-2 border rounded"
-                                                    />
-                                                </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
+                                            className="w-10 h-10 rounded-lg border text-xl text-gray-600 hover:bg-gray-50"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+
+                                    {isServiceDropdownOpen && filteredServices.length > 0 && (
+                                        <div className="absolute left-2 right-2 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-lg border bg-white shadow-lg">
+                                            {filteredServices.map((service) => (
+                                                <button
+                                                    key={service.id}
+                                                    type="button"
+                                                    onClick={() => addService(service.id)}
+                                                    className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50"
+                                                >
+                                                    <span className="text-sm text-gray-800">{service.name}</span>
+                                                    <span className="text-sm text-gray-500">
+                                    {service.base_price}₽
+                                </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {isServiceDropdownOpen &&
+                                        filteredServices.length === 0 &&
+                                        serviceSearch.trim() !== "" && (
+                                            <div className="absolute left-2 right-2 top-full mt-2 z-20 rounded-lg border bg-white shadow-lg px-3 py-2 text-sm text-gray-500">
+                                                Ничего не найдено
                                             </div>
                                         )}
-                                    </div>
-                                );
-                            })}
+                                </div>
+                            </div>
 
                             {allServices.length === 0 && (
                                 <p className="text-gray-500 text-sm text-center">

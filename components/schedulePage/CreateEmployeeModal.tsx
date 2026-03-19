@@ -73,41 +73,57 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
 
+    const [serviceSearch, setServiceSearch] = useState("");
+    const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
 
     const queryClient = useQueryClient();
 
     // дефолтные даты графика
     useEffect(() => {
-        if (isOpen) {
-            const today = new Date();
-            const defaultStart = today.toISOString().split("T")[0];
-            const defaultEnd = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split("T")[0];
+        if (!isOpen) return;
 
-            setLocalStartDate(defaultStart);
-            setLocalEndDate(defaultEnd);
-            setPeriods([{ day: "mon", start: "09:00", end: "18:00" }]);
-        }
-    }, [isOpen]);
+        const today = new Date();
+        const defaultStart = today.toISOString().split("T")[0];
+        const defaultEnd = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
+            .toISOString()
+            .split("T")[0];
 
-    useEffect(() => {
-        if (isOpen) {
-            setSubmitError(null);
-            setIsSubmitting(false);
-        }
-    }, [isOpen]);
+        // Основные поля
+        setName("");
+        setLastName("");
+        setPhone("");
+        setSpecialty("");
+        setEmail("");
+        setHireDate("");
+        setRole("master");
 
-    useEffect(() => {
-        if (isOpen) {
-            setSuccess(false);
-            setSubmitError(null);
-        }
+        // Вкладка
+        setActiveTab("info");
+
+        // График
+        setLocalStartDate(defaultStart);
+        setLocalEndDate(defaultEnd);
+        setPeriods([{ day: "mon", start: "09:00", end: "18:00" }]);
+
+        // Услуги сотрудника
+        setSelectedServices([]);
+        setServiceSearch("");
+        setIsServiceDropdownOpen(false);
+
+        // Создание новой услуги
+        setNewServiceName("");
+        setNewServicePrice(0);
+        setNewServiceDuration(30);
+
+        // Статусы UI
+        setSubmitError(null);
+        setIsSubmitting(false);
+        setSuccess(false);
     }, [isOpen]);
 
     if (!isOpen) return null;
 
-    const toggleService = (serviceId: number) => {
+    /*const toggleService = (serviceId: number) => {
         setSelectedServices((prev) => {
             const exists = prev.find((s) => s.service_id === serviceId);
             if (exists) {
@@ -124,7 +140,54 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                 ];
             }
         });
+    };*/
+
+    const addService = (service: {
+        id: number;
+        name: string;
+        base_price: number;
+        duration_minutes: number;
+    }) => {
+        setSelectedServices((prev) => {
+            const exists = prev.some((s) => s.service_id === service.id);
+            if (exists) return prev;
+
+            return [
+                ...prev,
+                {
+                    service_id: service.id,
+                    individual_price: service.base_price,
+                    duration_minutes: service.duration_minutes,
+                },
+            ];
+        });
+
+        setServiceSearch("");
+        setIsServiceDropdownOpen(false);
     };
+
+    const removeService = (serviceId: number) => {
+        setSelectedServices((prev) => prev.filter((s) => s.service_id !== serviceId));
+    };
+
+    const changeSelectedQty = (serviceId: number, delta: number) => {
+        // если qty у тебя тут не нужен для employee services — этот кусок можно убрать
+    };
+
+    const filteredServices = allServices.filter((service) => {
+        const matchesSearch = service.name
+            .toLowerCase()
+            .includes(serviceSearch.toLowerCase());
+
+        const alreadySelected = selectedServices.some(
+            (s) => s.service_id === service.id
+        );
+
+        return matchesSearch && !alreadySelected;
+    });
+
+
+
 
 
     const getErrorMessage = (err: any) => {
@@ -432,11 +495,8 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                     )}
 
                     {activeTab === "services" && (
-
-
                         <div className="space-y-4">
-
-                            {/* === Новый блок создания услуги === */}
+                            {/* Новый блок создания услуги */}
                             <div className="border p-3 rounded bg-gray-50">
                                 <h4 className="font-semibold mb-2">Новая услуга</h4>
                                 <input
@@ -461,6 +521,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                     className="w-full p-2 border rounded mb-2"
                                 />
                                 <button
+                                    type="button"
                                     onClick={handleCreateService}
                                     className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
                                 >
@@ -468,63 +529,162 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                 </button>
                             </div>
 
+                            {/* Picker услуг */}
+                            <div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h4 className="font-semibold">Выберите услуги</h4>
+                                </div>
 
+                                <div className="border rounded-lg p-2 bg-white relative">
+                                    {/* Выбранные услуги */}
+                                    {selectedServices.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-3">
+                                            {selectedServices.map((selected) => {
+                                                const service = allServices.find(
+                                                    (item) => item.id === selected.service_id
+                                                );
+                                                if (!service) return null;
 
-                        <div className="space-y-3">
-                            {allServices.map((service) => {
-                                const selected = selectedServices.find((s) => s.service_id === service.id);
-                                const isChecked = !!selected;
+                                                return (
+                                                    <div
+                                                        key={selected.service_id}
+                                                        className="w-full rounded-lg border bg-gray-50 px-3 py-2"
+                                                    >
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <div className="min-w-0">
+                                                                <div className="font-medium text-sm text-gray-800 truncate">
+                                                                    {service.name}
+                                                                </div>
+                                                            </div>
 
-                                return (
-                                    <div key={service.id} className="p-3 border rounded-lg">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={isChecked}
-                                                onChange={() => toggleService(service.id)}
-                                                className="h-4 w-4 accent-blue-600"
-                                            />
-                                            <span className="font-medium">{service.name}</span>
-                                        </label>
-                                        {isChecked && (
-                                            <div className="grid grid-cols-2 gap-4 mt-2">
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    value={selected?.individual_price ?? service.base_price}
-                                                    onChange={(e) =>
-                                                        setSelectedServices((prev) =>
-                                                            prev.map((s) =>
-                                                                s.service_id === service.id
-                                                                    ? { ...s, individual_price: Number(e.target.value) }
-                                                                    : s
-                                                            )
-                                                        )
-                                                    }
-                                                    className="w-full p-2 border rounded"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    min={5}
-                                                    step={5}
-                                                    value={selected?.duration_minutes ?? service.duration_minutes}
-                                                    onChange={(e) =>
-                                                        setSelectedServices((prev) =>
-                                                            prev.map((s) =>
-                                                                s.service_id === service.id
-                                                                    ? { ...s, duration_minutes: Number(e.target.value) }
-                                                                    : s
-                                                            )
-                                                        )
-                                                    }
-                                                    className="w-full p-2 border rounded"
-                                                />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeService(selected.service_id)}
+                                                                className="text-gray-400 hover:text-red-500"
+                                                            >
+                                                                ×
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-2 gap-3 mt-3">
+                                                            <div>
+                                                                <label className="block text-xs text-gray-500 mb-1">
+                                                                    Индивидуальная цена
+                                                                </label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    value={
+                                                                        selected.individual_price ??
+                                                                        service.base_price
+                                                                    }
+                                                                    onChange={(e) =>
+                                                                        setSelectedServices((prev) =>
+                                                                            prev.map((s) =>
+                                                                                s.service_id === service.id
+                                                                                    ? {
+                                                                                        ...s,
+                                                                                        individual_price: Number(
+                                                                                            e.target.value
+                                                                                        ),
+                                                                                    }
+                                                                                    : s
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    className="w-full p-2 border rounded"
+                                                                />
+                                                            </div>
+
+                                                            <div>
+                                                                <label className="block text-xs text-gray-500 mb-1">
+                                                                    Длительность, мин
+                                                                </label>
+                                                                <input
+                                                                    type="number"
+                                                                    min={5}
+                                                                    step={5}
+                                                                    value={
+                                                                        selected.duration_minutes ??
+                                                                        service.duration_minutes
+                                                                    }
+                                                                    onChange={(e) =>
+                                                                        setSelectedServices((prev) =>
+                                                                            prev.map((s) =>
+                                                                                s.service_id === service.id
+                                                                                    ? {
+                                                                                        ...s,
+                                                                                        duration_minutes: Number(
+                                                                                            e.target.value
+                                                                                        ),
+                                                                                    }
+                                                                                    : s
+                                                                            )
+                                                                        )
+                                                                    }
+                                                                    className="w-full p-2 border rounded"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* Поиск + кнопка */}
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="text"
+                                            value={serviceSearch}
+                                            onChange={(e) => {
+                                                setServiceSearch(e.target.value);
+                                                setIsServiceDropdownOpen(true);
+                                            }}
+                                            onFocus={() => setIsServiceDropdownOpen(true)}
+                                            placeholder="Search"
+                                            className="flex-1 p-2 border rounded-lg"
+                                        />
+
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
+                                            className="w-10 h-10 rounded-lg border text-xl text-gray-600 hover:bg-gray-50"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+
+                                    {/* Dropdown */}
+                                    {isServiceDropdownOpen && filteredServices.length > 0 && (
+                                        <div className="absolute left-2 right-2 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-lg border bg-white shadow-lg">
+                                            {filteredServices.map((service) => (
+                                                <button
+                                                    key={service.id}
+                                                    type="button"
+                                                    onClick={() => addService(service)}
+                                                    className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50"
+                                                >
+                                <span className="text-sm text-gray-800">
+                                    {service.name}
+                                </span>
+                                                    <span className="text-sm text-gray-500">
+                                    {service.base_price}₽
+                                </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {isServiceDropdownOpen &&
+                                        filteredServices.length === 0 &&
+                                        serviceSearch.trim() !== "" && (
+                                            <div className="absolute left-2 right-2 top-full mt-2 z-20 rounded-lg border bg-white shadow-lg px-3 py-2 text-sm text-gray-500">
+                                                Ничего не найдено
                                             </div>
                                         )}
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
