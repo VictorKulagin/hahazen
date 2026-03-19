@@ -328,200 +328,200 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                         <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
 
-                {/* 1. Поиск клиента */}
-                    <ClientAutocomplete
-                        onSelect={(client: Client) => {
-                            setSelectedClientId(client.id ?? null);
-                            setName(client.name ?? "");
-                            setLastName(client.last_name ?? "");
-                            setPhone(client.phone ?? "");
-                            setShowClientFields(true);
-                        }}
-                    />
+                            {/* 1. Поиск клиента */}
+                            <ClientAutocomplete
+                                onSelect={(client: Client) => {
+                                    setSelectedClientId(client.id ?? null);
+                                    setName(client.name ?? "");
+                                    setLastName(client.last_name ?? "");
+                                    setPhone(client.phone ?? "");
+                                    setShowClientFields(true);
+                                }}
+                            />
 
-                    {/* 2. Просмотр клиента */}
-                    {showClientFields && !isEditingClient && (
-                        <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-                            {/* Блок с именем клиента */}
-                            <div className="flex items-center mb-3">
-                                <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
-                                    <span className="text-gray-500 text-lg">👤</span>
-                                </div>
-                                <div>
-                                    <div className="font-semibold text-gray-800">{name}</div>
-                                    <div className="text-gray-600 text-sm">{phone}</div>
-                                </div>
-                            </div>
+                            {/* 2. Просмотр клиента */}
+                            {showClientFields && !isEditingClient && (
+                                <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+                                    {/* Блок с именем клиента */}
+                                    <div className="flex items-center mb-3">
+                                        <div
+                                            className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center mr-3">
+                                            <span className="text-gray-500 text-lg">👤</span>
+                                        </div>
+                                        <div>
+                                            <div className="font-semibold text-gray-800">{name}</div>
+                                            <div className="text-gray-600 text-sm">{phone}</div>
+                                        </div>
+                                    </div>
 
-                            {/* Фамилия отдельно (если нужна) */}
-                            {lastName && (
-                                <div className="text-gray-700 text-sm mb-2">
-                                    <b>Фамилия:</b> {lastName}
+                                    {/* Фамилия отдельно (если нужна) */}
+                                    {lastName && (
+                                        <div className="text-gray-700 text-sm mb-2">
+                                            <b>Фамилия:</b> {lastName}
+                                        </div>
+                                    )}
+
+                                    {/* Кнопки */}
+                                    <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsEditingClient(true)}
+                                            className="px-3 py-1 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition"
+                                        >
+                                            ✏️ Редактировать
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={resetClient}
+                                            className="px-3 py-1 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
+                                        >
+                                            ⟳ Сбросить
+                                        </button>
+                                    </div>
                                 </div>
                             )}
 
-                            {/* Кнопки */}
-                            <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditingClient(true)}
-                                    className="px-3 py-1 rounded-lg text-sm font-medium text-blue-600 hover:bg-blue-50 transition"
-                                >
-                                    ✏️ Редактировать
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={resetClient}
-                                    className="px-3 py-1 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition"
-                                >
-                                    ⟳ Сбросить
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                            {showClientFields && isEditingClient && (
+                                <div className="bg-gray-50 p-4 rounded border space-y-2">
+                                    <input
+                                        type="text"
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={lastName}
+                                        onChange={(e) => setLastName(e.target.value)}
+                                        className="w-full p-2 border rounded"
+                                    />
+                                    <input
+                                        type="tel"
+                                        value={phone}
+                                        onChange={(e) => setPhone(e.target.value)}
+                                        className="w-full p-2 border rounded"
+                                    />
 
-                    {showClientFields && isEditingClient && (
-                        <div className="bg-gray-50 p-4 rounded border space-y-2">
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="w-full p-2 border rounded"
-                            />
-                            <input
-                                type="text"
-                                value={lastName}
-                                onChange={(e) => setLastName(e.target.value)}
-                                className="w-full p-2 border rounded"
-                            />
-                            <input
-                                type="tel"
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                className="w-full p-2 border rounded"
-                            />
-
-                            <div className="flex justify-end gap-6 pt-3 border-t border-gray-200">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsEditingClient(false)}
-                                    className="text-gray-500 hover:underline"
-                                >
-                                    Отмена
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={handleUpdateClient}
-                                    disabled={updating}
-                                    className="text-blue-600 hover:underline"
-                                >
-                                    💾 {updating ? "Сохранение..." : "Сохранить"}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 3. Время */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block mb-1 font-semibold">Время начала</label>
-                            <input
-                                type="time"
-                                value={timeStart}
-                                onChange={(e) => setTimeStart(e.target.value)}
-                                className="w-full p-2 border rounded"
-                                required
-                            />
-                            <div className="flex justify-between mt-2">
-                                <button
-                                    type="button"
-                                    className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-                                    onClick={() => adjustTime("start", -15)}
-                                >
-                                    −15 мин
-                                </button>
-                                <button
-                                    type="button"
-                                    className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-                                    onClick={() => adjustTime("start", 15)}
-                                >
-                                    +15 мин
-                                </button>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block mb-1 font-semibold">Время окончания</label>
-                            <input
-                                type="time"
-                                value={timeEnd}
-                                onChange={(e) => setTimeEnd(e.target.value)}
-                                className="w-full p-2 border rounded"
-                                required
-                            />
-                            <div className="flex justify-between mt-2">
-                                <button
-                                    type="button"
-                                    className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-                                    onClick={() => adjustTime("end", -15)}
-                                >
-                                    −15 мин
-                                </button>
-                                <button
-                                    type="button"
-                                    className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-                                    onClick={() => adjustTime("end", 15)}
-                                >
-                                    +15 мин
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* 4. Услуги */}
-                    <div>
-                        <h3 className="font-semibold mb-2">Выберите услуги</h3>
-                        {isLoading ? (
-                            <p className="text-sm text-gray-500">Загрузка...</p>
-                        ) : services.length === 0 ? (
-                            <p className="text-sm text-gray-500">У мастера нет привязанных услуг</p>
-                        ) : (
-                            <ul className="space-y-3">
-                                {services.map((item) => {
-                                    const selected = selectedServices.find((s) => s.id === item.service_id);
-                                    const price = item.individual_price ?? item.base_price;
-
-                                    return (
-                                        <li
-                                            key={item.service_id}
-                                            className="flex items-center justify-between p-3 border rounded-2xl shadow-sm hover:shadow-md transition"
+                                    <div className="flex justify-end gap-6 pt-3 border-t border-gray-200">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsEditingClient(false)}
+                                            className="text-gray-500 hover:underline"
                                         >
-                                            <label className="flex items-center gap-3 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={!!selected}
-                                                    onChange={() => toggleService(item.service_id)}
-                                                    className="w-5 h-5 accent-blue-600"
-                                                />
-                                                <span className="font-medium text-gray-800">{item.name}</span>
-                                                <span className="text-sm text-gray-500">{price}₽</span>
-                                            </label>
+                                            Отмена
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleUpdateClient}
+                                            disabled={updating}
+                                            className="text-blue-600 hover:underline"
+                                        >
+                                            💾 {updating ? "Сохранение..." : "Сохранить"}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
 
-                                            {selected && (
-                                                <input
-                                                    type="number"
-                                                    min={1}
-                                                    value={selected.qty}
-                                                    onChange={(e) => updateQty(item.service_id, Number(e.target.value))}
-                                                    className="w-16 p-1 border rounded-lg text-center focus:ring-2 focus:ring-blue-500"
-                                                />
-                                            )}
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
-                    </div>
+                            {/* 3. Время */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block mb-1 font-semibold">Время начала</label>
+                                    <input
+                                        type="time"
+                                        value={timeStart}
+                                        onChange={(e) => setTimeStart(e.target.value)}
+                                        className="w-full p-2 border rounded"
+                                        required
+                                    />
+                                    <div className="flex justify-between mt-2">
+                                        <button
+                                            type="button"
+                                            className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
+                                            onClick={() => adjustTime("start", -15)}
+                                        >
+                                            −15 мин
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
+                                            onClick={() => adjustTime("start", 15)}
+                                        >
+                                            +15 мин
+                                        </button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block mb-1 font-semibold">Время окончания</label>
+                                    <input
+                                        type="time"
+                                        value={timeEnd}
+                                        onChange={(e) => setTimeEnd(e.target.value)}
+                                        className="w-full p-2 border rounded"
+                                        required
+                                    />
+                                    <div className="flex justify-between mt-2">
+                                        <button
+                                            type="button"
+                                            className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
+                                            onClick={() => adjustTime("end", -15)}
+                                        >
+                                            −15 мин
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
+                                            onClick={() => adjustTime("end", 15)}
+                                        >
+                                            +15 мин
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
 
+                            {/* 4. Услуги */}
+                            <div>
+                                <h3 className="font-semibold mb-2">Выберите услуги</h3>
+                                {isLoading ? (
+                                    <p className="text-sm text-gray-500">Загрузка...</p>
+                                ) : services.length === 0 ? (
+                                    <p className="text-sm text-gray-500">У мастера нет привязанных услуг</p>
+                                ) : (
+                                    <ul className="space-y-3">
+                                        {services.map((item) => {
+                                            const selected = selectedServices.find((s) => s.id === item.service_id);
+                                            const price = item.individual_price ?? item.base_price;
+
+                                            return (
+                                                <li
+                                                    key={item.service_id}
+                                                    className="flex items-center justify-between p-3 border rounded-2xl shadow-sm hover:shadow-md transition"
+                                                >
+                                                    <label className="flex items-center gap-3 cursor-pointer">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={!!selected}
+                                                            onChange={() => toggleService(item.service_id)}
+                                                            className="w-5 h-5 accent-blue-600"
+                                                        />
+                                                        <span className="font-medium text-gray-800">{item.name}</span>
+                                                        <span className="text-sm text-gray-500">{price}₽</span>
+                                                    </label>
+
+                                                    {selected && (
+                                                        <input
+                                                            type="number"
+                                                            min={1}
+                                                            value={selected.qty}
+                                                            onChange={(e) => updateQty(item.service_id, Number(e.target.value))}
+                                                            className="w-16 p-1 border rounded-lg text-center focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                    )}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                )}
+                            </div>
 
 
                             {/* 4. Статусы и оплата */}
@@ -556,83 +556,86 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                                 <div>
                                     <span className="block mb-2 font-semibold">Статус визита</span>
-                                    <div className="space-y-2 rounded border p-3">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="visitStatus"
-                                                value="expected"
-                                                checked={visitStatus === "expected"}
-                                                onChange={() => setVisitStatus("expected")}
-                                                className="accent-blue-600"
-                                            />
-                                            <span>Ожидается</span>
-                                        </label>
+                                    <div className="inline-flex w-full rounded-lg border overflow-hidden bg-white">
+                                        <button
+                                            type="button"
+                                            onClick={() => setVisitStatus("expected")}
+                                            className={`flex-1 px-3 py-2 text-sm transition-colors ${
+                                                visitStatus === "expected"
+                                                    ? "bg-blue-100 text-blue-700 font-medium"
+                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            Ожидается
+                                        </button>
 
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="visitStatus"
-                                                value="arrived"
-                                                checked={visitStatus === "arrived"}
-                                                onChange={() => setVisitStatus("arrived")}
-                                                className="accent-blue-600"
-                                            />
-                                            <span>Пришел</span>
-                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setVisitStatus("arrived")}
+                                            className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                visitStatus === "arrived"
+                                                    ? "bg-green-100 text-green-700 font-medium"
+                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            Пришел
+                                        </button>
 
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="visitStatus"
-                                                value="no_show"
-                                                checked={visitStatus === "no_show"}
-                                                onChange={() => setVisitStatus("no_show")}
-                                                className="accent-blue-600"
-                                            />
-                                            <span>Не пришел</span>
-                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setVisitStatus("no_show")}
+                                            className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                visitStatus === "no_show"
+                                                    ? "bg-red-100 text-red-700 font-medium"
+                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            Не пришел
+                                        </button>
                                     </div>
                                 </div>
 
                                 <div>
                                     <span className="block mb-2 font-semibold">Статус оплаты</span>
-                                    <div className="space-y-2 rounded border p-3">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="paymentStatus"
-                                                value="unpaid"
-                                                checked={paymentStatus === "unpaid"}
-                                                onChange={() => setPaymentStatus("unpaid")}
-                                                className="accent-blue-600"
-                                            />
-                                            <span>Не оплачено</span>
-                                        </label>
+                                    <div className="inline-flex w-full rounded-lg border overflow-hidden bg-white">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setPaymentStatus("unpaid");
+                                                setPaymentMethod(null);
+                                            }}
+                                            className={`flex-1 px-3 py-2 text-sm transition-colors ${
+                                                paymentStatus === "unpaid"
+                                                    ? "bg-gray-100 text-gray-800 font-medium"
+                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            Не оплачено
+                                        </button>
 
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="paymentStatus"
-                                                value="paid"
-                                                checked={paymentStatus === "paid"}
-                                                onChange={() => setPaymentStatus("paid")}
-                                                className="accent-blue-600"
-                                            />
-                                            <span>Оплачено</span>
-                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setPaymentStatus("partial")}
+                                            className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                paymentStatus === "partial"
+                                                    ? "bg-yellow-100 text-yellow-700 font-medium"
+                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            Частично
+                                        </button>
 
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="paymentStatus"
-                                                value="partial"
-                                                checked={paymentStatus === "partial"}
-                                                onChange={() => setPaymentStatus("partial")}
-                                                className="accent-blue-600"
-                                            />
-                                            <span>Частично</span>
-                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setPaymentStatus("paid")}
+                                            className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                paymentStatus === "paid"
+                                                    ? "bg-green-500 text-white font-medium"
+                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                            }`}
+                                        >
+                                            Оплачено
+                                        </button>
                                     </div>
                                 </div>
 
@@ -657,7 +660,6 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                     </select>
                                 </div>
                             </div>
-
 
 
                         </div>
