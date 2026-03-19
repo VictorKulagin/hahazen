@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useEmployeeServices } from "@/hooks/useServices";
 import { useUpdateAppointment, useDeleteAppointment } from "@/hooks/useAppointments";
 import { useUpdateClient } from "@/hooks/useClient";
-
+import { XMarkIcon } from "@heroicons/react/24/outline";
 interface UpdateEventModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -45,6 +45,9 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
     const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "transfer" | null>(null);
     const [visitStatus, setVisitStatus] = useState<"expected" | "arrived" | "no_show">("expected");
 
+    const [serviceSearch, setServiceSearch] = useState("");
+    const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+
     const { mutateAsync: updateAppointmentMutate, isPending: isUpdating } = useUpdateAppointment();
     const { mutateAsync: updateClientMutate, isPending: updatingClient } = useUpdateClient();
     const { mutateAsync: deleteAppointmentMutate, isPending: isDeleting } = useDeleteAppointment();
@@ -57,7 +60,6 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
         setLastName(eventData.client?.last_name ?? "");
         setPhone(eventData.client?.phone ?? "");
 
-        // всегда храним service_id
         setSelectedServices(
             (eventData.services ?? []).map((s) => ({
                 id: s.id,
@@ -75,6 +77,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
         setIsManualCost(false);
 
         setIsEditingClient(false);
+        setServiceSearch("");
+        setIsServiceDropdownOpen(false);
     }, [eventData, isOpen]);
 
     useEffect(() => {
@@ -98,12 +102,37 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
         setCost(calculateServicesCost());
     }, [selectedServices, services, isManualCost]);
 
-    const toggleService = (serviceId: number) => {
+    /*const toggleService = (serviceId: number) => {
         setSelectedServices((prev) =>
             prev.some((s) => s.id === serviceId)
                 ? prev.filter((s) => s.id !== serviceId)
                 : [...prev, { id: serviceId, qty: 1 }]
         );
+    };*/
+
+    const addService = (serviceId: number) => {
+        setSelectedServices((prev) => {
+            const exists = prev.some((s) => s.id === serviceId);
+            if (exists) return prev;
+            return [...prev, { id: serviceId, qty: 1 }];
+        });
+
+        setServiceSearch("");
+        setIsServiceDropdownOpen(false);
+    };
+
+    const filteredServices = services.filter((item) => {
+        const matchesSearch = item.name
+            .toLowerCase()
+            .includes(serviceSearch.toLowerCase());
+
+        const alreadySelected = selectedServices.some((s) => s.id === item.service_id);
+
+        return matchesSearch && !alreadySelected;
+    });
+
+    const removeService = (serviceId: number) => {
+        setSelectedServices((prev) => prev.filter((s) => s.id !== serviceId));
     };
     const updateQty = (serviceId: number, qty: number) => {
         if (qty < 1) qty = 1;
@@ -250,46 +279,123 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
 
                             {/* Услуги */}
                             <div>
-                                <h3 className="font-semibold mb-2">Выберите услуги</h3>
+                                <div className="flex items-center justify-between mb-2">
+                                    <h3 className="font-semibold">Выберите услуги</h3>
+                                    <span className="text-sm text-gray-500">Qty</span>
+                                </div>
+
                                 {isLoading ? (
                                     <p className="text-sm text-gray-500">Загрузка...</p>
                                 ) : services.length === 0 ? (
                                     <p className="text-sm text-gray-500">Нет услуг у этого мастера</p>
                                 ) : (
-                                    <ul className="space-y-3">
-                                        {services.map((svc) => {
-                                            const selected = selectedServices.find((s) => s.id === svc.service_id);
-                                            const price = svc.individual_price ?? svc.base_price;
+                                    <div className="border rounded-lg p-2 bg-white relative">
+                                        {selectedServices.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mb-3">
+                                                {selectedServices.map((selected) => {
+                                                    const service = services.find((item) => item.service_id === selected.id);
+                                                    if (!service) return null;
 
-                                            return (
-                                                <li
-                                                    key={svc.service_id}
-                                                    className="flex items-center justify-between p-3 border rounded-2xl shadow-sm hover:shadow-md transition"
-                                                >
-                                                    <label className="flex items-center gap-3 cursor-pointer">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={!!selected}
-                                                            onChange={() => toggleService(svc.service_id)}
-                                                            className="w-5 h-5 accent-blue-600"
-                                                        />
-                                                        <span className="font-medium text-gray-800">{svc.name}</span>
-                                                        <span className="text-sm text-gray-500">{price}₽</span>
-                                                    </label>
+                                                    const price = service.individual_price ?? service.base_price;
 
-                                                    {selected && (
-                                                        <input
-                                                            type="number"
-                                                            min={1}
-                                                            value={selected.qty}
-                                                            onChange={(e) => updateQty(svc.service_id, Number(e.target.value))}
-                                                            className="w-16 p-1 border rounded-lg text-center"
-                                                        />
-                                                    )}
-                                                </li>
-                                            );
-                                        })}
-                                    </ul>
+                                                    return (
+                                                        <div
+                                                            key={selected.id}
+                                                            className="flex items-center gap-2 rounded-full bg-gray-100 border px-3 py-1.5"
+                                                        >
+                                <span className="text-sm font-medium text-gray-800">
+                                    {service.name}
+                                </span>
+
+                                                            <span className="text-sm text-gray-500">
+                                    {price}₽
+                                </span>
+
+                                                            <div className="flex items-center gap-1 ml-1">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => updateQty(selected.id, selected.qty - 1)}
+                                                                    className="w-6 h-6 rounded-full border bg-white text-sm hover:bg-gray-50"
+                                                                >
+                                                                    -
+                                                                </button>
+
+                                                                <span className="min-w-[20px] text-center text-sm">
+                                        {selected.qty}
+                                    </span>
+
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => updateQty(selected.id, selected.qty + 1)}
+                                                                    className="w-6 h-6 rounded-full border bg-white text-sm hover:bg-gray-50"
+                                                                >
+                                                                    +
+                                                                </button>
+                                                            </div>
+
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeService(selected.id)}
+                                                                className="ml-1 text-gray-400 hover:text-red-500"
+                                                            >
+                                                                <XMarkIcon className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+
+                                        <div className="flex items-center gap-2">
+                                            <input
+                                                type="text"
+                                                value={serviceSearch}
+                                                onChange={(e) => {
+                                                    setServiceSearch(e.target.value);
+                                                    setIsServiceDropdownOpen(true);
+                                                }}
+                                                onFocus={() => setIsServiceDropdownOpen(true)}
+                                                placeholder="Search"
+                                                className="flex-1 p-2 border rounded-lg"
+                                            />
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
+                                                className="w-10 h-10 rounded-lg border text-xl text-gray-600 hover:bg-gray-50"
+                                            >
+                                                +
+                                            </button>
+                                        </div>
+
+                                        {isServiceDropdownOpen && filteredServices.length > 0 && (
+                                            <div className="absolute left-2 right-2 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-lg border bg-white shadow-lg">
+                                                {filteredServices.map((item) => {
+                                                    const price = item.individual_price ?? item.base_price;
+
+                                                    return (
+                                                        <button
+                                                            key={item.service_id}
+                                                            type="button"
+                                                            onClick={() => addService(item.service_id)}
+                                                            className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50"
+                                                        >
+                                                            <span className="text-sm text-gray-800">{item.name}</span>
+                                                            <span className="text-sm text-gray-500">{price}₽</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+
+                                        {isServiceDropdownOpen &&
+                                            filteredServices.length === 0 &&
+                                            serviceSearch.trim() !== "" && (
+                                                <div className="absolute left-2 right-2 top-full mt-2 z-20 rounded-lg border bg-white shadow-lg px-3 py-2 text-sm text-gray-500">
+                                                    Ничего не найдено
+                                                </div>
+                                            )}
+                                    </div>
                                 )}
                             </div>
 
