@@ -344,7 +344,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 </button>
 
 
-                <div className="bg-white rounded p-2 w-full max-w-md text-black">
+                {/*<div className="bg-white rounded p-2 w-full max-w-md text-black">*/}
+                <div className="bg-white rounded p-2 w-full max-w-md text-black h-full flex flex-col min-h-0">
                 <h2 className="text-lg font-bold mb-4">Создать новое событие</h2>
 
                 <div className="...">
@@ -358,8 +359,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                     </div>
                 </div>
 
-                    <form onSubmit={handleSubmit} className="max-h-screen overflow-y-auto flex flex-col">
-
+                    {/*<form onSubmit={handleSubmit} className="max-h-screen overflow-y-auto flex flex-col">*/}
+                    <form className="flex flex-col h-full min-h-0">
                         <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
 
                             {/* 1. Поиск клиента */}
@@ -774,10 +775,14 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                             </div>
 
 
+
+
                         </div>
 
-                    {/* 5. Кнопки сохранения события */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 px-6">
+
+                        {/* 5. Кнопки сохранения события */}
+                        {/*<div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 px-6">*/}
+                        <div className="shrink-0 bg-white border-t border-gray-200 py-4 px-6">
                             <div className="flex justify-end mb-3">
                                 {submitError && (
                                     <div
@@ -817,11 +822,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                 </button>
                             </div>
                         </div>
+
                 </form>
             </div>
             </div>
         </div>
     );
 };
-
 export default CreateEventModal;
