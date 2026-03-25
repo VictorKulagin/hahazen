@@ -360,7 +360,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 </div>
 
                     {/*<form onSubmit={handleSubmit} className="max-h-screen overflow-y-auto flex flex-col">*/}
-                    <form className="flex flex-col h-full min-h-0">
+                    <form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0">
                         <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
 
                             {/* 1. Поиск клиента */}
