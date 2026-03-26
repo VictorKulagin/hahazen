@@ -10,7 +10,7 @@ import Pagination from '@/components/Pagination';
 import SidebarMenu from "@/components/SidebarMenu";
 
 
-import { Phone, Pencil } from "lucide-react";
+import { Phone, Pencil, UserCircle2 } from "lucide-react";
 
 
 
@@ -696,61 +696,56 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                         </div>
                                                     ) : clientsData?.clients && clientsData.clients.length > 0 ? (
                                                         <>
-                                                            <ul className="divide-y divide-slate-200 border border-slate-200 rounded-lg bg-white">
+                                                            <div className="space-y-3">
                                                                 {clientsData.clients.map((client) => (
-                                                                    <li
+                                                                    <div
                                                                         key={client.id}
                                                                         onClick={
                                                                             authStorage.has("master:create")
                                                                                 ? () => setSelectedClientId(client.id ?? null)
                                                                                 : undefined
                                                                         }
-                                                                        className={`
-        grid grid-cols-[1.4fr_1fr_.3fr]
-        items-center
-        px-4 py-4
-        bg-white
-        hover:bg-slate-50
-        transition-colors
-        ${authStorage.has("master:create") ? "cursor-pointer" : "cursor-default"}
-      `}
+                                                                        className={`rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 shadow-sm transition hover:bg-white ${
+                                                                            authStorage.has("master:create") ? "cursor-pointer" : "cursor-default"
+                                                                        }`}
                                                                     >
-                                                                        <div className="min-w-0 pr-4">
-                                                                            <p className="font-semibold truncate text-slate-900">
-                                                                                {client.name} {client.last_name}
-                                                                            </p>
-                                                                        </div>
+                                                                        <div className="flex items-center justify-between gap-3">
+                                                                            <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                                                <div className="shrink-0 text-slate-300">
+                                                                                    <UserCircle2 size={44} strokeWidth={1.5} />
+                                                                                </div>
 
-                                                                        <div className="truncate text-slate-800">
-                                                                            {authStorage.has("master:create") && (
-                                                                                <p className="flex items-center gap-2 text-slate-700">
-                                                                                    <Phone size={16} className="text-slate-400 shrink-0" />
-                                                                                    {client.phone || (
-                                                                                        <span className="text-slate-400 italic">–</span>
-                                                                                    )}
-                                                                                </p>
-                                                                            )}
-                                                                        </div>
+                                                                                <div className="min-w-0">
+                                                                                    <div className="text-base font-semibold text-slate-900 truncate">
+                                                                                        {[client.name, client.last_name].filter(Boolean).join(" ")}
+                                                                                    </div>
 
-                                                                        <div className="flex justify-end pr-2 font-medium text-slate-800">
-                                                                            {authStorage.has("master:create") && (
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        setEditingClientId(client.id ?? null); // если модалке нужен selectedClient
-                                                                                        setIsEditModalOpen(true);
-                                                                                    }}
-                                                                                    className="p-1 rounded hover:bg-slate-100 transition-colors"
-                                                                                    title="Редактировать"
-                                                                                >
-                                                                                    <Pencil size={16} className="text-slate-400 hover:text-slate-700 transition-colors" />
-                                                                                </button>
-                                                                            )}
+                                                                                    <div className="text-sm text-slate-500 truncate">
+                                                                                        {client.phone || "— не указан —"}
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+
+                                                                            <div className="flex items-center gap-2 shrink-0">
+                                                                                {authStorage.has("master:create") && (
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation();
+                                                                                            setEditingClientId(client.id ?? null);
+                                                                                            setIsEditModalOpen(true);
+                                                                                        }}
+                                                                                        className="inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200 transition"
+                                                                                    >
+                                                                                        <Pencil size={14} />
+                                                                                        <span className="hidden sm:inline">Редактировать</span>
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
-                                                                    </li>
+                                                                    </div>
                                                                 ))}
-                                                            </ul>
+                                                            </div>
 
                                                             <Pagination
                                                                 page={page}
