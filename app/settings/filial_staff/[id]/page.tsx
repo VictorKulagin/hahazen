@@ -26,7 +26,7 @@ import Image from "next/image";
 import Loader from "@/components/Loader";
 import { authStorage } from "@/services/authStorage";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, UserCircle2 } from "lucide-react";
 
 const Page: React.FC = ( ) => {
 
@@ -518,75 +518,77 @@ const EmployeesTable = ({
     handleDelete: (id: number) => void;
 }) => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
+        <div className="grid grid-cols-1 gap-4 mt-6">
             <section className="bg-white text-black p-4 rounded shadow">
-                <h2 className="text-lg font-semibold mb-2">Сотрудники</h2>
+                <h2 className="text-lg font-semibold mb-3">Сотрудники</h2>
 
-                <div className="overflow-auto">
-                    {loading ? (
-                        <div className="text-center text-gray-500">Загрузка...</div>
-                    ) : error ? (
-                        <div className="text-center text-red-500">Ошибка: {error}</div>
-                    ) : employees.length === 0 ? (
-                        <div className="text-center text-gray-500">Нет данных</div>
-                    ) : (
-                        <div className="md:overflow-x-visible overflow-x-auto">
-                            <table className="w-full border-collapse border border-gray-300 min-w-[600px]">
-                                <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border p-2 text-left">Имя</th>
-                                    <th className="border p-2 text-left">Специализация</th>
-                                    <th className="border p-2 text-left hidden sm:table-cell">Email</th>
-                                    <th className="border p-2 text-left hidden xs:table-cell">Телефон</th>
-                                    <th className="border p-2 text-left">Дата найма</th>
-                                    {authStorage.has("master:update") && (
-                                        <th className="border p-2 w-0.5"></th>
-                                    )}
-                                    {authStorage.has("master:delete") && (
-                                        <th className="border p-2 w-0.5"></th>
-                                    )}
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {employees.map((employee) => (
-                                    <tr key={employee.id} className="hover:bg-gray-50">
-                                        <td className="border p-2">{employee.name}</td>
-                                        <td className="border p-2">{employee.specialty}</td>
-                                        <td className="border p-2 hidden sm:table-cell break-all">
-                                            {employee.email}
-                                        </td>
-                                        <td className="border p-2 hidden xs:table-cell">{employee.phone}</td>
-                                        <td className="border p-2">{employee.hire_date}</td>
+                {loading ? (
+                    <div className="text-center text-gray-500">Загрузка...</div>
+                ) : error ? (
+                    <div className="text-center text-red-500">Ошибка: {error}</div>
+                ) : employees.length === 0 ? (
+                    <div className="text-center text-gray-500">Нет данных</div>
+                ) : (
+                    <div className="space-y-3">
+                        {employees.map((employee) => (
+                            <div
+                                key={employee.id}
+                                className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 shadow-sm"
+                            >
+                                <div className="flex items-center justify-between gap-3">
+                                    {/* Левая часть */}
+                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                        <div className="shrink-0 text-slate-300">
+                                            <UserCircle2 size={44} strokeWidth={1.5} />
+                                        </div>
+
+                                        <div className="min-w-0">
+                                            <div className="text-base font-semibold text-slate-900 truncate">
+                                                {employee.name}
+                                            </div>
+
+                                            <div className="text-sm text-slate-500 truncate">
+                                                {employee.specialty || "— не указано —"}
+                                            </div>
+
+                                            <div className="hidden md:block text-xs text-slate-400 mt-1">
+                                                Дата найма: {employee.hire_date || "— не указана —"}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Правая часть */}
+                                    <div className="flex items-center gap-2 shrink-0">
                                         {authStorage.has("master:update") && (
-                                            <td className="border p-2">
-                                                <button
-                                                    onClick={() => handleEdit(employee)}
-                                                    className="block mx-auto"
-                                                >
-                                                    <Pencil size={16} className="text-slate-400 hover:text-slate-600 transition" />
-                                                </button>
-                                            </td>
+                                            <button
+                                                onClick={() => handleEdit(employee)}
+                                                className="inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200 transition"
+                                            >
+                                                <Pencil size={14} />
+                                                <span className="hidden sm:inline">Редактировать</span>
+                                            </button>
                                         )}
+
                                         {authStorage.has("master:delete") && (
-                                            <td className="border p-2">
-                                                <button
-                                                    onClick={() => handleDelete(employee.id)}
-                                                    className="block mx-auto"
-                                                >
-                                                    <Trash2
-                                                        size={16}
-                                                        className="text-slate-400 hover:text-red-500 transition"
-                                                    />
-                                                </button>
-                                            </td>
+                                            <button
+                                                onClick={() => handleDelete(employee.id)}
+                                                className="inline-flex items-center justify-center rounded-md bg-red-500 p-2 text-white hover:bg-red-600 transition"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         )}
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
+                                    </div>
+                                </div>
+
+                                {/* Доп. информация для десктопа */}
+                                <div className="hidden lg:flex items-center gap-4 mt-3 pl-[56px] text-xs text-slate-400">
+                                    {employee.email && <span>Email: {employee.email}</span>}
+                                    {employee.phone && <span>Телефон: {employee.phone}</span>}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </section>
         </div>
     );

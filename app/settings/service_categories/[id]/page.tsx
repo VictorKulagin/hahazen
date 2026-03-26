@@ -474,58 +474,45 @@ const ServicesTable = ({
                     ) : services.length === 0 ? (
                         <div className="text-center text-gray-500">Нет данных</div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full border-collapse border border-gray-300 min-w-[400px]">
-                                <thead>
-                                <tr className="bg-gray-100">
-                                    <th className="border p-2 text-left whitespace-nowrap">Услуга</th>
-                                    <th className="border p-2 text-left whitespace-nowrap">Длительность</th>
-                                    <th className="border p-2 text-left whitespace-nowrap">Цена</th>
-                                    {authStorage.has("master:update") && (
-                                        <th className="border p-2 w-0.5"></th>
-                                    )}
-                                    {authStorage.has("master:delete") && (
-                                        <th className="border p-2 w-0.5"></th>
-                                    )}
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {services.map((service) => (
-                                    <tr key={service.id} className="hover:bg-gray-50">
-                                        <td className="border p-2 whitespace-nowrap">{service.name}</td>
-                                        <td className="border p-2 whitespace-nowrap">
-                                            {service.duration_minutes} мин
-                                        </td>
-                                        <td className="border p-2 whitespace-nowrap">
-                                            {service.base_price} ₽
-                                        </td>
+                        <div className="space-y-3">
+                            {services.map((service) => (
+                                <div
+                                    key={service.id}
+                                    className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm"
+                                >
+                                    {/* Левая часть */}
+                                    <div>
+                                        <div className="font-semibold text-gray-800">
+                                            {service.name}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                            {service.duration_minutes} мин • {service.base_price} ₽
+                                        </div>
+                                    </div>
+
+                                    {/* Правая часть */}
+                                    <div className="flex items-center gap-2">
                                         {authStorage.has("master:update") && (
-                                            <td className="border p-2">
-                                                <button
-                                                    onClick={() => setSelectedService(service)} // 👈 открываем конкретную услугу
-                                                    className="p-1 hover:bg-gray-100 rounded-full"
-                                                >
-                                                    <Pencil size={16} className="text-slate-400 hover:text-slate-600 transition" />
-                                                </button>
-                                            </td>
+                                            <button
+                                                onClick={() => setSelectedService(service)}
+                                                className="inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200 transition"
+                                            >
+                                                <Pencil size={14} />
+                                                <span className="hidden sm:inline">Редактировать</span>
+                                            </button>
                                         )}
+
                                         {authStorage.has("master:delete") && (
-                                            <td className="border p-2">
-                                                <button
-                                                    onClick={() => handleDelete(service.id)}
-                                                    className="p-1 hover:bg-gray-100 rounded-full"
-                                                >
-                                                    <Trash2
-                                                        size={16}
-                                                        className="text-slate-400 hover:text-red-500 transition"
-                                                    />
-                                                </button>
-                                            </td>
+                                            <button
+                                                onClick={() => handleDelete(service.id)}
+                                                className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         )}
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
                 </div>
