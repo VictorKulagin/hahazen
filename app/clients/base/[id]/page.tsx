@@ -487,10 +487,10 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                     <section className="bg-white text-black p-4 rounded shadow">
 
                         {/* Ссылка с динамическим путем */}
-                        <div className="mb-2">
+                        {/*<div className="mb-2">*/}
 
                             <div className="space-y-3">
-                                <section className="bg-white text-black p-4 rounded shadow">
+                                {/*<section className="bg-white text-black p-4 rounded shadow">*/}
                                     <div
                                         className={`transition-all duration-300 ${
                                             selectedClientId !== null ? "hidden" : "block"
@@ -769,11 +769,11 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                             Клиенты не найдены на странице {page}
                                         </div>
                                     )}
-                                </section>
+                                    {/*</section>*/}
                                 <p>ID: {userData?.id}</p>
                             </div>
 
-                        </div>
+                            {/*</div>*/}
                     </section>
                 </div>
             </main>
