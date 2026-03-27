@@ -503,73 +503,83 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                 setPage(1);
                                                 setSearchQuery(serializeFilters(filters));
                                             }}
-                                            className="p-4 bg-white text-black rounded-lg border border-slate-200 mb-6"
+                                            className="bg-white rounded-xl shadow-sm p-4 mb-6"
                                         >
-                                            <div className="flex items-center justify-between mb-3">
+                                            {/* Header */}
+                                            <div className="flex items-center justify-between mb-4">
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsFilterOpen((v) => !v)}
-                                                    className="text-lg font-bold text-gray-900"
+                                                    className="text-base font-semibold text-slate-900"
                                                 >
                                                     Фильтр клиентов {isFilterOpen ? "▲" : "▼"}
                                                 </button>
 
                                                 <button
                                                     type="button"
-                                                    onClick={() => setFilters({ name: "", last_name: "", phone: "", gender: "", vip: "" })}
-                                                    className="text-sm text-gray-500 hover:text-gray-800"
+                                                    onClick={() =>
+                                                        setFilters({ name: "", last_name: "", phone: "", gender: "", vip: "" })
+                                                    }
+                                                    className="text-sm text-slate-400 hover:text-slate-700 transition"
                                                 >
                                                     Сбросить
                                                 </button>
                                             </div>
 
                                             {isFilterOpen && (
-                                             <>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                                                <input
-                                                    type="text"
-                                                    placeholder="Имя"
-                                                    value={filters.name}
-                                                    onChange={(e) => setFilters({ ...filters, name: e.target.value })}
-                                                    className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none"
-                                                />
+                                                <>
+                                                    {/* Inputs */}
+                                                    <div className="flex flex-col md:flex-row gap-3">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Имя"
+                                                            value={filters.name}
+                                                            onChange={(e) =>
+                                                                setFilters({ ...filters, name: e.target.value })
+                                                            }
+                                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+                                                        />
 
-                                                <input
-                                                    type="text"
-                                                    placeholder="Фамилия"
-                                                    value={filters.last_name}
-                                                    onChange={(e) => setFilters({ ...filters, last_name: e.target.value })}
-                                                    className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none"
-                                                />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Фамилия"
+                                                            value={filters.last_name}
+                                                            onChange={(e) =>
+                                                                setFilters({ ...filters, last_name: e.target.value })
+                                                            }
+                                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+                                                        />
 
-                                                <input
-                                                    type="text"
-                                                    placeholder="Телефон"
-                                                    value={filters.phone}
-                                                    onChange={(e) => setFilters({ ...filters, phone: e.target.value })}
-                                                    className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none"
-                                                />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Телефон"
+                                                            value={filters.phone}
+                                                            onChange={(e) =>
+                                                                setFilters({ ...filters, phone: e.target.value })
+                                                            }
+                                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+                                                        />
 
-                                                <select
-                                                    value={filters.gender}
-                                                    onChange={(e) => setFilters({ ...filters, gender: e.target.value })}
-                                                    className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 focus:border-green-400 outline-none"
-                                                >
-                                                    <option value="">Пол (все)</option>
-                                                    <option value="male">Мужской</option>
-                                                    <option value="female">Женский</option>
-                                                </select>
-                                            </div>
+                                                        <select
+                                                            value={filters.gender}
+                                                            onChange={(e) =>
+                                                                setFilters({ ...filters, gender: e.target.value })
+                                                            }
+                                                            className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+                                                        >
+                                                            <option value="">Пол</option>
+                                                            <option value="male">Мужской</option>
+                                                            <option value="female">Женский</option>
+                                                        </select>
 
-                                            <div className="flex justify-end mt-4">
-                                                <button
-                                                    type="submit"
-                                                    className="w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-md text-sm hover:bg-green-700 transition"
-                                                >
-                                                    Найти
-                                                </button>
-                                            </div>
-                                             </>
+                                                        <button
+                                                            type="submit"
+                                                            className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-green-700 transition"
+                                                        >
+                                                            Найти
+                                                        </button>
+                                                    </div>
+                                                </>
                                             )}
                                         </form>
                                     </div>
