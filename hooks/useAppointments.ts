@@ -7,7 +7,7 @@ import {
     deleteAppointment,
     fetchAppointmentsByBranchAndDate,
     // @ts-ignore
-    Appointment
+    Appointment, fetchPeriodStats
 } from "@/services/appointmentsApi";
 
 import { fetchBookedDays, BookedDaysResponse } from "@/services/appointmentsApi";
@@ -142,6 +142,8 @@ export const useCreateAppointment = () => {
             queryClient.invalidateQueries({ queryKey: masterKey });
             queryClient.invalidateQueries({ queryKey: ["appointments"] }); // общий инвалидационный ключ - если требуется
 
+            queryClient.invalidateQueries({ queryKey: ["periodStats"] });
+
             console.log("Appointment created:", data, "with variables:", variables);
         },
     });
@@ -158,6 +160,8 @@ export const useUpdateAppointment = () => {
             // Инвалидация всех ключей, связанных с расписанием
             queryClient.invalidateQueries({ queryKey: ["appointments"] });
             queryClient.invalidateQueries({ queryKey: ["appointmentsByBranchAndDate"] });
+
+            queryClient.invalidateQueries({ queryKey: ["periodStats"] });
         },
     });
 };
@@ -193,6 +197,8 @@ export const useDeleteAppointment = () => {
             console.log("🗑 Запись удалена");
             queryClient.invalidateQueries({ queryKey: ["appointments"] });
             queryClient.invalidateQueries({ queryKey: ["appointmentsByBranchAndDate"] });
+
+            queryClient.invalidateQueries({ queryKey: ["periodStats"] });
         },
     });
 };
@@ -224,5 +230,20 @@ export const useAppointmentsByBranchAndDate = (
         },
         enabled: !!branchId,
         staleTime: 600000,
+    });
+};
+
+
+export const usePeriodStats = (
+    dateStart: string,
+    dateEnd: string,
+    branchId?: number | null
+) => {
+    return useQuery({
+        queryKey: ["periodStats", dateStart, dateEnd, branchId],
+        queryFn: () => fetchPeriodStats(dateStart, dateEnd, branchId),
+        enabled: !!dateStart && !!dateEnd,
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
     });
 };

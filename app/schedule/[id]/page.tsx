@@ -40,6 +40,7 @@ import CustomCalendarMobile from "@/components/CustomCalendarMobile";
 import SidebarMenu from "@/components/SidebarMenu";
 import { CreateClientModal } from "@/components/schedulePage/CreateСlientModal";
 import Loader from "@/components/Loader";
+import PeriodStatsModule from "@/components/schedulePage/PeriodStatsModule";
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -642,7 +643,11 @@ const Page: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {/* Правая колонка: 80% */}
-                    <section className="col-span-5 bg-white text-black p-4 rounded shadow">
+                    <section className="col-span-5 bg-white text-black p-4"> {/* rounded shadow */}
+
+                        <div className="mb-6">
+                            <PeriodStatsModule branchId={id ? Number(id) : null} />
+                        </div>
 
                         <ScheduleModule
                             employees={employees}

@@ -89,9 +89,23 @@ export const fetchAppointmentsByBranchAndDate = (
     }).then(response => response.data as AppointmentResponse[]);
 };*/
 
+// services/appointmentsApi.ts
 import apiClient from "./api";
 import { AppointmentRequest, AppointmentResponse } from "@/types/appointments";
-
+export interface PeriodStatsResponse {
+    date_start: string;
+    date_end: string;
+    branch_id: number | null;
+    days: {
+        date: string;
+        appointments_count: number;
+        paid_amount: number;
+    }[];
+    period_totals: {
+        appointments_count: number;
+        paid_amount: number;
+    };
+}
 export interface BookedDaysResponse {
     year: number;
     month: number;
@@ -181,4 +195,18 @@ export const fetchAppointmentsByBranchAndDate = (
             },
         })
         .then((response) => response.data as AppointmentResponse[]);
+};
+
+export const fetchPeriodStats = (
+    dateStart: string,
+    dateEnd: string,
+    branchId?: number | null
+): Promise<PeriodStatsResponse> => {
+    return apiClient.get("/appointments/period-stats", {
+        params: {
+            date_start: dateStart,
+            date_end: dateEnd,
+            branch_id: branchId,
+        },
+    }).then(res => res.data);
 };
