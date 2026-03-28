@@ -146,7 +146,8 @@ export default function ScheduleModule({
             const sm = toMins(ev.start);
             const em = toMins(ev.end);
             const duration = Math.max(0, em - sm);
-            const top = ((sm - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx;
+            //const top = ((sm - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx;
+            const top = ((sm - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx + 2;
             const height = (duration / slotStepMin) * rowHeightPx;
             const col = colRects[ev.master];
             const left = col ? col.left : 100;
@@ -205,7 +206,15 @@ export default function ScheduleModule({
                 <div className="relative">
                     {slots.map((min, rowIdx) => (
                         <div className="flex" key={rowIdx}>
-                            <div className="flex-none w-[90px] h-[40px] border-t border-gray-300 flex items-center justify-center text-sm bg-white sticky left-0 z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
+                            <div className="
+  flex-none w-[90px] h-[40px]
+  border-t border-gray-100
+  border-r border-gray-100
+  flex items-center justify-end pr-3
+  text-[13px] font-medium text-gray-700
+  bg-white
+  sticky left-0 z-10
+">
                                 {toTime(min)}
                             </div>
                             {masters.map((_, masterIdx) => {
@@ -249,7 +258,7 @@ export default function ScheduleModule({
                     if (currentMinutes < minMinutes || currentMinutes > maxMinutes) return null;
 
                     const top =
-                        ((currentMinutes - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx;
+                        ((currentMinutes - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx + 2;
 
                     const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
@@ -259,10 +268,14 @@ export default function ScheduleModule({
                             style={{ top }}
                         >
                             {/* 👈 левый маркер */}
-                            <div className="w-[90px] flex justify-end pr-1">
-        <span className="text-[10px] text-red-400 font-medium">
-            {currentTime}
-        </span>
+                            <div className="w-[90px] relative">
+    <span className="
+        absolute right-1 top-[45%] -translate-y-1/2
+        text-[10px] text-red-500/80 font-medium
+        bg-white px-1
+    ">
+        {currentTime}
+    </span>
                             </div>
 
                             {/* линия */}
@@ -279,7 +292,7 @@ export default function ScheduleModule({
                 {cards.map((c) => (
                     <div
                         key={c.id}
-                        className={`absolute border rounded-xl shadow-sm p-2 flex flex-col justify-center cursor-pointer transition hover:shadow-md hover:scale-[1.01] text-xs ${getEventColors(c.ev)}`}
+                        className={`absolute border rounded-xl shadow-sm p-2 flex flex-col justify-center cursor-pointer transition hover:shadow-md text-xs ${getEventColors(c.ev)}`}
                         style={{
                             top: isNaN(c.top) ? 0 : c.top,
                             left: isNaN(c.left) ? 0 : c.left,
