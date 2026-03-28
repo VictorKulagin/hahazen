@@ -142,7 +142,7 @@ export default function ScheduleModule({
 
     return (
         <div className="overflow-x-auto relative">
-            <div ref={scheduleRef} className="relative border border-gray-300 rounded bg-white min-w-max">
+            <div ref={scheduleRef} className="relative border border-gray-300 rounded bg-gradient-to-b from-white to-gray-50 min-w-max">
                 {/* Заголовок */}
                 <div ref={headerRowRef} className="flex sticky top-0 bg-white z-1 h-10 border-b">
                     <div className="flex-none w-[90px] bg-gray-100 border-r border-gray-300 text-center font-semibold p-1 sticky left-0 z-30 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
@@ -202,8 +202,10 @@ export default function ScheduleModule({
                                 return (
                                     <div
                                         key={masterIdx}
-                                        className={`col-master flex-1 min-w-[180px] h-[40px] border-t border-l border-gray-200 ${
-                                            working ? "bg-white hover:bg-gray-50" : "bg-[repeating-linear-gradient(45deg,#fafafa_0,#fafafa_6px,#f0f0f0_6px,#f0f0f0_12px)]"
+                                        className={`col-master flex-1 min-w-[180px] h-[40px] border-t border-l ${
+                                            masterIdx % 2 === 0 ? "border-gray-200" : "border-gray-100"
+                                        } ${
+                                            working ? "bg-white hover:bg-blue-50" : "bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_2px,#f5f5f5_2px,#f5f5f5_4px)] opacity-80"
                                         }`}
 
                                         onClick={
@@ -224,6 +226,24 @@ export default function ScheduleModule({
                 </div>
 
                 {/* События */}
+
+                {(() => {
+                    const now = new Date();
+                    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+                    if (currentMinutes < minMinutes || currentMinutes > maxMinutes) return null;
+
+                    const top =
+                        ((currentMinutes - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx;
+
+                    return (
+                        <div
+                            className="absolute left-0 right-0 h-[2px] bg-red-400 z-20"
+                            style={{ top }}
+                        />
+                    );
+                })()}
+
                 {cards.map((c) => (
                     <div
                         key={c.id}
