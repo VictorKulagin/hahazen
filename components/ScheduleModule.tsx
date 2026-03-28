@@ -161,8 +161,9 @@ export default function ScheduleModule({
             <div  className="relative border border-gray-300 rounded bg-gradient-to-b from-white to-gray-50 min-w-max">
                 {/* Заголовок */}
                 <div ref={headerRowRef} className="flex sticky top-0 bg-gray-50 z-10 h-10 border-b shadow-[0_1px_0_rgba(0,0,0,0.05)]">
-                    <div className="flex-none w-[90px] bg-gray-100 border-r border-gray-300 text-center font-semibold p-1 sticky left-0 z-30 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
-                        Время
+                    <div className="flex-none w-[70px] sm:w-[80px] md:w-[90px] bg-gray-100 border-r border-gray-300 text-center font-semibold p-1 sticky left-0 z-30 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
+                        <span className="sm:hidden">⏱</span>
+                        <span className="hidden sm:block">Время</span>
                     </div>
                     {masters.map((m, i) => (
 
@@ -207,11 +208,11 @@ export default function ScheduleModule({
                     {slots.map((min, rowIdx) => (
                         <div className="flex" key={rowIdx}>
                             <div className="
-  flex-none w-[90px] h-[40px]
+  flex-none w-[70px] sm:w-[80px] md:w-[90px] h-[40px]
   border-t border-gray-100
   border-r border-gray-100
   flex items-center justify-end pr-3
-  text-[13px] font-medium text-gray-700
+  text-[13px] font-medium text-gray-700 tabular-nums
   bg-white
   sticky left-0 z-10
 ">
@@ -268,7 +269,7 @@ export default function ScheduleModule({
                             style={{ top }}
                         >
                             {/* 👈 левый маркер */}
-                            <div className="w-[90px] relative">
+                            <div className="w-[70px] sm:w-[80px] md:w-[90px] relative">
     <span className="
         absolute right-1 top-[45%] -translate-y-1/2
         text-[10px] text-red-500/80 font-medium
