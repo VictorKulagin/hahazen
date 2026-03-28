@@ -59,6 +59,53 @@ function rangeSlots(minMinutes: number, maxMinutes: number, step: number) {
     return slots;
 }
 
+function getAvailableSlotsForEmployee(
+    masterIdx: number,
+    employeeId: number,
+    selectedDate: Date,
+    appointments: ScheduleEvent[],
+    schedules: EmployeeSchedule[],
+    slotStepMin: number,
+    startHour: number,
+    endHour: number
+) {
+    const minMinutes = startHour * 60;
+    const maxMinutes = endHour * 60;
+
+    const allSlots = rangeSlots(minMinutes, maxMinutes, slotStepMin);
+
+    const employeeAppointments = appointments.filter(
+        (event) => event.master === masterIdx
+    );
+
+    return allSlots
+        .filter((slotStart) => {
+            const slotEnd = slotStart + slotStepMin;
+
+            const working = isWorkingSlot(
+                employeeId,
+                toTime(slotStart),
+                selectedDate,
+                schedules
+            );
+
+            if (!working) return false;
+
+            const intersects = employeeAppointments.some((event) => {
+                const eventStart = toMins(event.start);
+                const eventEnd = toMins(event.end);
+
+                return slotStart < eventEnd && slotEnd > eventStart;
+            });
+
+            return !intersects;
+        })
+        .map((slotStart) => ({
+            start: toTime(slotStart),
+            end: toTime(slotStart + slotStepMin),
+        }));
+}
+
 export default function ScheduleModule({
                                            employees,
                                            appointments,
@@ -156,8 +203,107 @@ export default function ScheduleModule({
         });
     }, [events, colRects, minMinutes, rowHeightPx, slotStepMin]);
 
+
+
     return (
-        <div ref={scheduleRef} className="overflow-x-auto overflow-y-auto relative max-h-[75vh]">
+        <>
+
+            {/* 📱 МОБИЛЬНЫЙ РЕЖИМ */}
+            <div className="md:hidden space-y-3">
+                {employees.map((employee, masterIdx) => {
+                    const employeeEvents = appointments
+                        .filter((event) => event.master === masterIdx)
+                        .sort((a, b) => toMins(a.start) - toMins(b.start));
+
+                    const freeSlots = getAvailableSlotsForEmployee(
+                        masterIdx,
+                        employee.id,
+                        selectedDate,
+                        appointments,
+                        schedules,
+                        slotStepMin,
+                        startHour,
+                        endHour
+                    );
+
+                    return (
+                        <div
+                            key={employee.id}
+                            className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+                        >
+                            {/* 👤 Заголовок мастера */}
+                            <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
+                        <span className="font-semibold text-gray-900">
+                            {employee.name}
+                        </span>
+
+                                <button
+                                    className="text-sm text-green-600 font-medium"
+                                    onClick={() => onCellClick?.(9 * 60, masterIdx)}
+                                >
+                                    + Запись
+                                </button>
+                            </div>
+
+                            <div className="p-3 space-y-2">
+                                {/* 📋 Записи */}
+                                {employeeEvents.length > 0 ? (
+                                    employeeEvents.map((event) => (
+                                        <button
+                                            key={event.id}
+                                            onClick={() => onEventClick?.(event)}
+                                            className={`w-full text-left rounded-xl border p-3 ${getEventColors(event)}`}
+                                        >
+                                            <div className="text-xs text-gray-500">
+                                                {event.start} – {event.end}
+                                            </div>
+
+                                            <div className="font-semibold text-gray-900">
+                                                {event.text}
+                                            </div>
+                                        </button>
+                                    ))
+                                ) : (
+                                    <div className="text-sm text-gray-400">
+                                        Нет записей
+                                    </div>
+                                )}
+
+                                {/* 🟢 Свободные слоты */}
+                                {freeSlots.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 pt-2">
+                                        {freeSlots.slice(0, 3).map((slot) => (
+                                            <button
+                                                key={slot.start}
+                                                onClick={() =>
+                                                    onCellClick?.(
+                                                        toMins(slot.start),
+                                                        masterIdx
+                                                    )
+                                                }
+                                                className="px-2 py-1 text-xs rounded-full border border-gray-200 bg-white text-gray-600"
+                                            >
+                                                {slot.start}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+
+                <button
+                    onClick={onAddEntity}
+                    className="sm:hidden fixed bottom-6 right-6 z-40 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 active:scale-95 transition"
+                    title="Добавить"
+                >
+                    <UserPlusIcon className="h-6 w-6" />
+                </button>
+            </div>
+
+
+        <div ref={scheduleRef} className="hidden md:block overflow-x-auto overflow-y-auto relative max-h-[75vh]">
             <div  className="relative border border-gray-300 rounded bg-gradient-to-b from-white to-gray-50 min-w-max">
                 {/* Заголовок */}
                 <div ref={headerRowRef} className="flex sticky top-0 bg-gray-50 z-10 h-10 border-b shadow-[0_1px_0_rgba(0,0,0,0.05)]">
@@ -346,5 +492,6 @@ export default function ScheduleModule({
                 </button>
             )}
         </div>
+        </>
     );
 }
