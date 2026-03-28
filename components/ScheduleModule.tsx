@@ -233,11 +233,21 @@ export default function ScheduleModule({
                         >
                             {/* 👤 Заголовок мастера */}
                             <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
-                        <span className="font-semibold text-gray-900">
-                            {employee.name}
-                        </span>
+                                <button
+                                    type="button"
+                                    className="font-semibold text-gray-900 text-left"
+                                    onClick={
+                                        authStorage.has("master:update")
+                                            ? () => onMasterClick?.(employee)
+                                            : undefined
+                                    }
+                                    title="Редактировать сотрудника"
+                                >
+                                    {employee.name}
+                                </button>
 
                                 <button
+                                    type="button"
                                     className="text-sm text-green-600 font-medium"
                                     onClick={() => onCellClick?.(9 * 60, masterIdx)}
                                 >
