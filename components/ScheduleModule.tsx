@@ -7,7 +7,7 @@ import { Employee } from "@/services/employeeApi";
 import { PlusIcon } from "@heroicons/react/24/solid";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 import {authStorage} from "@/services/authStorage"; // 👈 вместо PlusIcon
-import { Pencil } from "lucide-react";
+import { Pencil, List, LayoutGrid } from "lucide-react";
 /*export interface ScheduleEvent {
     id: string;
     start: string;
@@ -130,7 +130,7 @@ export default function ScheduleModule({
     const [colRects, setColRects] = useState<{ left: number; width: number }[]>([]);
     const scheduleRef = useRef<HTMLDivElement | null>(null);
     const headerRowRef = useRef<HTMLDivElement | null>(null);
-    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+    const [viewMode, setViewMode] = useState<"grid" | "list">("list");
 
     useEffect(() => setEvents(appointments), [appointments]);
 
@@ -189,6 +189,42 @@ export default function ScheduleModule({
         });
     }, [minMinutes, maxMinutes, slotStepMin, rowHeightPx, viewMode]);
 
+    useEffect(() => {
+        const getInitialViewMode = () => {
+            const isDesktop = window.innerWidth >= 768;
+
+            if (!isDesktop) return "list";
+
+            const saved = localStorage.getItem("scheduleDesktopViewMode");
+            return saved === "list" || saved === "grid" ? saved : "grid";
+        };
+
+        setViewMode(getInitialViewMode());
+
+        const handleResize = () => {
+            const isDesktop = window.innerWidth >= 768;
+
+            if (!isDesktop) {
+                setViewMode("list");
+                return;
+            }
+
+            const saved = localStorage.getItem("scheduleDesktopViewMode");
+            setViewMode(saved === "list" || saved === "grid" ? saved : "grid");
+        };
+
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
+
+    const handleViewModeChange = (mode: "grid" | "list") => {
+        setViewMode(mode);
+
+        if (window.innerWidth >= 768) {
+            localStorage.setItem("scheduleDesktopViewMode", mode);
+        }
+    };
+
     const cards = useMemo(() => {
         return events.map((ev) => {
             const sm = toMins(ev.start);
@@ -209,31 +245,38 @@ export default function ScheduleModule({
     return (
         <>
 
-
             <div className="mb-3 hidden md:flex items-center justify-end">
-                <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+                <div className="relative inline-flex items-center rounded-2xl bg-gray-100 p-1 shadow-sm border border-gray-200">
+                    <div
+                        className={`absolute top-1 bottom-1 w-[112px] rounded-xl bg-green-500 shadow-sm transition-all duration-300 ${
+                            viewMode === "list" ? "left-1" : "left-[113px]"
+                        }`}
+                    />
+
                     <button
                         type="button"
-                        onClick={() => setViewMode("list")}
-                        className={`px-3 py-1.5 text-sm rounded-lg transition ${
+                        onClick={() => handleViewModeChange("list")}
+                        className={`relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
                             viewMode === "list"
-                                ? "bg-gray-900 text-white"
-                                : "text-gray-600 hover:bg-gray-100"
+                                ? "text-white"
+                                : "text-gray-600 hover:text-gray-900"
                         }`}
                     >
-                        Список
+                        <List size={16} className="transition-transform duration-200 group-hover:scale-110" />
+                        <span>Список</span>
                     </button>
 
                     <button
                         type="button"
-                        onClick={() => setViewMode("grid")}
-                        className={`px-3 py-1.5 text-sm rounded-lg transition ${
+                        onClick={() => handleViewModeChange("grid")}
+                        className={`relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
                             viewMode === "grid"
-                                ? "bg-gray-900 text-white"
-                                : "text-gray-600 hover:bg-gray-100"
+                                ? "text-white"
+                                : "text-gray-600 hover:text-gray-900"
                         }`}
                     >
-                        Сетка
+                        <LayoutGrid size={16} className="transition-transform duration-200" />
+                        <span>Сетка</span>
                     </button>
                 </div>
             </div>
@@ -241,7 +284,7 @@ export default function ScheduleModule({
 
             {/* 📱 МОБИЛЬНЫЙ РЕЖИМ */}
             {viewMode === "list" && (
-            <div className={`hidden md:block space-y-3`}>
+                <div className="block md:block space-y-3">
                 {employees.map((employee, masterIdx) => {
                     const employeeEvents = appointments
                         .filter((event) => event.master === masterIdx)
