@@ -130,6 +130,7 @@ export default function ScheduleModule({
     const [colRects, setColRects] = useState<{ left: number; width: number }[]>([]);
     const scheduleRef = useRef<HTMLDivElement | null>(null);
     const headerRowRef = useRef<HTMLDivElement | null>(null);
+    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
     useEffect(() => setEvents(appointments), [appointments]);
 
@@ -186,7 +187,7 @@ export default function ScheduleModule({
             top: Math.max(top - 160, 0),
             behavior: "smooth",
         });
-    }, [minMinutes, maxMinutes, slotStepMin, rowHeightPx]);
+    }, [minMinutes, maxMinutes, slotStepMin, rowHeightPx, viewMode]);
 
     const cards = useMemo(() => {
         return events.map((ev) => {
@@ -208,8 +209,39 @@ export default function ScheduleModule({
     return (
         <>
 
+
+            <div className="mb-3 hidden md:flex items-center justify-end">
+                <div className="inline-flex rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+                    <button
+                        type="button"
+                        onClick={() => setViewMode("list")}
+                        className={`px-3 py-1.5 text-sm rounded-lg transition ${
+                            viewMode === "list"
+                                ? "bg-gray-900 text-white"
+                                : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                    >
+                        Список
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setViewMode("grid")}
+                        className={`px-3 py-1.5 text-sm rounded-lg transition ${
+                            viewMode === "grid"
+                                ? "bg-gray-900 text-white"
+                                : "text-gray-600 hover:bg-gray-100"
+                        }`}
+                    >
+                        Сетка
+                    </button>
+                </div>
+            </div>
+
+
             {/* 📱 МОБИЛЬНЫЙ РЕЖИМ */}
-            <div className="md:hidden space-y-3">
+            {viewMode === "list" && (
+            <div className={`hidden md:block space-y-3`}>
                 {employees.map((employee, masterIdx) => {
                     const employeeEvents = appointments
                         .filter((event) => event.master === masterIdx)
@@ -249,7 +281,13 @@ export default function ScheduleModule({
                                 <button
                                     type="button"
                                     className="text-sm text-green-600 font-medium"
-                                    onClick={() => onCellClick?.(9 * 60, masterIdx)}
+                                    //onClick={() => onCellClick?.(9 * 60, masterIdx)}
+                                    onClick={() =>
+                                        onCellClick?.(
+                                            freeSlots.length > 0 ? toMins(freeSlots[0].start) : 9 * 60,
+                                            masterIdx
+                                        )
+                                    }
                                 >
                                     + Запись
                                 </button>
@@ -311,9 +349,10 @@ export default function ScheduleModule({
                     <UserPlusIcon className="h-6 w-6" />
                 </button>
             </div>
+            )}
 
-
-        <div ref={scheduleRef} className="hidden md:block overflow-x-auto overflow-y-auto relative max-h-[75vh]">
+            {viewMode === "grid" && (
+                <div ref={scheduleRef} className="hidden md:block overflow-x-auto overflow-y-auto relative max-h-[75vh]">
             <div  className="relative border border-gray-300 rounded bg-gradient-to-b from-white to-gray-50 min-w-max">
                 {/* Заголовок */}
                 <div ref={headerRowRef} className="flex sticky top-0 bg-gray-50 z-10 h-10 border-b shadow-[0_1px_0_rgba(0,0,0,0.05)]">
@@ -386,7 +425,9 @@ export default function ScheduleModule({
                                         className={`col-master flex-1 min-w-[180px] h-[40px] border-t border-l ${
                                             masterIdx % 2 === 0 ? "border-gray-200" : "border-gray-100"
                                         } ${
-                                            working ? "bg-white hover:bg-blue-50" : "bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_2px,#f5f5f5_2px,#f5f5f5_4px)] opacity-80"
+                                            working
+                                                ? "bg-white hover:bg-blue-50"
+                                                : "bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_2px,#f5f5f5_2px,#f5f5f5_4px)]"
                                         }`}
 
                                         onClick={
@@ -502,6 +543,7 @@ export default function ScheduleModule({
                 </button>
             )}
         </div>
+            )}
         </>
     );
 }
