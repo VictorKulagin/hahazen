@@ -29,10 +29,12 @@ export default function AddCompanyPage() {
 
 
         try {
-            const token = localStorage.getItem("access_token"); // Получаем токен из localStorage
+            /*const token = localStorage.getItem("access_token"); // Получаем токен из localStorage
             if (!token) {
                 throw new Error("Ошибка: Токен не найден. Войдите в систему.");
-            }
+            }*/
+
+
             const newCompanies = await AddCompanies({
                 name,
                 address,
