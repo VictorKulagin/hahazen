@@ -220,7 +220,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                         <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
                             {/* Клиент */}
                             {!isEditingClient ? (
-                                <div className="bg-gray-50 p-4 rounded-xl border">
+                                <div className="border border-gray-200 rounded-xl p-3 bg-white">
                                     <div className="font-semibold">{name}</div>
                                     {lastName && <div className="text-sm">Фамилия: {lastName}</div>}
                                     {phone && <div className="text-sm">Телефон: {phone}</div>}
@@ -248,7 +248,11 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                             )}
 
                             {/* Время */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 space-y-4">
+
+                                <div className="font-semibold text-gray-800">⏱ Время</div>
+
+                                <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block mb-1 font-semibold">Время начала</label>
                                     <input type="time" value={timeStart} onChange={(e) => setTimeStart(e.target.value)}
@@ -289,7 +293,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                 ) : services.length === 0 ? (
                                     <p className="text-sm text-gray-500">Нет услуг у этого мастера</p>
                                 ) : (
-                                    <div className="border rounded-lg p-2 bg-white relative">
+                                    <div className="border border-gray-200 rounded-xl p-3 bg-white relative">
                                         {selectedServices.length > 0 && (
                                             <div className="flex flex-wrap gap-2 mb-3">
                                                 {selectedServices.map((selected) => {
@@ -398,9 +402,14 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     </div>
                                 )}
                             </div>
+                        </div>
 
 
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 space-y-4">
+
+                                <div className="font-semibold text-gray-800">💳 Оплата</div>
+
+                                <div className="grid grid-cols-1 gap-4">
                                 <div>
                                     <label className="block mb-1 font-semibold">Стоимость</label>
                                     <input
@@ -431,7 +440,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
 
                                 <div>
                                     <span className="block mb-2 font-semibold">Статус визита</span>
-                                    <div className="flex w-full rounded-lg border overflow-hidden">
+                                    <div className="flex w-full rounded-xl border border-gray-200 overflow-hidden bg-white">
                                         <button
                                             type="button"
                                             onClick={() => setVisitStatus("expected")}
@@ -541,7 +550,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     )}
                                 </div>
                             </div>
-
+                            </div>
                         </div>
 
                         {/* Кнопки */}

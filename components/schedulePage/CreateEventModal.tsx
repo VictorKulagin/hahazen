@@ -349,10 +349,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 <h2 className="text-lg font-bold mb-4">Создать новое событие</h2>
 
                 <div className="...">
-                    <div className="bg-white p-4">
+                    <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 space-y-4">
                         {isOutsideSchedule && (
-                            <div className="bg-yellow-50 text-yellow-700 p-2 mb-3 rounded border border-yellow-300 text-sm">
-                                ⚠️ Внимание: сотрудник в этот день не работает. Запись будет вне графика.
+                            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-3 py-2 text-sm flex items-start gap-2">
+                                <span>⚠️</span>
+                                <span>Сотрудник в этот день не работает. Запись вне графика</span>
                             </div>
                         )}
                         {/* форма создания записи */}
@@ -364,16 +365,17 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                         <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
 
                             {/* 1. Поиск клиента */}
-                            <ClientAutocomplete
-                                onSelect={(client: Client) => {
-                                    setSelectedClientId(client.id ?? null);
-                                    setName(client.name ?? "");
-                                    setLastName(client.last_name ?? "");
-                                    setPhone(client.phone ?? "");
-                                    setShowClientFields(true);
-                                }}
-                            />
-
+                            <div className="border border-gray-200 rounded-xl p-3 bg-white mt-4">
+                                <ClientAutocomplete
+                                    onSelect={(client: Client) => {
+                                        setSelectedClientId(client.id ?? null);
+                                        setName(client.name ?? "");
+                                        setLastName(client.last_name ?? "");
+                                        setPhone(client.phone ?? "");
+                                        setShowClientFields(true);
+                                    }}
+                                />
+                            </div>
                             {/* 2. Просмотр клиента */}
                             {showClientFields && !isEditingClient && (
                                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
@@ -417,7 +419,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                             )}
 
                             {showClientFields && isEditingClient && (
-                                <div className="bg-gray-50 p-4 rounded border space-y-2">
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
                                     <input
                                         type="text"
                                         value={name}
@@ -458,65 +460,73 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                             )}
 
                             {/* 3. Время */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block mb-1 font-semibold">Время начала</label>
-                                    <input
-                                        type="time"
-                                        value={timeStart}
-                                        onChange={(e) => setTimeStart(e.target.value)}
-                                        className="w-full p-2 border rounded"
-                                        required
-                                    />
-                                    <div className="flex justify-between mt-2">
-                                        <button
-                                            type="button"
-                                            className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-                                            onClick={() => adjustTime("start", -15)}
-                                        >
-                                            −15 мин
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-                                            onClick={() => adjustTime("start", 15)}
-                                        >
-                                            +15 мин
-                                        </button>
+                            <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 space-y-5">
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <span className="text-xl">🕒</span>
+                                        <h3 className="text-2xl font-semibold">Время</h3>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block mb-1 font-semibold">Время начала</label>
+                                            <input
+                                                type="time"
+                                                value={timeStart}
+                                                onChange={(e) => setTimeStart(e.target.value)}
+                                                className="w-full p-2 border border-gray-200 rounded-xl bg-white"
+                                                required
+                                            />
+                                            <div className="flex justify-between mt-2">
+                                                <button
+                                                    type="button"
+                                                    className="px-2 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-100"
+                                                    onClick={() => adjustTime("start", -15)}
+                                                >
+                                                    −15 мин
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="px-2 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-100"
+                                                    onClick={() => adjustTime("start", 15)}
+                                                >
+                                                    +15 мин
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className="block mb-1 font-semibold">Время окончания</label>
+                                            <input
+                                                type="time"
+                                                value={timeEnd}
+                                                onChange={(e) => setTimeEnd(e.target.value)}
+                                                className="w-full p-2 border border-gray-200 rounded-xl bg-white"
+                                                required
+                                            />
+                                            <div className="flex justify-between mt-2">
+                                                <button
+                                                    type="button"
+                                                    className="px-2 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-100"
+                                                    onClick={() => adjustTime("end", -15)}
+                                                >
+                                                    −15 мин
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="px-2 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-100"
+                                                    onClick={() => adjustTime("end", 15)}
+                                                >
+                                                    +15 мин
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="block mb-1 font-semibold">Время окончания</label>
-                                    <input
-                                        type="time"
-                                        value={timeEnd}
-                                        onChange={(e) => setTimeEnd(e.target.value)}
-                                        className="w-full p-2 border rounded"
-                                        required
-                                    />
-                                    <div className="flex justify-between mt-2">
-                                        <button
-                                            type="button"
-                                            className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-                                            onClick={() => adjustTime("end", -15)}
-                                        >
-                                            −15 мин
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="px-2 py-1 text-xs bg-gray-200 rounded hover:bg-gray-300"
-                                            onClick={() => adjustTime("end", 15)}
-                                        >
-                                            +15 мин
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
 
                             {/* 4. Услуги */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
-                                    <h3 className="font-semibold">Выберите услуги</h3>
+                                    <h3 className="font-semibold text-xl">Услуги</h3>
                                     <span className="text-sm text-gray-500">Qty</span>
                                 </div>
 
@@ -525,7 +535,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                 ) : services.length === 0 ? (
                                     <p className="text-sm text-gray-500">У мастера нет привязанных услуг</p>
                                 ) : (
-                                    <div className="border rounded-lg p-2 bg-white relative">
+                                    <div className="border border-gray-200 rounded-xl p-3 bg-white relative">
                                         {/* выбранные услуги */}
                                         {selectedServices.length > 0 && (
                                             <div className="flex flex-wrap gap-2 mb-3">
@@ -638,6 +648,12 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
 
                             {/* 4. Статусы и оплата */}
+                            <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 space-y-4">
+                                <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xl">💳</span>
+                                    <h3 className="text-2xl font-semibold">Оплата</h3>
+                                </div>
+
                             <div className="grid grid-cols-1 gap-4">
                                 <div>
                                     <label className="block mb-1 font-semibold">Стоимость</label>
@@ -773,6 +789,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                     </select>
                                 </div>
                             </div>
+                         </div>
 
 
 
