@@ -7,6 +7,7 @@ import ClientAutocomplete from "@/components/ClientAutocomplete";
 import type { Client } from "@/services/clientApi";
 import { useUpdateClient } from "@/hooks/useClient";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { Phone, Pencil, UserCircle2 } from "lucide-react";
 
 type EmployeeServiceEither =
     | (Services & {
@@ -348,8 +349,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                 <div className="bg-white rounded p-2 w-full max-w-md text-black h-full flex flex-col min-h-0">
                 <h2 className="text-lg font-bold mb-4">Создать новое событие</h2>
 
-                <div className="...">
-                    <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 space-y-4">
+                <div>
+
                         {isOutsideSchedule && (
                             <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-3 py-2 text-sm flex items-start gap-2">
                                 <span>⚠️</span>
@@ -357,11 +358,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                             </div>
                         )}
                         {/* форма создания записи */}
-                    </div>
+
                 </div>
 
                     {/*<form onSubmit={handleSubmit} className="max-h-screen overflow-y-auto flex flex-col">*/}
-                    <form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0">
+                    <form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0 bg-gray-50">
                         <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
 
                             {/* 1. Поиск клиента */}
@@ -460,15 +461,15 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                             )}
 
                             {/* 3. Время */}
-                            <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 space-y-5">
+                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
                                     <div className="flex items-center gap-2 mb-3">
                                         <span className="text-xl">🕒</span>
                                         <h3 className="text-2xl font-semibold">Время</h3>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block mb-1 font-semibold">Время начала</label>
+                                <div className="flex gap-3 w-full">
+                                    <div className="flex-1">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Время начала</label>
                                             <input
                                                 type="time"
                                                 value={timeStart}
@@ -476,17 +477,17 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                 className="w-full p-2 border border-gray-200 rounded-xl bg-white"
                                                 required
                                             />
-                                            <div className="flex justify-between mt-2">
+                                        <div className="flex justify-between mt-2">
                                                 <button
                                                     type="button"
-                                                    className="px-2 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-100"
+                                                    className="px-2 py-1 text-xs bg-gray-200 rounded"
                                                     onClick={() => adjustTime("start", -15)}
                                                 >
                                                     −15 мин
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    className="px-2 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-100"
+                                                    className="px-2 py-1 text-xs bg-gray-200 rounded"
                                                     onClick={() => adjustTime("start", 15)}
                                                 >
                                                     +15 мин
@@ -494,8 +495,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <label className="block mb-1 font-semibold">Время окончания</label>
+                                    <div className="flex-1">
+                                        <label className="block text-sm text-gray-600 mb-1">Время окончания</label>
                                             <input
                                                 type="time"
                                                 value={timeEnd}
@@ -503,17 +504,17 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                 className="w-full p-2 border border-gray-200 rounded-xl bg-white"
                                                 required
                                             />
-                                            <div className="flex justify-between mt-2">
+                                        <div className="flex justify-between mt-2">
                                                 <button
                                                     type="button"
-                                                    className="px-2 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-100"
+                                                    className="px-2 py-1 text-xs bg-gray-200 rounded"
                                                     onClick={() => adjustTime("end", -15)}
                                                 >
                                                     −15 мин
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    className="px-2 py-1 text-xs bg-white border border-gray-200 rounded-lg hover:bg-gray-100"
+                                                    className="px-2 py-1 text-xs bg-gray-200 rounded"
                                                     onClick={() => adjustTime("end", 15)}
                                                 >
                                                     +15 мин
@@ -648,7 +649,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
 
                             {/* 4. Статусы и оплата */}
-                            <div className="rounded-2xl bg-gray-50 border border-gray-200 p-4 space-y-4">
+                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
                                 <div className="flex items-center gap-2 mb-1">
                                     <span className="text-xl">💳</span>
                                     <h3 className="text-2xl font-semibold">Оплата</h3>
@@ -656,7 +657,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                             <div className="grid grid-cols-1 gap-4">
                                 <div>
-                                    <label className="block mb-1 font-semibold">Стоимость</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Стоимость</label>
                                     <input
                                         type="number"
                                         min={0}
@@ -769,7 +770,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                 </div>
 
                                 <div>
-                                    <label className="block mb-1 font-semibold">Способ оплаты</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Способ оплаты</label>
                                     <select
                                         value={paymentMethod ?? ""}
                                         disabled={paymentStatus === "unpaid"}
