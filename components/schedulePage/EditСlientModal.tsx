@@ -132,57 +132,67 @@ export const EditClientModal: React.FC<Props> = ({
                     Редактировать клиента
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 text-black">
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Имя *</label>
+                <div className="flex-1 overflow-y-auto p-4 text-black space-y-4 bg-gray-50">
+                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Имя *</label>
                         <input
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
+                            placeholder="Имя"
                         />
-                    </div>
+
 
                     <div className="mb-4">
-                        <label className="block font-semibold mb-1">Фамилия</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Фамилия</label>
                         <input
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
+                            placeholder="Фамилия"
                         />
                     </div>
 
                     <div className="mb-4">
-                        <label className="block font-semibold mb-1">Отчество</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Отчество</label>
                         <input
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                             value={patronymic}
                             onChange={(e) => setPatronymic(e.target.value)}
+                            placeholder="Отчество"
                         />
                     </div>
+                    </div>
 
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Телефон</label>
+
+                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
                         <input
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
+                            placeholder="Телефон"
                         />
-                    </div>
+
 
                     <div className="mb-4">
-                        <label className="block font-semibold mb-1">Email</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                         <input
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            placeholder="Email"
                         />
                     </div>
+                    </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label className="block font-semibold mb-1">Пол</label>
+                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Пол</label>
                             <select
-                                className="w-full p-2 border rounded bg-white"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                 value={gender}
                                 onChange={(e) => setGender(e.target.value as any)}
                             >
@@ -193,9 +203,9 @@ export const EditClientModal: React.FC<Props> = ({
                         </div>
 
                         <div>
-                            <label className="block font-semibold mb-1">VIP</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">VIP</label>
                             <select
-                                className="w-full p-2 border rounded bg-white"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                 value={vip}
                                 onChange={(e) => setVip(Number(e.target.value) as 0 | 1)}
                             >
@@ -205,40 +215,47 @@ export const EditClientModal: React.FC<Props> = ({
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label className="block font-semibold mb-1">Скидка %</label>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Скидка %</label>
                             <input
                                 type="number"
-                                className="w-full p-2 border rounded"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                 value={discount}
                                 onChange={(e) => setDiscount(Number(e.target.value))}
+                                placeholder="Скидка %"
                             />
                         </div>
                         <div>
-                            <label className="block font-semibold mb-1">Дата рождения</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Дата рождения</label>
                             <input
                                 type="date"
-                                className="w-full p-2 border rounded"
+                                className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                 value={birthDate}
                                 onChange={(e) => setBirthDate(e.target.value)}
+                                placeholder="Дата рождения"
                             />
                         </div>
                     </div>
-
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Номер карты</label>
-                        <input
-                            className="w-full p-2 border rounded"
-                            value={cardNumber}
-                            onChange={(e) => setCardNumber(e.target.value)}
-                        />
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Онлайн-запись</label>
+                        <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Номер карты</label>
+                        <input
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                            value={cardNumber}
+                            onChange={(e) => setCardNumber(e.target.value)}
+                            placeholder="Номер карты"
+                        />
+                            </div>
+                        </div>
+
+                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Онлайн-запись</label>
                         <select
-                            className="w-full p-2 border rounded bg-white"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                             value={forbidOnlineBooking}
                             onChange={(e) =>
                                 setForbidOnlineBooking(Number(e.target.value) as 0 | 1)
@@ -247,21 +264,24 @@ export const EditClientModal: React.FC<Props> = ({
                             <option value={0}>Разрешена</option>
                             <option value={1}>Запрещена</option>
                         </select>
+                        </div>
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block font-semibold mb-1">Комментарий</label>
+                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
                         <textarea
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                             rows={3}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
                         />
+                        </div>
                     </div>
                 </div>
 
                 {/* Футер: сообщения над кнопками */}
-                <div className="p-4 border-t">
+                <div className="p-4 border-t bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
                     {submitError && (
                         <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                             {submitError}

@@ -129,6 +129,57 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
         router.push("/signin"); // Перенаправляем на страницу логина
     };
 
+    const Section = ({ title, items }: any) => (
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">{title}</h2>
+
+            <div className="space-y-3">
+                {items.map((item: any, idx: number) => (
+                    <div key={idx} className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-gray-500">
+                            <item.icon className="h-5 w-5 text-gray-400" />
+                            <span>{item.label}</span>
+                        </div>
+
+                        <div className="font-medium text-gray-900">
+                            {item.value || "—"}
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+
+
+/* Карточка клиента */
+
+    const mainInfo = selectedClient
+        ? [
+            { icon: IdentificationIcon, label: "ID", value: selectedClient.user_id },
+            { icon: UserIcon, label: "Имя", value: selectedClient.name },
+            { icon: UserIcon, label: "Фамилия", value: selectedClient.last_name },
+            { icon: UserIcon, label: "Отчество", value: selectedClient.patronymic },
+            { icon: UserIcon, label: "Пол", value: selectedClient.gender },
+        ]
+        : [];
+
+    const contactInfo = selectedClient
+        ? [
+            { icon: PhoneIcon, label: "Телефон", value: selectedClient.phone },
+            { icon: UserIcon, label: "Email", value: selectedClient.email },
+        ]
+        : [];
+
+    const extraInfo = selectedClient
+        ? [
+            { icon: StarIcon, label: "VIP", value: selectedClient.vip === 1 ? "Да" : "Нет" },
+            { icon: GiftIcon, label: "Скидка", value: selectedClient.discount },
+            { icon: CreditCardIcon, label: "Номер карты", value: selectedClient.card_number },
+            { icon: CakeIcon, label: "День рождения", value: selectedClient.birth_date },
+            { icon: CakeIcon, label: "Запрет онлайн", value: selectedClient.forbid_online_booking === 1 ? "Да" : "Нет" },
+        ]
+        : [];
+
     useEffect(() => {
         if (!companiesData || companiesData.length === 0) return;
 
@@ -257,6 +308,9 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
             router.replace("/404");
         }
     }, [idFromUrl, id]);
+
+
+
 
     // Пример клиентов
     const clients = [
@@ -635,28 +689,10 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
 
                                                         {/* Сетка информации */}
                                                         {/* Сетка информации */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-base">
-                                                            {[
-                                                                { icon: IdentificationIcon, label: "ID", value: selectedClient.user_id },
-                                                                { icon: UserIcon, label: "Фамилия", value: selectedClient.last_name },
-                                                                { icon: UserIcon, label: "Отчество", value: selectedClient.patronymic },
-                                                                { icon: PhoneIcon, label: "Телефон", value: selectedClient.phone },
-                                                                { icon: UserIcon, label: "Email", value: selectedClient.email },
-                                                                { icon: UserIcon, label: "Пол", value: selectedClient.gender },
-                                                                { icon: StarIcon, label: "VIP", value: selectedClient.vip === 1 ? "Да" : "Нет" },
-                                                                { icon: GiftIcon, label: "Скидка", value: selectedClient.discount },
-                                                                { icon: CreditCardIcon, label: "Номер карты", value: selectedClient.card_number },
-                                                                { icon: CakeIcon, label: "День рождения", value: selectedClient.birth_date },
-                                                                { icon: CakeIcon, label: "Запрет онлайн", value: selectedClient.forbid_online_booking === 1 ? "Да" : "Нет" },
-                                                            ].map((item, idx) => (
-                                                                <div key={idx} className="flex items-start gap-2 py-1.5">
-                                                                    <item.icon className="h-5 w-5 text-slate-400 mt-0.5 shrink-0" />
-                                                                    <div className="truncate">
-                                                                        <span className="font-semibold text-slate-800">{item.label}:</span>{" "}
-                                                                        <span className="text-slate-600">{item.value ?? "-"}</span>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
+                                                        <div className="space-y-4">
+                                                            <Section title="Основное" items={mainInfo} />
+                                                            <Section title="Контакты" items={contactInfo} />
+                                                            <Section title="Дополнительно" items={extraInfo} />
                                                         </div>
 
                                                         {/* Редактировать */}

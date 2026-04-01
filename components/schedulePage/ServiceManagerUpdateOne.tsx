@@ -109,7 +109,7 @@ export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose }) =
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
                     </div>
 
@@ -119,7 +119,7 @@ export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose }) =
                             type="number"
                             value={duration}
                             onChange={(e) => setDuration(e.target.value)}
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
                     </div>
 
@@ -129,7 +129,7 @@ export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose }) =
                             type="number"
                             value={basePrice}
                             onChange={(e) => setBasePrice(e.target.value)}
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
                     </div>
 

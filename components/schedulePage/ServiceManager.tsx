@@ -90,7 +90,7 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Например: Массаж спины"
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
                     </div>
 
@@ -101,7 +101,7 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
                             placeholder="Введите цену"
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
                     </div>
 
@@ -112,7 +112,7 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
                             value={duration}
                             onChange={(e) => setDuration(e.target.value)}
                             placeholder="30"
-                            className="w-full p-2 border rounded"
+                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
                         />
                     </div>
 
