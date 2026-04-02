@@ -202,26 +202,31 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
     if (!isOpen || !eventData) return null;
 
     return (
-        <div className={`fixed inset-0 z-50 flex justify-end bg-black bg-opacity-50`}>
-            <div className={`bg-white w-[28rem] shadow-lg h-full transform transition-transform`}>
+        <div className="fixed inset-0 z-50 flex justify-end bg-black bg-opacity-50">
+            <div className="bg-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+                <div className="text-black h-full flex flex-col">
+
                 <button
                     type="button"
                     onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 bg-white rounded-full shadow p-1"
+                    className="absolute top-4 right-4 z-10 text-gray-500 hover:text-gray-700 bg-white rounded-full border border-gray-200 shadow-sm p-1 transition-colors"
                     aria-label="Закрыть окно"
                 >
                     ✕
                 </button>
-                <div className="bg-gray-50 rounded p-2 w-full max-w-md text-black">
-                    <h2 className="text-lg font-bold mb-4">Редактировать запись</h2>
 
-                    <form onSubmit={handleSave} className="max-h-screen overflow-y-auto flex flex-col bg-gray-50">
+                    <h2 className="px-4 pt-4 pb-3 border-b bg-gray-50 text-black font-semibold">
+                        Редактировать запись
+                    </h2>
+
+                    {/*<form onSubmit={handleSave} className="max-h-screen overflow-y-auto flex flex-col bg-gray-50">*/}
+                    <form onSubmit={handleSave} className="flex flex-col h-full min-h-0 bg-gray-50">
                         {/* Содержимое с прокруткой */}
                         {/* СКРОЛЛИРУЕМАЯ ЧАСТЬ */}
-                        <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 pb-24">
                             {/* Клиент */}
                             {!isEditingClient ? (
-                                <div className="border border-gray-200 rounded-xl p-3 bg-white">
+                                <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
                                     <div className="font-semibold">{name}</div>
                                     {lastName && <div className="text-sm">Фамилия: {lastName}</div>}
                                     {phone && <div className="text-sm">Телефон: {phone}</div>}
@@ -235,13 +240,13 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     </button>
                                 </div>
                             ) : (
-                                <div className="space-y-2">
+                                <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
                                     <input value={name} onChange={(e) => setName(e.target.value)}
-                                           className="w-full p-2 border border-gray-200 rounded-xl bg-white" placeholder="Имя"/>
+                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Имя"/>
                                     <input value={lastName} onChange={(e) => setLastName(e.target.value)}
-                                           className="w-full p-2 border border-gray-200 rounded-xl bg-white" placeholder="Фамилия"/>
+                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Фамилия"/>
                                     <input value={phone} onChange={(e) => setPhone(e.target.value)}
-                                           className="w-full p-2 border border-gray-200 rounded-xl bg-white" placeholder="Телефон"/>
+                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Телефон"/>
                                     <button type="button" onClick={() => setIsEditingClient(false)}
                                             className="text-gray-500 hover:underline text-sm">
                                         Отмена
@@ -258,7 +263,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     <div className="flex-1">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Время начала</label>
                                     <input type="time" value={timeStart} onChange={(e) => setTimeStart(e.target.value)}
-                                           className="w-full p-2 border border-gray-200 rounded-xl bg-white"/>
+                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"/>
                                     <div className="flex justify-between mt-2">
                                         <button type="button" onClick={() => adjustTime("start", -15)}
                                                 className="px-2 py-1 text-xs bg-gray-200 rounded">−15 мин
@@ -271,7 +276,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     <div className="flex-1">
                                         <label className="block text-sm text-gray-600 mb-1">Время окончания</label>
                                     <input type="time" value={timeEnd} onChange={(e) => setTimeEnd(e.target.value)}
-                                           className="w-full p-2 border border-gray-200 rounded-xl bg-white"/>
+                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"/>
                                     <div className="flex justify-between mt-2">
                                         <button type="button" onClick={() => adjustTime("end", -15)}
                                                 className="px-2 py-1 text-xs bg-gray-200 rounded">−15 мин
@@ -282,20 +287,21 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     </div>
                                 </div>
                             </div>
+                            </div>
 
                             {/* Услуги */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <h3 className="font-semibold">Выберите услуги</h3>
-                                    <span className="text-sm text-gray-500">Qty</span>
-                                </div>
+                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-semibold">Услуги</h3>
+                                        <span className="text-sm text-gray-500">Qty</span>
+                                    </div>
 
                                 {isLoading ? (
                                     <p className="text-sm text-gray-500">Загрузка...</p>
                                 ) : services.length === 0 ? (
                                     <p className="text-sm text-gray-500">Нет услуг у этого мастера</p>
                                 ) : (
-                                    <div className="border border-gray-200 rounded-xl p-3 bg-white relative">
+                                    <div className="relative">
                                         {selectedServices.length > 0 && (
                                             <div className="flex flex-wrap gap-2 mb-3">
                                                 {selectedServices.map((selected) => {
@@ -362,20 +368,20 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                 }}
                                                 onFocus={() => setIsServiceDropdownOpen(true)}
                                                 placeholder="Search"
-                                                className="flex-1 p-2 border rounded-lg"
+                                                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                             />
 
                                             <button
                                                 type="button"
                                                 onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
-                                                className="w-10 h-10 rounded-lg border text-xl text-gray-600 hover:bg-gray-50"
+                                                className="w-11 h-11 rounded-xl border border-gray-200 text-xl text-gray-600 hover:bg-gray-50 transition-colors"
                                             >
                                                 +
                                             </button>
                                         </div>
 
                                         {isServiceDropdownOpen && filteredServices.length > 0 && (
-                                            <div className="absolute left-2 right-2 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-lg border bg-white shadow-lg">
+                                            <div className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
                                                 {filteredServices.map((item) => {
                                                     const price = item.individual_price ?? item.base_price;
 
@@ -404,10 +410,10 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     </div>
                                 )}
                             </div>
-                        </div>
 
 
-                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+
+                           <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
 
                                 <div className="font-semibold text-gray-800">💳 Оплата</div>
 
@@ -423,7 +429,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                             setIsManualCost(true);
                                             setCost(Number(e.target.value) || 0);
                                         }}
-                                        className="w-full p-2 border rounded"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                     />
 
                                     {isManualCost && (
@@ -537,7 +543,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                     : (e.target.value as "cash" | "card" | "transfer")
                                             )
                                         }
-                                        className="w-full p-2 border rounded disabled:bg-gray-100 disabled:text-gray-400"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                     >
                                         <option value="">Не выбрано</option>
                                         <option value="cash">Наличные</option>
@@ -553,15 +559,16 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                 </div>
                             </div>
                             </div>
+
                         </div>
 
                         {/* Кнопки */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gray-50 pt-4 pb-4">
+                        <div className="shrink-0 bg-white border-t border-gray-200 p-4 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
                             {/* Полоса бордера на всю ширину */}
-                            <div className="absolute top-0 left-0 w-full border-t border-gray-200"></div>
+
 
                             {/* Контейнер с отступами */}
-                            <div className="flex justify-between px-4">
+                            <div className="flex justify-between gap-2">
                                 {/* Левая кнопка — Удалить */}
                                 <button
                                     type="button"
@@ -604,7 +611,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                             </div>
                         </div>
                     </form>
-                </div>
+
+        </div>
             </div>
         </div>
     );

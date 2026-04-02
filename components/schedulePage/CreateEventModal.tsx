@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useEmployeeServices } from "@/hooks/useServices";
-import type { Services } from "@/services/servicesApi";
+import React, {useEffect, useState} from "react";
+import {useEmployeeServices} from "@/hooks/useServices";
+import type {Services} from "@/services/servicesApi";
 import ClientAutocomplete from "@/components/ClientAutocomplete";
-import type { Client } from "@/services/clientApi";
-import { useUpdateClient } from "@/hooks/useClient";
-import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Phone, Pencil, UserCircle2 } from "lucide-react";
+import type {Client} from "@/services/clientApi";
+import {useUpdateClient} from "@/hooks/useClient";
+import {XMarkIcon} from "@heroicons/react/24/outline";
+import {Phone, Pencil, UserCircle2} from "lucide-react";
 
 type EmployeeServiceEither =
     | (Services & {
@@ -36,8 +36,8 @@ function unwrapService(
     item: EmployeeServiceEither
 ): { svc: Services; pivot?: EmployeeServiceEither["pivot"] } {
     return isNested(item)
-        ? { svc: item.service, pivot: item.pivot }
-        : { svc: item as Services, pivot: (item as any).pivot };
+        ? {svc: item.service, pivot: item.pivot}
+        : {svc: item as Services, pivot: (item as any).pivot};
 }
 
 interface CreateEventModalProps {
@@ -104,11 +104,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
 
-    const { data: services = [], isLoading } = useEmployeeServices(
+    const {data: services = [], isLoading} = useEmployeeServices(
         employeeId ?? undefined
     );
 
-    const { mutateAsync: updateClientMutate, isPending: updating } =
+    const {mutateAsync: updateClientMutate, isPending: updating} =
         useUpdateClient();
 
     useEffect(() => {
@@ -180,7 +180,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         setSelectedServices((prev) => {
             const exists = prev.some((s) => s.id === serviceId);
             if (exists) return prev;
-            return [...prev, { id: serviceId, qty: 1 }];
+            return [...prev, {id: serviceId, qty: 1}];
         });
 
         setServiceSearch("");
@@ -192,12 +192,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     };
 
 
-
 // ✅ Обновление количества для выбранной услуги
     const updateQty = (serviceId: number, qty: number) => {
         setSelectedServices((prev) =>
             prev.map((s) =>
-                s.id === serviceId ? { ...s, qty: qty > 0 ? qty : 1 } : s
+                s.id === serviceId ? {...s, qty: qty > 0 ? qty : 1} : s
             )
         );
     };
@@ -216,7 +215,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         try {
             await updateClientMutate({
                 id: selectedClientId,
-                data: { name, last_name: lastName, phone },
+                data: {name, last_name: lastName, phone},
             });
             setIsEditingClient(false);
         } catch (err) {
@@ -340,30 +339,46 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                         stroke="currentColor"
                         className="w-6 h-6"
                     >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
                     </svg>
                 </button>
 
 
                 {/*<div className="bg-white rounded p-2 w-full max-w-md text-black">*/}
-                <div className="bg-white rounded p-2 w-full max-w-md text-black h-full flex flex-col min-h-0">
-                <h2 className="text-lg font-bold mb-4">Создать новое событие</h2>
+                <div className="bg-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+                    <div className="p-4 border-b bg-gray-50 text-black font-semibold flex items-center justify-between">
+                        <span>Создать новое событие</span>
 
-                <div>
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="text-gray-500 hover:text-gray-700 bg-white rounded-full shadow-sm border border-gray-200 p-1"
+                            aria-label="Закрыть окно"
+                        >
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={2}
+                                stroke="currentColor"
+                                className="w-5 h-5"
+                            >
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
 
-                        {isOutsideSchedule && (
-                            <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-3 py-2 text-sm flex items-start gap-2">
-                                <span>⚠️</span>
-                                <span>Сотрудник в этот день не работает. Запись вне графика</span>
-                            </div>
-                        )}
-                        {/* форма создания записи */}
-
-                </div>
+                    {isOutsideSchedule && (
+                        <div
+                            className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl px-4 py-3 text-sm flex items-start gap-2">
+                            <span>⚠️</span>
+                            <span>Сотрудник в этот день не работает. Запись вне графика</span>
+                        </div>
+                    )}
 
                     {/*<form onSubmit={handleSubmit} className="max-h-screen overflow-y-auto flex flex-col">*/}
-                    <form onSubmit={handleSubmit} className="flex flex-col h-full min-h-0 bg-gray-50">
-                        <div className="flex-1 overflow-y-auto px-1 space-y-4 pb-40">
+                    <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 bg-gray-50">
+                        <div className="flex-1 overflow-y-auto p-4 text-black space-y-4">
 
                             {/* 1. Поиск клиента */}
                             <div className="border border-gray-200 rounded-xl p-3 bg-white mt-4">
@@ -425,19 +440,19 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full p-2 border rounded"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                     />
                                     <input
                                         type="text"
                                         value={lastName}
                                         onChange={(e) => setLastName(e.target.value)}
-                                        className="w-full p-2 border rounded"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                     />
                                     <input
                                         type="tel"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
-                                        className="w-full p-2 border rounded"
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                     />
 
                                     <div className="flex justify-end gap-6 pt-3 border-t border-gray-200">
@@ -462,72 +477,73 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                             {/* 3. Время */}
                             <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
-                                    <div className="flex items-center gap-2 mb-3">
-                                        <span className="text-xl">🕒</span>
-                                        <h3 className="text-2xl font-semibold">Время</h3>
-                                    </div>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <span className="text-xl">🕒</span>
+                                    <h3 className="text-2xl font-semibold">Время</h3>
+                                </div>
 
                                 <div className="flex gap-3 w-full">
                                     <div className="flex-1">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Время начала</label>
-                                            <input
-                                                type="time"
-                                                value={timeStart}
-                                                onChange={(e) => setTimeStart(e.target.value)}
-                                                className="w-full p-2 border border-gray-200 rounded-xl bg-white"
-                                                required
-                                            />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Время
+                                            начала</label>
+                                        <input
+                                            type="time"
+                                            value={timeStart}
+                                            onChange={(e) => setTimeStart(e.target.value)}
+                                            className="w-full p-2 border border-gray-200 rounded-xl bg-white"
+                                            required
+                                        />
                                         <div className="flex justify-between mt-2">
-                                                <button
-                                                    type="button"
-                                                    className="px-2 py-1 text-xs bg-gray-200 rounded"
-                                                    onClick={() => adjustTime("start", -15)}
-                                                >
-                                                    −15 мин
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="px-2 py-1 text-xs bg-gray-200 rounded"
-                                                    onClick={() => adjustTime("start", 15)}
-                                                >
-                                                    +15 мин
-                                                </button>
-                                            </div>
+                                            <button
+                                                type="button"
+                                                className="px-2 py-1 text-xs bg-gray-200 rounded"
+                                                onClick={() => adjustTime("start", -15)}
+                                            >
+                                                −15 мин
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="px-2 py-1 text-xs bg-gray-200 rounded"
+                                                onClick={() => adjustTime("start", 15)}
+                                            >
+                                                +15 мин
+                                            </button>
                                         </div>
+                                    </div>
 
                                     <div className="flex-1">
                                         <label className="block text-sm text-gray-600 mb-1">Время окончания</label>
-                                            <input
-                                                type="time"
-                                                value={timeEnd}
-                                                onChange={(e) => setTimeEnd(e.target.value)}
-                                                className="w-full p-2 border border-gray-200 rounded-xl bg-white"
-                                                required
-                                            />
+                                        <input
+                                            type="time"
+                                            value={timeEnd}
+                                            onChange={(e) => setTimeEnd(e.target.value)}
+                                            className="w-full p-2 border border-gray-200 rounded-xl bg-white"
+                                            required
+                                        />
                                         <div className="flex justify-between mt-2">
-                                                <button
-                                                    type="button"
-                                                    className="px-2 py-1 text-xs bg-gray-200 rounded"
-                                                    onClick={() => adjustTime("end", -15)}
-                                                >
-                                                    −15 мин
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    className="px-2 py-1 text-xs bg-gray-200 rounded"
-                                                    onClick={() => adjustTime("end", 15)}
-                                                >
-                                                    +15 мин
-                                                </button>
-                                            </div>
+                                            <button
+                                                type="button"
+                                                className="px-2 py-1 text-xs bg-gray-200 rounded"
+                                                onClick={() => adjustTime("end", -15)}
+                                            >
+                                                −15 мин
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="px-2 py-1 text-xs bg-gray-200 rounded"
+                                                onClick={() => adjustTime("end", 15)}
+                                            >
+                                                +15 мин
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
                             {/* 4. Услуги */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <h3 className="font-semibold text-xl">Услуги</h3>
+                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-xl font-semibold">Услуги</h3>
                                     <span className="text-sm text-gray-500">Qty</span>
                                 </div>
 
@@ -586,7 +602,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                                 onClick={() => removeService(selected.id)}
                                                                 className="ml-1 text-gray-400 hover:text-red-500"
                                                             >
-                                                                <XMarkIcon className="w-4 h-4" />
+                                                                <XMarkIcon className="w-4 h-4"/>
                                                             </button>
                                                         </div>
                                                     );
@@ -605,13 +621,13 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                 }}
                                                 onFocus={() => setIsServiceDropdownOpen(true)}
                                                 placeholder="Search"
-                                                className="flex-1 p-2 border rounded-lg"
+                                                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                             />
 
                                             <button
                                                 type="button"
                                                 onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
-                                                className="w-10 h-10 rounded-lg border text-xl text-gray-600 hover:bg-gray-50"
+                                                className="w-11 h-11 rounded-xl border border-gray-200 text-xl text-gray-600 hover:bg-gray-50 transition-colors"
                                             >
                                                 +
                                             </button>
@@ -619,7 +635,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                                         {/* dropdown */}
                                         {isServiceDropdownOpen && filteredServices.length > 0 && (
-                                            <div className="absolute left-2 right-2 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-lg border bg-white shadow-lg">
+                                            <div
+                                                className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
                                                 {filteredServices.map((item) => {
                                                     const price = item.individual_price ?? item.base_price;
 
@@ -639,7 +656,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                         )}
 
                                         {isServiceDropdownOpen && filteredServices.length === 0 && serviceSearch.trim() !== "" && (
-                                            <div className="absolute left-2 right-2 top-full mt-2 z-20 rounded-lg border bg-white shadow-lg px-3 py-2 text-sm text-gray-500">
+                                            <div
+                                                className="absolute left-2 right-2 top-full mt-2 z-20 rounded-lg border bg-white shadow-lg px-3 py-2 text-sm text-gray-500">
                                                 Ничего не найдено
                                             </div>
                                         )}
@@ -655,144 +673,144 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                     <h3 className="text-2xl font-semibold">Оплата</h3>
                                 </div>
 
-                            <div className="grid grid-cols-1 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Стоимость</label>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        step="1"
-                                        value={cost}
-                                        onChange={(e) => {
-                                            setIsManualCost(true);
-                                            setCost(Number(e.target.value) || 0);
-                                        }}
-                                        className="w-full p-2 border rounded"
-                                    />
-
-                                    {isManualCost && (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setIsManualCost(false);
-                                                setCost(calculateServicesCost());
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div>
+                                        <label
+                                            className="block text-sm font-medium text-gray-700 mb-1">Стоимость</label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            step="1"
+                                            value={cost}
+                                            onChange={(e) => {
+                                                setIsManualCost(true);
+                                                setCost(Number(e.target.value) || 0);
                                             }}
-                                            className="text-xs text-blue-600 mt-1"
-                                        >
-                                            Сбросить к расчету
-                                        </button>
-                                    )}
-                                </div>
+                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        />
 
-                                <div>
-                                    <span className="block mb-2 font-semibold">Статус визита</span>
-                                    <div className="inline-flex w-full rounded-lg border overflow-hidden bg-white">
-                                        <button
-                                            type="button"
-                                            onClick={() => setVisitStatus("expected")}
-                                            className={`flex-1 px-3 py-2 text-sm transition-colors ${
-                                                visitStatus === "expected"
-                                                    ? "bg-blue-100 text-blue-700 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            Ожидается
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setVisitStatus("arrived")}
-                                            className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
-                                                visitStatus === "arrived"
-                                                    ? "bg-green-100 text-green-700 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            Пришел
-                                        </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => setVisitStatus("no_show")}
-                                            className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
-                                                visitStatus === "no_show"
-                                                    ? "bg-red-100 text-red-700 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            Не пришел
-                                        </button>
+                                        {isManualCost && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setIsManualCost(false);
+                                                    setCost(calculateServicesCost());
+                                                }}
+                                                className="text-xs text-blue-600 mt-1"
+                                            >
+                                                Сбросить к расчету
+                                            </button>
+                                        )}
                                     </div>
-                                </div>
 
-                                <div>
-                                    <span className="block mb-2 font-semibold">Статус оплаты</span>
-                                    <div className="inline-flex w-full rounded-lg border overflow-hidden bg-white">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setPaymentStatus("unpaid");
-                                                setPaymentMethod(null);
-                                            }}
-                                            className={`flex-1 px-3 py-2 text-sm transition-colors ${
-                                                paymentStatus === "unpaid"
-                                                    ? "bg-gray-100 text-gray-800 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            Не оплачено
-                                        </button>
+                                    <div>
+                                        <span className="block mb-2 font-semibold">Статус визита</span>
+                                        <div className="inline-flex w-full rounded-lg border overflow-hidden bg-white">
+                                            <button
+                                                type="button"
+                                                onClick={() => setVisitStatus("expected")}
+                                                className={`flex-1 px-3 py-2 text-sm transition-colors ${
+                                                    visitStatus === "expected"
+                                                        ? "bg-blue-100 text-blue-700 font-medium"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                Ожидается
+                                            </button>
 
-                                        <button
-                                            type="button"
-                                            onClick={() => setPaymentStatus("partial")}
-                                            className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
-                                                paymentStatus === "partial"
-                                                    ? "bg-yellow-100 text-yellow-700 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            Частично
-                                        </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setVisitStatus("arrived")}
+                                                className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                    visitStatus === "arrived"
+                                                        ? "bg-green-100 text-green-700 font-medium"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                Пришел
+                                            </button>
 
-                                        <button
-                                            type="button"
-                                            onClick={() => setPaymentStatus("paid")}
-                                            className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
-                                                paymentStatus === "paid"
-                                                    ? "bg-green-500 text-white font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
-                                            }`}
-                                        >
-                                            Оплачено
-                                        </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setVisitStatus("no_show")}
+                                                className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                    visitStatus === "no_show"
+                                                        ? "bg-red-100 text-red-700 font-medium"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                Не пришел
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Способ оплаты</label>
-                                    <select
-                                        value={paymentMethod ?? ""}
-                                        disabled={paymentStatus === "unpaid"}
-                                        onChange={(e) =>
-                                            setPaymentMethod(
-                                                e.target.value === ""
-                                                    ? null
-                                                    : (e.target.value as "cash" | "card" | "transfer")
-                                            )
-                                        }
-                                        className="w-full p-2 border rounded disabled:bg-gray-100 disabled:text-gray-400"
-                                    >
-                                        <option value="">Не выбрано</option>
-                                        <option value="cash">Наличные</option>
-                                        <option value="card">Карта</option>
-                                        <option value="transfer">Перевод</option>
-                                    </select>
+                                    <div>
+                                        <span className="block mb-2 font-semibold">Статус оплаты</span>
+                                        <div className="inline-flex w-full rounded-lg border overflow-hidden bg-white">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setPaymentStatus("unpaid");
+                                                    setPaymentMethod(null);
+                                                }}
+                                                className={`flex-1 px-3 py-2 text-sm transition-colors ${
+                                                    paymentStatus === "unpaid"
+                                                        ? "bg-gray-100 text-gray-800 font-medium"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                Не оплачено
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setPaymentStatus("partial")}
+                                                className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                    paymentStatus === "partial"
+                                                        ? "bg-yellow-100 text-yellow-700 font-medium"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                Частично
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setPaymentStatus("paid")}
+                                                className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                    paymentStatus === "paid"
+                                                        ? "bg-green-500 text-white font-medium"
+                                                        : "bg-white text-gray-700 hover:bg-gray-50"
+                                                }`}
+                                            >
+                                                Оплачено
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Способ
+                                            оплаты</label>
+                                        <select
+                                            value={paymentMethod ?? ""}
+                                            disabled={paymentStatus === "unpaid"}
+                                            onChange={(e) =>
+                                                setPaymentMethod(
+                                                    e.target.value === ""
+                                                        ? null
+                                                        : (e.target.value as "cash" | "card" | "transfer")
+                                                )
+                                            }
+                                            className="w-full p-2 border rounded disabled:bg-gray-100 disabled:text-gray-400"
+                                        >
+                                            <option value="">Не выбрано</option>
+                                            <option value="cash">Наличные</option>
+                                            <option value="card">Карта</option>
+                                            <option value="transfer">Перевод</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                         </div>
-
-
 
 
                         </div>
@@ -800,7 +818,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
                         {/* 5. Кнопки сохранения события */}
                         {/*<div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 px-6">*/}
-                        <div className="shrink-0 bg-white border-t border-gray-200 py-4 px-6">
+                        <div className="p-4 border-t bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
                             <div className="flex justify-end mb-3">
                                 {submitError && (
                                     <div
@@ -817,7 +835,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                 )}
                             </div>
 
-                            <div className="flex justify-end gap-3">
+                            <div className="flex justify-end gap-2">
                                 <button
                                     type="button"
                                     onClick={onClose}
@@ -841,8 +859,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                             </div>
                         </div>
 
-                </form>
-            </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
