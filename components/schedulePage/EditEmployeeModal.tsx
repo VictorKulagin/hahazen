@@ -15,10 +15,11 @@ type Props = {
     onSave: (updated: Employee) => void;
 };
 
+
 type WeeklyPeriod = {
-    day: string;   // "mon" | "tue" | ... — можно уточнить тип позже
+    day: WeekDay;  // "mon" | "tue" | ... — можно уточнить тип позже
     start: string; // "HH:mm"
-    end: string;   // "HH:mm"
+    end: string; // "HH:mm"
 };
 
 type EmployeeService = {
@@ -27,11 +28,39 @@ type EmployeeService = {
     duration_minutes?: number;
 };
 
+type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
 const ROLE_OPTIONS: { value: EmployeeRole; label: string }[] = [
     { value: "gd", label: "ГД (владелец)" },
     { value: "admin", label: "Админ" },
     { value: "master", label: "Мастер" },
 ];
+
+const WEEK_DAYS: { value: WeekDay; label: string }[] = [
+    { value: "mon", label: "Пн" },
+    { value: "tue", label: "Вт" },
+    { value: "wed", label: "Ср" },
+    { value: "thu", label: "Чт" },
+    { value: "fri", label: "Пт" },
+    { value: "sat", label: "Сб" },
+    { value: "sun", label: "Вс" },
+];
+
+const WORK_DAYS: WeekDay[] = ["mon", "tue", "wed", "thu", "fri"];
+const ALL_DAYS: WeekDay[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
+const sortPeriodsByWeekDay = (items: WeeklyPeriod[]) => {
+    const order: Record<WeekDay, number> = {
+        mon: 0,
+        tue: 1,
+        wed: 2,
+        thu: 3,
+        fri: 4,
+        sat: 5,
+        sun: 6,
+    };
+
+    return [...items].sort((a, b) => order[a.day] - order[b.day]);
+};
 
 export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, onSave }) => {
     const [name, setName] = useState("");
@@ -75,6 +104,8 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+
+
 
     useEffect(() => {
         if (employee && isOpen) {
@@ -154,7 +185,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
             setPeriods(
                 s.periods.map((p) => ({
-                    day: p[0],
+                    day: p[0] as WeekDay,
                     start: p[1],
                     end: p[2],
                 }))
@@ -273,6 +304,37 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const updatePeriod = (i: number, field: keyof WeeklyPeriod, value: string) =>
         setPeriods(prev => prev.map((p, idx) => (idx === i ? { ...p, [field]: value } : p)));
     const removePeriod = (i: number) => setPeriods(prev => prev.filter((_, idx) => idx !== i));
+
+
+    const copyPeriodToDays = (targetDays: WeekDay[]) => {
+        setPeriods((prev) => {
+            const basePeriod = prev[0] ?? { day: "mon", start: "09:00", end: "18:00" };
+
+            const existingDays = new Set(prev.map((p) => p.day));
+
+            const newPeriods: WeeklyPeriod[] = [...prev];
+
+            targetDays.forEach((day) => {
+                if (!existingDays.has(day)) {
+                    newPeriods.push({
+                        day,
+                        start: basePeriod.start,
+                        end: basePeriod.end,
+                    });
+                }
+            });
+
+            return sortPeriodsByWeekDay(newPeriods);
+        });
+    };
+
+    const handleCopyToWorkWeek = () => {
+        copyPeriodToDays(WORK_DAYS);
+    };
+
+    const handleCopyToFullWeek = () => {
+        copyPeriodToDays(ALL_DAYS);
+    };
 
 
     if (!isOpen || !employee) return null;
@@ -552,18 +614,26 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                                                 value={p.day}
                                                 onChange={(e) =>
                                                     setPeriods(prev =>
-                                                        prev.map((x, idx) => idx === i ? { ...x, day: e.target.value as any } : x)
+                                                        prev.map((x, idx) =>
+                                                            idx === i ? { ...x, day: e.target.value as WeekDay } : x
+                                                        )
                                                     )
                                                 }
                                                 className="p-2 border rounded"
                                             >
-                                                <option value="mon">Пн</option>
+                                                {/*<option value="mon">Пн</option>
                                                 <option value="tue">Вт</option>
                                                 <option value="wed">Ср</option>
                                                 <option value="thu">Чт</option>
                                                 <option value="fri">Пт</option>
                                                 <option value="sat">Сб</option>
-                                                <option value="sun">Вс</option>
+                                                <option value="sun">Вс</option>*/}
+
+                                                {WEEK_DAYS.map((day) => (
+                                                    <option key={day.value} value={day.value}>
+                                                        {day.label}
+                                                    </option>
+                                                ))}
                                             </select>
 
                                             {/* Время начала / конца */}
@@ -572,7 +642,9 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                                                 value={p.start}
                                                 onChange={(e) =>
                                                     setPeriods(prev =>
-                                                        prev.map((x, idx) => idx === i ? { ...x, start: e.target.value } : x)
+                                                        prev.map((x, idx) =>
+                                                            idx === i ? { ...x, start: e.target.value } : x
+                                                        )
                                                     )
                                                 }
                                                 className="p-2 border rounded"
@@ -582,7 +654,9 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                                                 value={p.end}
                                                 onChange={(e) =>
                                                     setPeriods(prev =>
-                                                        prev.map((x, idx) => idx === i ? { ...x, end: e.target.value } : x)
+                                                        prev.map((x, idx) =>
+                                                            idx === i ? { ...x, end: e.target.value } : x
+                                                        )
                                                     )
                                                 }
                                                 className="p-2 border rounded"
@@ -608,6 +682,30 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
                                 >
                                     + Добавить период
                                 </button>
+
+                                <div className="mt-4 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-4">
+                                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
+                                        Быстрое заполнение
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <button
+                                            type="button"
+                                            onClick={handleCopyToWorkWeek}
+                                            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+                                        >
+                                            Скопировать на Пн–Пт
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleCopyToFullWeek}
+                                            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+                                        >
+                                            Скопировать на всю неделю
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
