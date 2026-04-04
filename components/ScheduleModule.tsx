@@ -172,7 +172,22 @@ export default function ScheduleModule({
         }));
     };
 
-    useLayoutEffect(() => recalcColRects(), [masters.length]);
+    useLayoutEffect(() => {
+        if (viewMode === "grid") {
+            recalcColRects();
+        }
+    }, [masters.length, viewMode]);
+
+    useEffect(() => {
+        if (viewMode !== "grid") return;
+
+        const id = requestAnimationFrame(() => {
+            recalcColRects();
+        });
+
+        return () => cancelAnimationFrame(id);
+    }, [viewMode, employees.length, appointments.length]);
+
     useEffect(() => {
         window.addEventListener("resize", recalcColRects);
         return () => window.removeEventListener("resize", recalcColRects);
@@ -266,8 +281,11 @@ export default function ScheduleModule({
 
         for (const [masterIdx, masterEvents] of eventsByMaster.entries()) {
             const col = colRects[masterIdx];
-            const colLeft = col ? col.left : 100;
-            const colWidth = col ? col.width : 180;
+
+            if (!col) continue;
+
+            const colLeft = col.left;
+            const colWidth = col.width;
 
             const sorted = [...masterEvents].sort(
                 (a, b) => toMins(a.start) - toMins(b.start)
