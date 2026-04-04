@@ -106,6 +106,9 @@ function getAvailableSlotsForEmployee(
         }));
 }
 
+
+
+
 export default function ScheduleModule({
                                            employees,
                                            appointments,
@@ -157,6 +160,7 @@ export default function ScheduleModule({
 
         return "bg-gray-100 border border-gray-300 border-l-4 border-l-gray-500";
     };
+
 
     const recalcColRects = () => {
         if (!headerRowRef.current || !scheduleRef.current) return;
@@ -225,7 +229,7 @@ export default function ScheduleModule({
         }
     };
 
-    const cards = useMemo(() => {
+    /*const cards = useMemo(() => {
         return events.map((ev) => {
             const sm = toMins(ev.start);
             const em = toMins(ev.end);
@@ -238,6 +242,106 @@ export default function ScheduleModule({
             const width = col ? col.width : 120;
             return { id: ev.id, top, height, left, width, ev };
         });
+    }, [events, colRects, minMinutes, rowHeightPx, slotStepMin]);*/
+
+
+    const cards = useMemo(() => {
+        const result: Array<{
+            id: string;
+            top: number;
+            height: number;
+            left: number;
+            width: number;
+            ev: ScheduleEvent;
+        }> = [];
+
+        const eventsByMaster = new Map<number, ScheduleEvent[]>();
+
+        for (const ev of events) {
+            if (!eventsByMaster.has(ev.master)) {
+                eventsByMaster.set(ev.master, []);
+            }
+            eventsByMaster.get(ev.master)!.push(ev);
+        }
+
+        for (const [masterIdx, masterEvents] of eventsByMaster.entries()) {
+            const col = colRects[masterIdx];
+            const colLeft = col ? col.left : 100;
+            const colWidth = col ? col.width : 180;
+
+            const sorted = [...masterEvents].sort(
+                (a, b) => toMins(a.start) - toMins(b.start)
+            );
+
+            type LaneItem = {
+                ev: ScheduleEvent;
+                start: number;
+                end: number;
+                lane: number;
+                lanesCount: number;
+            };
+
+            const placed: LaneItem[] = [];
+            let group: LaneItem[] = [];
+            let active: LaneItem[] = [];
+
+            const flushGroup = () => {
+                if (!group.length) return;
+
+                const lanesCount = Math.max(...group.map((item) => item.lane)) + 1;
+                const gap = 6;
+                const itemWidth = (colWidth - gap * (lanesCount - 1)) / lanesCount;
+
+                for (const item of group) {
+                    const duration = Math.max(0, item.end - item.start);
+                    const top =
+                        ((item.start - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx + 2;
+                    const height = (duration / slotStepMin) * rowHeightPx;
+
+                    result.push({
+                        id: item.ev.id,
+                        ev: item.ev,
+                        top,
+                        height,
+                        left: colLeft + item.lane * (itemWidth + gap),
+                        width: itemWidth,
+                    });
+                }
+
+                group = [];
+                active = [];
+            };
+
+            for (const ev of sorted) {
+                const start = toMins(ev.start);
+                const end = toMins(ev.end);
+
+                active = active.filter((item) => item.end > start);
+
+                if (active.length === 0) {
+                    flushGroup();
+                }
+
+                const usedLanes = new Set(active.map((item) => item.lane));
+                let lane = 0;
+                while (usedLanes.has(lane)) lane++;
+
+                const current: LaneItem = {
+                    ev,
+                    start,
+                    end,
+                    lane,
+                    lanesCount: 1,
+                };
+
+                active.push(current);
+                group.push(current);
+            }
+
+            flushGroup();
+        }
+
+        return result;
     }, [events, colRects, minMinutes, rowHeightPx, slotStepMin]);
 
 
@@ -300,6 +404,8 @@ export default function ScheduleModule({
                         startHour,
                         endHour
                     );
+
+
 
                     return (
                         <div
@@ -530,49 +636,92 @@ export default function ScheduleModule({
                     );
                 })()}
 
-                {cards.map((c) => (
-                    <div
-                        key={c.id}
-                        className={`absolute border rounded-xl shadow-sm p-2 flex flex-col justify-center cursor-pointer transition hover:shadow-md text-xs ${getEventColors(c.ev)}`}
-                        style={{
-                            top: isNaN(c.top) ? 0 : c.top,
-                            left: isNaN(c.left) ? 0 : c.left,
-                            width: isNaN(c.width) ? 120 : c.width,
-                            height: isNaN(c.height) ? rowHeightPx : c.height,
-                        }}
-                        onClick={() => onEventClick?.(c.ev)}
-                    >
-                        {/* 👇 Имя клиента */}
-                        <span className="font-semibold text-gray-900 leading-tight">
-        {c.ev.text}
-    </span>
+                {cards.map((c) => {
+                    const currentStart = toMins(c.ev.start);
+                    const currentEnd = toMins(c.ev.end);
 
-                        {/* 👇 Время */}
-                        <span className="text-[11px] text-gray-500">
-        {c.ev.start} – {c.ev.end}
-    </span>
+                    const overlapEvent = events.find((e) => {
+                        if (e.id === c.ev.id) return false;
+                        if (e.master !== c.ev.master) return false;
 
-                        {/* 👇 Нижняя строка */}
-                        <div className="flex items-center justify-between mt-1">
-                            {/* Цена */}
-                            {typeof c.ev.cost === "number" && (
-                                <span className="text-[11px] text-gray-500">
-                {c.ev.cost} сом
-            </span>
+                        const eventStart = toMins(e.start);
+                        const eventEnd = toMins(e.end);
+
+                        return currentStart < eventEnd && currentEnd > eventStart;
+                    });
+
+                    let overlapTop = 0;
+                    let overlapHeight = 0;
+
+                    if (overlapEvent) {
+                        const overlapStart = Math.max(currentStart, toMins(overlapEvent.start));
+                        const overlapEnd = Math.min(currentEnd, toMins(overlapEvent.end));
+
+                        overlapTop =
+                            ((overlapStart - currentStart) / slotStepMin) * rowHeightPx;
+
+                        overlapHeight =
+                            ((overlapEnd - overlapStart) / slotStepMin) * rowHeightPx;
+                    }
+
+                    return (
+                        <div
+                            key={c.id}
+                            className={`absolute border rounded-xl shadow-sm p-2 flex flex-col justify-center cursor-pointer transition hover:shadow-md text-xs overflow-hidden ${getEventColors(c.ev)}`}
+                            style={{
+                                top: isNaN(c.top) ? 0 : c.top,
+                                left: isNaN(c.left) ? 0 : c.left,
+                                width: isNaN(c.width) ? 120 : c.width,
+                                height: isNaN(c.height) ? rowHeightPx : c.height,
+                            }}
+                            onClick={() => onEventClick?.(c.ev)}
+                        >
+                            {overlapEvent && (
+                                <div
+                                    className="absolute left-0 right-0 pointer-events-none
+                    bg-[repeating-linear-gradient(135deg,rgba(239,68,68,0.22)_0px,rgba(239,68,68,0.22)_6px,rgba(239,68,68,0.05)_6px,rgba(239,68,68,0.05)_12px)]"
+                                    style={{
+                                        top: overlapTop,
+                                        height: overlapHeight,
+                                    }}
+                                />
                             )}
 
-                            {/* Статусы */}
-                            <div className="flex items-center gap-1">
-                                {c.ev.visit_status === "expected" && <span title="Ожидается">🕒</span>}
-                                {c.ev.visit_status === "arrived" && <span title="Пришел">✅</span>}
-                                {c.ev.visit_status === "no_show" && <span title="Не пришел">❌</span>}
+                            {overlapEvent && (
+                                <span className="absolute top-1 right-1 z-10 text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded">
+                    Наложение
+                </span>
+                            )}
 
-                                {c.ev.payment_status === "paid" && <span title="Оплачено">💰</span>}
-                                {c.ev.payment_status === "partial" && <span title="Частично">🟡</span>}
+                            <div className="relative z-10">
+                <span className="font-semibold text-gray-900 leading-tight block">
+                    {c.ev.text}
+                </span>
+
+                                <span className="text-[11px] text-gray-500 block">
+                    {c.ev.start} – {c.ev.end}
+                </span>
+
+                                <div className="flex items-center justify-between mt-1">
+                                    {typeof c.ev.cost === "number" && (
+                                        <span className="text-[11px] text-gray-500">
+                            {c.ev.cost} сом
+                        </span>
+                                    )}
+
+                                    <div className="flex items-center gap-1">
+                                        {c.ev.visit_status === "expected" && <span title="Ожидается">🕒</span>}
+                                        {c.ev.visit_status === "arrived" && <span title="Пришел">✅</span>}
+                                        {c.ev.visit_status === "no_show" && <span title="Не пришел">❌</span>}
+
+                                        {c.ev.payment_status === "paid" && <span title="Оплачено">💰</span>}
+                                        {c.ev.payment_status === "partial" && <span title="Частично">🟡</span>}
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* 👇 FAB для мобильных */}
