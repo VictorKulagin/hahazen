@@ -5,12 +5,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { cabinetDashboard } from "@/services/cabinetDashboard";
 import { companiesList } from "@/services/companiesList";
-import { useClients, useClient } from '@/hooks/useClient';
+import { useClients, useClient, useDeleteClient } from '@/hooks/useClient';
 import Pagination from '@/components/Pagination';
 import SidebarMenu from "@/components/SidebarMenu";
 
 
-import { Phone, Pencil, UserCircle2 } from "lucide-react";
+import {Phone, Pencil, UserCircle2, Trash2} from "lucide-react";
 
 
 
@@ -73,6 +73,7 @@ const Page: React.FC = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+    const deleteClientMutation = useDeleteClient();
     const [editingClientId, setEditingClientId] = useState<number | null>(null);
     const { data: editingClient } = useClient(editingClientId ?? undefined);
 
@@ -774,18 +775,40 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
 
                                                                             <div className="flex items-center gap-2 shrink-0">
                                                                                 {authStorage.has("master:create") && (
-                                                                                    <button
-                                                                                        type="button"
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation();
-                                                                                            setEditingClientId(client.id ?? null);
-                                                                                            setIsEditModalOpen(true);
-                                                                                        }}
-                                                                                        className="inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200 transition"
-                                                                                    >
-                                                                                        <Pencil size={14} />
-                                                                                        <span className="hidden sm:inline">Редактировать</span>
-                                                                                    </button>
+                                                                                    <>
+                                                                                        {/* Редактировать */}
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation();
+                                                                                                setEditingClientId(client.id ?? null);
+                                                                                                setIsEditModalOpen(true);
+                                                                                            }}
+                                                                                            className="inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200 transition"
+                                                                                        >
+                                                                                            <Pencil size={14} />
+                                                                                            <span className="hidden sm:inline">Редактировать</span>
+                                                                                        </button>
+
+                                                                                        {/* Удалить */}
+                                                                                        <button
+                                                                                            type="button"
+                                                                                            onClick={async (e) => {
+                                                                                                e.stopPropagation();
+
+                                                                                                if (!confirm("Удалить клиента?")) return;
+
+                                                                                                try {
+                                                                                                    await deleteClientMutation.mutateAsync(client.id!);
+                                                                                                } catch (error) {
+                                                                                                    console.error("Ошибка удаления:", error);
+                                                                                                }
+                                                                                            }}
+                                                                                            className="inline-flex items-center justify-center rounded-md bg-red-500 p-2 text-white hover:bg-red-600 transition"
+                                                                                        >
+                                                                                            <Trash2 size={16} />
+                                                                                        </button>
+                                                                                    </>
                                                                                 )}
                                                                             </div>
                                                                         </div>
