@@ -463,24 +463,48 @@ export default function ScheduleModule({
                             <div className="p-3 space-y-2">
                                 {/* 📋 Записи */}
                                 {employeeEvents.length > 0 ? (
-                                    employeeEvents.map((event) => (
-                                        <button
-                                            key={event.id}
-                                            onClick={() => onEventClick?.(event)}
-                                            className={`w-full text-left rounded-xl border p-3 ${getEventColors(event)}`}
-                                        >
-                                            <div className="text-xs text-gray-500">
-                                                {event.start} – {event.end}
-                                            </div>
+                                    employeeEvents.map((event) => {
+                                        const currentStart = toMins(event.start);
+                                        const currentEnd = toMins(event.end);
 
-                                            <div className="font-semibold text-gray-900">
-                                                {event.text}
-                                            </div>
-                                        </button>
-                                    ))
+                                        const overlapEvent = employeeEvents.find((e) => {
+                                            if (e.id === event.id) return false;
+
+                                            const s = toMins(e.start);
+                                            const eEnd = toMins(e.end);
+
+                                            return currentStart < eEnd && currentEnd > s;
+                                        });
+
+                                        return (
+                                            <button
+                                                key={event.id}
+                                                onClick={() => onEventClick?.(event)}
+                                                className={`w-full text-left rounded-xl border p-3 ${getEventColors(event)}`}
+                                            >
+                                                <div className="text-xs text-gray-500">
+                                                    {event.start} – {event.end}
+                                                </div>
+
+                                                <div className="font-semibold text-gray-900">
+                                                    {event.text}
+                                                </div>
+
+                                                {overlapEvent && (
+                                                    <div className="mt-2 inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-[11px] text-red-600">
+                                                        <span>⚠</span>
+                                                        <span>
+                                Пересечение: {overlapEvent.start} – {overlapEvent.end}
+                            </span>
+                                                    </div>
+                                                )}
+                                            </button>
+                                        );
+                                    })
                                 ) : (
-                                    <div className="text-sm text-gray-400">
-                                        Нет записей
+                                    <div className="flex flex-col items-center justify-center py-6 text-gray-400 border border-dashed border-gray-200 rounded-xl">
+                                        <span className="text-xl mb-1">📭</span>
+                                        <span className="text-sm">Нет записей</span>
                                     </div>
                                 )}
 
