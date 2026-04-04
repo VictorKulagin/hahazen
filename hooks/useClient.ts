@@ -1,6 +1,6 @@
 // hooks/useClient.ts
 import {useMutation, useQuery, useQueryClient} from "@tanstack/react-query";
-import { Client, fetchClients, ClientsApiResponse,   fetchClientById,  updateClient, createClient} from '@/services/clientApi';
+import { Client, fetchClients, ClientsApiResponse, fetchClientById,  updateClient, createClient, deleteClient,} from '@/services/clientApi';
 // Добавляем хук для клиентов с пагинацией и фильтрацией
 
 export interface PaginatedClients {
@@ -88,6 +88,19 @@ export const useUpdateClient = () => {
         onSuccess: (_, { id }) => {
             queryClient.invalidateQueries({ queryKey: ["clients"] });
             queryClient.invalidateQueries({ queryKey: ["client", id] });
+        },
+    });
+};
+
+// Удаление клиента
+export const useDeleteClient = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => deleteClient(id),
+        onSuccess: (_, id) => {
+            queryClient.invalidateQueries({ queryKey: ["clients"] });
+            queryClient.removeQueries({ queryKey: ["client", id] });
         },
     });
 };

@@ -84,6 +84,16 @@ export const updateClient = async (
     return response.data;
 };
 
+
+export const deleteClient = async (id: number): Promise<void> => {
+    try {
+        await apiClient.delete(`/clients/${id}`);
+    } catch (error) {
+        console.error("Error deleting client:", error);
+        throw error;
+    }
+};
+
 /*export const deleteClient = async (id: number): Promise<void> => {
     await apiClient.delete(`/clients/${id}`);
 };*/
