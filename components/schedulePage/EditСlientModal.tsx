@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import type { Client } from "@/services/clientApi";
-import { useUpdateClient } from "@/hooks/useClient";
+import { useUpdateClient, useDeleteClient } from "@/hooks/useClient";
 
 type Props = {
     isOpen: boolean;
@@ -23,6 +23,7 @@ export const EditClientModal: React.FC<Props> = ({
                                                      onSave,
                                                  }) => {
     const { mutateAsync: updateClient } = useUpdateClient();
+    const { mutateAsync: deleteClient } = useDeleteClient();
 
     const [name, setName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -36,6 +37,7 @@ export const EditClientModal: React.FC<Props> = ({
     const [birthDate, setBirthDate] = useState("");
     const [forbidOnlineBooking, setForbidOnlineBooking] = useState<0 | 1>(0);
     const [comment, setComment] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -122,6 +124,33 @@ export const EditClientModal: React.FC<Props> = ({
             setSubmitError(String(getErrorMessage(err)));
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!client?.id) {
+            setSubmitError("Не удалось определить ID клиента.");
+            return;
+        }
+
+        const confirmed = window.confirm("Удалить клиента? Это действие нельзя отменить.");
+        if (!confirmed) return;
+
+        setSubmitError(null);
+        setIsDeleting(true);
+
+        try {
+            await deleteClient(client.id);
+            onClose();
+        } catch (err: any) {
+            setSubmitError(
+                err?.response?.data?.message ||
+                err?.response?.data?.error ||
+                err?.message ||
+                "Не удалось удалить клиента."
+            );
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -282,26 +311,41 @@ export const EditClientModal: React.FC<Props> = ({
 
                 {/* Футер: сообщения над кнопками */}
                 <div className="p-4 border-t bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
-                    {submitError && (
-                        <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                            {submitError}
-                        </div>
-                    )}
+                    <div className="flex justify-between items-center">
 
-                    {success && (
-                        <div className="mb-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                            ✅ Данные клиента обновлены!
-                        </div>
-                    )}
+                        {/* Левая группа */}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={handleDelete}
+                                disabled={isDeleting || isSubmitting}
+                                className="px-4 py-2 text-sm font-medium rounded-md
+                bg-red-50 text-red-600 hover:bg-red-100
+                border border-red-200 transition-all duration-200
+                disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                {isDeleting ? "Удаление..." : "Удалить"}
+                            </button>
 
-                    <div className="flex justify-end gap-2">
-                        <button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
-                            Закрыть
-                        </button>
+                            <button
+                                onClick={onClose}
+                                disabled={isDeleting || isSubmitting}
+                                className="px-4 py-2 text-sm font-medium rounded-md
+                bg-gray-50 text-gray-700 hover:bg-gray-100
+                border border-gray-200 transition-all duration-200
+                disabled:opacity-60 disabled:cursor-not-allowed"
+                            >
+                                Закрыть
+                            </button>
+                        </div>
+
+                        {/* Правая кнопка */}
                         <button
                             onClick={handleSave}
-                            disabled={isSubmitting}
-                            className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-60"
+                            disabled={isSubmitting || isDeleting}
+                            className="px-4 py-2 text-sm font-medium rounded-md
+            bg-green-600 text-white hover:bg-green-700
+            shadow-sm hover:shadow-md transition-all duration-200
+            disabled:opacity-60 disabled:cursor-not-allowed"
                         >
                             {isSubmitting ? "Сохранение..." : "Сохранить"}
                         </button>
