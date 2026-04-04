@@ -23,7 +23,10 @@ import {
     GiftIcon,
     CreditCardIcon,
     CakeIcon,
-    SparklesIcon, UserGroupIcon, Bars3Icon,
+    SparklesIcon,
+    UserGroupIcon,
+    Bars3Icon,
+    ChatBubbleLeftRightIcon
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
@@ -178,6 +181,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
             { icon: CreditCardIcon, label: "Номер карты", value: selectedClient.card_number },
             { icon: CakeIcon, label: "День рождения", value: selectedClient.birth_date },
             { icon: CakeIcon, label: "Запрет онлайн", value: selectedClient.forbid_online_booking === 1 ? "Да" : "Нет" },
+            { icon: ChatBubbleLeftRightIcon, label: "Комментарий", value: selectedClient.comment },
         ]
         : [];
 
