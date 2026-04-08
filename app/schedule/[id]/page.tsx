@@ -582,7 +582,7 @@ const Page: React.FC = () => {
                     onClick={() => setIsMenuOpen(false)}
                 >
                     <div
-                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 bg-darkBlue transform translate-x-0 transition-transform duration-300"
+                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] transform translate-x-0 transition-transform duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <SidebarMenu

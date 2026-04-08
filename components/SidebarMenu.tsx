@@ -39,15 +39,15 @@ export default function SidebarMenu({
     return (
         <div
             className={`flex flex-col text-[rgb(var(--sidebar-foreground))] font-sans text-[18px] leading-snug transition-all duration-300
-            ${variant === "mobile" ? "h-full p-4 justify-between" : "h-full p-0"}`}
+            ${variant === "mobile" ? "h-full p-4 justify-between bg-[rgb(var(--sidebar-background))]" : "h-full p-0"}`}
         >
             {/* ===== Верхняя часть меню ===== */}
             <div>
                 {/* Логотип — только для мобилки */}
                 {variant === "mobile" && (
-                    <div className="border-b border-white/10 pb-3 mb-4 flex items-center">
+                    <div className="border-b border-[rgb(var(--border))] pb-3 mb-4 flex items-center">
                         <Image src="/logo.png" alt="Логотип" width={28} height={28} className="mr-2 rounded" />
-                        <span className="text-sm font-medium truncate">
+                        <span className="text-sm font-medium truncate text-[rgb(var(--sidebar-foreground))]">
                             {companyName || "Компания"}
                         </span>
                     </div>
@@ -65,7 +65,7 @@ export default function SidebarMenu({
                                 className={`flex items-center rounded-md transition-all p-3 ${
                                     active
                                         ? "bg-green-500 text-white"
-                                        : "text-[rgb(var(--sidebar-foreground))] hover:bg-white/10"
+                                        : "text-[rgb(var(--sidebar-foreground))] hover:bg-[rgb(var(--sidebar-hover))]"
                                 }`}
                             >
                                 <Icon className="h-7 w-7" />
@@ -83,10 +83,10 @@ export default function SidebarMenu({
             </div>
 
             {/* ===== Профиль и выход (сразу под меню) ===== */}
-            <div className="border-t border-white/10 mt-2 pt-3">
+            <div className="border-t border-gray-700 mt-2 pt-3">
                 <Link
                     href="/cabinet"
-                    className="flex items-center gap-3 hover:bg-white/10 transition-colors duration-300 rounded-md p-2"
+                    className="flex items-center gap-3 hover:bg-[rgb(var(--sidebar-hover))] transition-colors duration-300 rounded-md p-2"
                 >
                     <img
                         src="/logo.png"
@@ -97,7 +97,7 @@ export default function SidebarMenu({
                         <p className="text-[rgb(var(--sidebar-foreground))] font-semibold text-sm">
                             {userData?.name || "Test"}
                         </p>
-                        <p className="text-white/60 text-xs italic">
+                        <p className="text-[rgb(var(--muted-foreground))] text-xs italic">
                             {userData?.email || "test@mail.ru"}
                         </p>
                     </div>
