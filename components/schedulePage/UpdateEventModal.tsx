@@ -4,7 +4,8 @@ import { useEmployeeServices } from "@/hooks/useServices";
 import { useUpdateAppointment, useDeleteAppointment } from "@/hooks/useAppointments";
 import { useUpdateClient } from "@/hooks/useClient";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import {Pencil} from "lucide-react";
+import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
+
 interface UpdateEventModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -203,30 +204,38 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
 
     return (
         <div className="fixed inset-0 z-50 flex justify-end bg-black bg-opacity-50">
-            <div className="bg-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
-                <div className="text-black h-full flex flex-col">
+            <div className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+                <div className="h-full flex flex-col">
 
                 <button
                     type="button"
                     onClick={onClose}
-                    className="absolute top-4 right-4 z-10 text-gray-500 hover:text-gray-700 bg-white rounded-full border border-gray-200 shadow-sm p-1 transition-colors"
+                    className="absolute top-4 right-4 z-10 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white bg-white dark:bg-white/10 rounded-full border border-gray-200 dark:border-white/10 shadow-sm p-1 transition-colors"
                     aria-label="Закрыть окно"
                 >
-                    ✕
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-5 h-5"
+                    >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+
                 </button>
 
-                    <h2 className="px-4 pt-4 pb-3 border-b bg-gray-50 text-black font-semibold">
+                    <h2 className="px-4 pt-4 pb-3 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-black dark:text-white font-semibold">
                         Редактировать запись
                     </h2>
 
                     {/*<form onSubmit={handleSave} className="max-h-screen overflow-y-auto flex flex-col bg-gray-50">*/}
-                    <form onSubmit={handleSave} className="flex flex-col h-full min-h-0 bg-gray-50">
-                        {/* Содержимое с прокруткой */}
-                        {/* СКРОЛЛИРУЕМАЯ ЧАСТЬ */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 pb-24">
+                    <form onSubmit={handleSave} className="flex flex-col h-full min-h-0 bg-gray-50 dark:bg-[rgb(var(--background))]">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-[rgb(var(--background))] pb-24">
                             {/* Клиент */}
                             {!isEditingClient ? (
-                                <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-3">
+                                <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-3">
                                     <div className="font-semibold">{name}</div>
                                     {lastName && <div className="text-sm">Фамилия: {lastName}</div>}
                                     {phone && <div className="text-sm">Телефон: {phone}</div>}
@@ -240,13 +249,13 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     </button>
                                 </div>
                             ) : (
-                                <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
+                                <div className="bg-white dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10 p-4 space-y-2">
                                     <input value={name} onChange={(e) => setName(e.target.value)}
-                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Имя"/>
+                                           className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Имя"/>
                                     <input value={lastName} onChange={(e) => setLastName(e.target.value)}
-                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Фамилия"/>
+                                           className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Фамилия"/>
                                     <input value={phone} onChange={(e) => setPhone(e.target.value)}
-                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Телефон"/>
+                                           className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Телефон"/>
                                     <button type="button" onClick={() => setIsEditingClient(false)}
                                             className="text-gray-500 hover:underline text-sm">
                                         Отмена
@@ -255,34 +264,38 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                             )}
 
                             {/* Время */}
-                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
-
-                                <div className="font-semibold text-gray-800">⏱ Время</div>
+                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Clock className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                        Время
+                                    </h3>
+                                </div>
 
                                 <div className="flex gap-3 w-full">
                                     <div className="flex-1">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Время начала</label>
+                                        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Время начала</label>
                                     <input type="time" value={timeStart} onChange={(e) => setTimeStart(e.target.value)}
-                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"/>
+                                           className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"/>
                                     <div className="flex justify-between mt-2">
                                         <button type="button" onClick={() => adjustTime("start", -15)}
-                                                className="px-2 py-1 text-xs bg-gray-200 rounded">−15 мин
+                                                className="px-2 py-1 text-xs bg-gray-200 dark:bg-white/10 text-black dark:text-white rounded hover:bg-gray-300 dark:hover:bg-white/20">−15 мин
                                         </button>
                                         <button type="button" onClick={() => adjustTime("start", 15)}
-                                                className="px-2 py-1 text-xs bg-gray-200 rounded">+15 мин
+                                                className="px-2 py-1 text-xs bg-gray-200 dark:bg-white/10 text-black dark:text-white rounded hover:bg-gray-300 dark:hover:bg-white/20">+15 мин
                                         </button>
                                     </div>
                                 </div>
                                     <div className="flex-1">
-                                        <label className="block text-sm text-gray-600 mb-1">Время окончания</label>
+                                        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Время окончания</label>
                                     <input type="time" value={timeEnd} onChange={(e) => setTimeEnd(e.target.value)}
-                                           className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"/>
+                                           className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"/>
                                     <div className="flex justify-between mt-2">
                                         <button type="button" onClick={() => adjustTime("end", -15)}
-                                                className="px-2 py-1 text-xs bg-gray-200 rounded">−15 мин
+                                                className="px-2 py-1 text-xs bg-gray-200 dark:bg-white/10 text-black dark:text-white rounded hover:bg-gray-300 dark:hover:bg-white/20">−15 мин
                                         </button>
                                         <button type="button" onClick={() => adjustTime("end", 15)}
-                                                className="px-2 py-1 text-xs bg-gray-200 rounded">+15 мин
+                                                className="px-2 py-1 text-xs bg-gray-200 dark:bg-white/10 text-black dark:text-white rounded hover:bg-gray-300 dark:hover:bg-white/20">+15 мин
                                         </button>
                                     </div>
                                 </div>
@@ -290,11 +303,19 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                             </div>
 
                             {/* Услуги */}
-                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold">Услуги</h3>
-                                        <span className="text-sm text-gray-500">Qty</span>
+                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Package className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                            Услуги
+                                        </h3>
                                     </div>
+
+                                    <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
+    Кол-во
+  </span>
+                                </div>
 
                                 {isLoading ? (
                                     <p className="text-sm text-gray-500">Загрузка...</p>
@@ -313,7 +334,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                     return (
                                                         <div
                                                             key={selected.id}
-                                                            className="flex items-center gap-2 rounded-full bg-gray-100 border px-3 py-1.5"
+                                                            className="flex items-center gap-2 rounded-full bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 px-3 py-1.5 text-gray-800 dark:text-white"
                                                         >
                                 <span className="text-sm font-medium text-gray-800">
                                     {service.name}
@@ -367,8 +388,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                     setIsServiceDropdownOpen(true);
                                                 }}
                                                 onFocus={() => setIsServiceDropdownOpen(true)}
-                                                placeholder="Search"
-                                                className="flex-1 px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                                placeholder="Поиск"
+                                                className="flex-1 px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                             />
 
                                             <button
@@ -381,7 +402,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                         </div>
 
                                         {isServiceDropdownOpen && filteredServices.length > 0 && (
-                                            <div className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg">
+                                            <div className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-lg">
                                                 {filteredServices.map((item) => {
                                                     const price = item.individual_price ?? item.base_price;
 
@@ -390,7 +411,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                             key={item.service_id}
                                                             type="button"
                                                             onClick={() => addService(item.service_id)}
-                                                            className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50"
+                                                            className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/10"
                                                         >
                                                             <span className="text-sm text-gray-800">{item.name}</span>
                                                             <span className="text-sm text-gray-500">{price}₽</span>
@@ -413,13 +434,17 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
 
 
 
-                           <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
-
-                                <div className="font-semibold text-gray-800">💳 Оплата</div>
+                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <CreditCard className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                        Оплата
+                                    </h3>
+                                </div>
 
                                 <div className="grid grid-cols-1 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Стоимость</label>
+                                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Стоимость</label>
                                     <input
                                         type="number"
                                         min={0}
@@ -429,7 +454,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                             setIsManualCost(true);
                                             setCost(Number(e.target.value) || 0);
                                         }}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                     />
 
                                     {isManualCost && (
@@ -447,15 +472,15 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                 </div>
 
                                 <div>
-                                    <span className="block mb-2 font-semibold">Статус визита</span>
-                                    <div className="flex w-full rounded-xl border border-gray-200 overflow-hidden bg-white">
+                                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Статус визита</span>
+                                    <div className="inline-flex w-full rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden bg-white dark:bg-white/5">
                                         <button
                                             type="button"
                                             onClick={() => setVisitStatus("expected")}
                                             className={`flex-1 px-3 py-2 text-sm transition ${
                                                 visitStatus === "expected"
-                                                    ? "bg-blue-100 text-blue-700 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                                    ? "bg-green-100 text-green-700 font-medium"
+                                                    : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
                                             }`}
                                         >
                                             Ожидается
@@ -467,7 +492,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                             className={`flex-1 px-3 py-2 text-sm border-l transition ${
                                                 visitStatus === "arrived"
                                                     ? "bg-green-100 text-green-700 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                                    : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
                                             }`}
                                         >
                                             Пришел
@@ -479,7 +504,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                             className={`flex-1 px-3 py-2 text-sm border-l transition ${
                                                 visitStatus === "no_show"
                                                     ? "bg-red-100 text-red-700 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                                    : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
                                             }`}
                                         >
                                             Не пришел
@@ -488,8 +513,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                 </div>
 
                                 <div>
-                                    <span className="block mb-2 font-semibold">Статус оплаты</span>
-                                    <div className="flex w-full rounded-lg border overflow-hidden">
+                                    <span className="block text-sm font-medium text-gray-700 mb-1">Статус оплаты</span>
+                                    <div className="inline-flex w-full rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden bg-white dark:bg-white/5">
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -498,8 +523,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                             }}
                                             className={`flex-1 px-3 py-2 text-sm transition ${
                                                 paymentStatus === "unpaid"
-                                                    ? "bg-gray-100 text-gray-800 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                                    ? "bg-gray-100 text-gray-800 font-medium dark:bg-white/10 dark:text-white"
+                                                    : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
                                             }`}
                                         >
                                             Не оплачено
@@ -510,8 +535,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                             onClick={() => setPaymentStatus("partial")}
                                             className={`flex-1 px-3 py-2 text-sm border-l transition ${
                                                 paymentStatus === "partial"
-                                                    ? "bg-yellow-100 text-yellow-700 font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                                    ? "bg-yellow-100 text-yellow-700 font-medium dark:bg-yellow-500/20 dark:text-yellow-300"
+                                                    : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
                                             }`}
                                         >
                                             Частично
@@ -522,8 +547,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                             onClick={() => setPaymentStatus("paid")}
                                             className={`flex-1 px-3 py-2 text-sm border-l transition ${
                                                 paymentStatus === "paid"
-                                                    ? "bg-green-500 text-white font-medium"
-                                                    : "bg-white text-gray-700 hover:bg-gray-50"
+                                                    ? "bg-green-500 text-white font-medium dark:bg-green-500/80 dark:text-white"
+                                                    : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
                                             }`}
                                         >
                                             Оплачено
@@ -532,7 +557,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Способ оплаты</label>
+                                    <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Способ оплаты</label>
                                     <select
                                         value={paymentMethod ?? ""}
                                         disabled={paymentStatus === "unpaid"}
@@ -543,7 +568,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                     : (e.target.value as "cash" | "card" | "transfer")
                                             )
                                         }
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500 disabled:bg-gray-100 dark:disabled:bg-white/5 disabled:text-gray-400"
                                     >
                                         <option value="">Не выбрано</option>
                                         <option value="cash">Наличные</option>
@@ -563,7 +588,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                         </div>
 
                         {/* Кнопки */}
-                        <div className="shrink-0 bg-white border-t border-gray-200 p-4 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                        <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)] dark:shadow-none">
                             {/* Полоса бордера на всю ширину */}
 
 

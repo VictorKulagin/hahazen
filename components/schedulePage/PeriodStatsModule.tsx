@@ -72,23 +72,23 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
     }, [data]);
 
     return (
-        <section className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm md:px-5 md:py-4">
+        <section className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-4 py-3 shadow-sm md:px-5 md:py-4">
             <div className="mb-3">
                 <div className="hidden md:flex items-center justify-between gap-6">
                     <div className="min-w-0">
-                        <h2 className="text-3xl font-semibold tracking-tight text-gray-900">
+                        <h2 className="text-3xl font-semibold tracking-tight text-[rgb(var(--foreground))]">
                             {rangeType === "day" && "Сегодня"}
                             {rangeType === "week" && `Неделя: ${range.start} — ${range.end}`}
                             {rangeType === "month" && `Месяц: ${range.start} — ${range.end}`}
                         </h2>
 
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-[rgb(var(--foreground))]/60">
                             Записи и оплаченная сумма за выбранный период
                         </p>
                     </div>
 
                     <div className="shrink-0">
-                        <div className="inline-flex rounded-2xl border border-gray-200 bg-gray-50 p-1 shadow-sm">
+                        <div className="inline-flex rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--border))] p-1 shadow-sm">
                             {[
                                 { key: "day", label: "Сегодня" },
                                 { key: "week", label: "Неделя" },
@@ -104,7 +104,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                         className={`min-w-[110px] rounded-xl px-5 py-2.5 text-sm font-medium transition-all ${
                                             isActive
                                                 ? "bg-green-600 text-white shadow-sm"
-                                                : "text-gray-700 hover:bg-white"
+                                                : "text-[rgb(var(--foreground))] hover:bg-[rgb(var(--card))]"
                                         }`}
                                     >
                                         {item.label}
@@ -122,18 +122,18 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                         className="flex w-full items-start justify-between gap-3 rounded-2xl"
                     >
                         <div>
-                            <h2 className="text-left text-lg font-semibold text-gray-900">
+                            <h2 className="text-left text-lg font-semibold text-[rgb(var(--foreground))]">
                                 {rangeType === "day" && "Сегодня"}
                                 {rangeType === "week" && "Неделя"}
                                 {rangeType === "month" && "Месяц"}
                             </h2>
-                            <p className="mt-1 text-left text-xs text-gray-400">
+                            <p className="mt-1 text-left text-xs text-[rgb(var(--foreground))]/60">
                                 {range.start} — {range.end}
                             </p>
                         </div>
 
                         <ChevronDown
-                            className={`mt-1 h-5 w-5 shrink-0 text-gray-500 transition-transform ${
+                            className={`mt-1 h-5 w-5 shrink-0 text-[rgb(var(--foreground))]/60 transition-transform ${
                                 isMobileStatsCollapsed ? "" : "rotate-180"
                             }`}
                         />
@@ -141,13 +141,13 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                 </div>
             </div>
 
-            <div className="mb-4 hidden md:flex items-center rounded-2xl border border-gray-200 bg-white px-6 py-4 shadow-sm">
+            <div className="mb-4 hidden md:flex items-center rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-6 py-4 shadow-sm">
                 <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
                         <CalendarDays className="h-5 w-5" />
                     </div>
-                    <span className="text-sm text-gray-500">Записей:</span>
-                    <span className="text-3xl font-semibold text-gray-900">
+                    <span className="text-sm text-[rgb(var(--foreground))]/60">Записей:</span>
+                    <span className="text-3xl font-semibold text-[rgb(var(--foreground))]">
       {isLoading ? "..." : data?.period_totals?.appointments_count ?? 0}
     </span>
                 </div>
@@ -158,8 +158,8 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50 text-green-600">
                         <Banknote className="h-5 w-5" />
                     </div>
-                    <span className="text-sm text-gray-500">Выручка:</span>
-                    <span className="text-3xl font-semibold text-gray-900">
+                    <span className="text-sm text-[rgb(var(--foreground))]/60">Выручка:</span>
+                    <span className="text-3xl font-semibold text-[rgb(var(--foreground))]">
       {isLoading
           ? "..."
           : `${(data?.period_totals?.paid_amount ?? 0).toLocaleString("ru-RU")} сом`}
@@ -172,15 +172,15 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                     <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
                         <BarChart3 className="h-5 w-5" />
                     </div>
-                    <span className="text-sm text-gray-500">Средний чек:</span>
-                    <span className="text-3xl font-semibold text-gray-900">
+                    <span className="text-sm text-[rgb(var(--foreground))]/60">Средний чек:</span>
+                    <span className="text-3xl font-semibold text-[rgb(var(--foreground))]">
       {isLoading ? "..." : `${avgCheck.toLocaleString("ru-RU")} сом`}
     </span>
                 </div>
             </div>
 
             {isLoading && (
-                <div className="rounded-2xl border border-dashed border-gray-200 py-10 text-center text-sm text-gray-500">
+                <div className="rounded-2xl border border-dashed border-[rgb(var(--border))] py-10 text-center text-sm text-[rgb(var(--foreground))]/60">
                     Загружаем статистику...
                 </div>
             )}
@@ -195,9 +195,9 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
             {!isLoading && !isError && data && (
                 <>
                 {rangeType !== "day" && (
-                    <div className="hidden overflow-x-auto rounded-2xl border border-gray-200 md:block">
+                    <div className="hidden overflow-x-auto rounded-2xl border bborder-[rgb(var(--border))] md:block">
                         <table className="min-w-full text-sm">
-                            <thead className="bg-gray-50">
+                            <thead className="bg-[rgb(var(--border))]">
                             <tr>
                                 <th className="px-4 py-3 text-left font-medium text-gray-600">
                                     Дата
@@ -214,13 +214,13 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                             {sortedDays.length > 0 ? (
                                 sortedDays.map((day) => (
                                     <tr key={day.date} className="border-t border-gray-100">
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-900">
+                                        <td className="whitespace-nowrap px-4 py-3 text-[rgb(var(--foreground))]">
                                             {day.date}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-700">
+                                        <td className="px-4 py-3 text-[rgb(var(--foreground))]">
                                             {day.appointments_count}
                                         </td>
-                                        <td className="whitespace-nowrap px-4 py-3 text-gray-700">
+                                        <td className="whitespace-nowrap px-4 py-3 text-[rgb(var(--foreground))]">
                                             {day.paid_amount.toLocaleString("ru-RU")} сом
                                         </td>
                                     </tr>
@@ -229,7 +229,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                 <tr>
                                     <td
                                         colSpan={3}
-                                        className="px-4 py-8 text-center text-gray-500"
+                                        className="px-4 py-8 text-center text-[rgb(var(--foreground))]/60"
                                     >
                                         Нет данных за выбранный период
                                     </td>
@@ -241,7 +241,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                 )}
                     {!isMobileStatsCollapsed && (
                         <div className="mt-3 space-y-3 md:hidden">
-                            <div className="grid grid-cols-3 rounded-2xl bg-gray-100 p-1">
+                            <div className="grid grid-cols-3 rounded-2xl bg-[rgb(var(--border))] p-1">
                                 {[
                                     { key: "day", label: "Сегодня" },
                                     { key: "week", label: "Неделя" },
@@ -257,7 +257,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                             className={`rounded-xl px-3 py-2.5 text-sm font-medium transition ${
                                                 isActive
                                                     ? "bg-green-600 text-white shadow-sm"
-                                                    : "text-gray-700"
+                                                    : "text-[rgb(var(--foreground))]/70 hover:text-[rgb(var(--foreground))]"
                                             }`}
                                         >
                                             {item.label}
@@ -267,23 +267,23 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                             </div>
 
                             <div className="grid grid-cols-2 gap-2">
-                                <div className="rounded-xl bg-gray-50 p-3 text-center">
-                                    <div className="mb-1 text-sm text-gray-500">Записей</div>
-                                    <div className="text-xl font-bold text-gray-900">
+                                <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 text-center shadow-sm">
+                                    <div className="mb-1 text-sm text-[rgb(var(--foreground))]/60">Записей</div>
+                                    <div className="text-xl font-bold text-[rgb(var(--foreground))]">
                                         {data?.period_totals?.appointments_count ?? 0}
                                     </div>
                                 </div>
 
-                                <div className="rounded-xl bg-gray-50 p-3 text-center">
-                                    <div className="mb-1 text-sm text-gray-500">Оплачено</div>
-                                    <div className="text-xl font-bold text-gray-900">
+                                <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 text-center shadow-sm">
+                                    <div className="mb-1 text-sm text-[rgb(var(--foreground))]/60">Оплачено</div>
+                                    <div className="text-xl font-bold text-[rgb(var(--foreground))]">
                                         {(data?.period_totals?.paid_amount ?? 0).toLocaleString("ru-RU")} сом
                                     </div>
                                 </div>
 
-                                <div className="rounded-xl bg-gray-50 p-3 text-center col-span-2">
-                                    <div className="mb-1 text-sm text-gray-500">Средний чек</div>
-                                    <div className="text-xl font-bold text-gray-900">
+                                <div className="rounded-xl bg-[rgb(var(--border))] p-3 text-center col-span-2">
+                                    <div className="mb-1 text-sm text-[rgb(var(--foreground))]/60">Средний чек</div>
+                                    <div className="text-xl font-bold text-[rgb(var(--foreground))]">
                                         {avgCheck.toLocaleString("ru-RU")} сом
                                     </div>
                                 </div>
@@ -294,29 +294,29 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                     sortedDays.map((day) => (
                                         <div
                                             key={day.date}
-                                            className="rounded-2xl border border-gray-200 bg-white p-4"
+                                            className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-4"
                                         >
-                                            <div className="mb-3 text-sm font-semibold text-gray-900">
+                                            <div className="mb-3 text-sm font-semibold text-[rgb(var(--foreground))]">
                                                 {day.date}
                                             </div>
 
                                             <div className="flex items-center justify-between gap-3 text-sm">
-                                                <span className="text-gray-500">Записи</span>
-                                                <span className="font-medium text-gray-900">
+                                                <span className="text-[rgb(var(--foreground))]/60">Записи</span>
+                                                <span className="font-medium text-[rgb(var(--foreground))]">
                         {day.appointments_count}
                     </span>
                                             </div>
 
                                             <div className="mt-2 flex items-center justify-between gap-3 text-sm">
-                                                <span className="text-gray-500">Оплачено</span>
-                                                <span className="font-medium text-gray-900">
+                                                <span className="text-[rgb(var(--foreground))]/60">Оплачено</span>
+                                                <span className="font-medium text-[rgb(var(--foreground))]">
                         {day.paid_amount.toLocaleString("ru-RU")} сом
                     </span>
                                             </div>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="rounded-2xl border border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+                                    <div className="rounded-2xl border border-[rgb(var(--border))] px-4 py-8 text-center text-sm text-[rgb(var(--foreground))]/60">
                                         Нет данных за выбранный период
                                     </div>
                                 )

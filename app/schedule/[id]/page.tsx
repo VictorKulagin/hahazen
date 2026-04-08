@@ -41,6 +41,8 @@ import SidebarMenu from "@/components/SidebarMenu";
 import { CreateClientModal } from "@/components/schedulePage/CreateСlientModal";
 import Loader from "@/components/Loader";
 import PeriodStatsModule from "@/components/schedulePage/PeriodStatsModule";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/lib/theme/theme.context";
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -70,6 +72,8 @@ const Page: React.FC = () => {
     const [error, setError] = useState<string>("");
     const [isCreateEmployeeOpen, setIsCreateEmployeeOpen] = useState(false);
     const [isCreateClientOpen, setIsCreateClientOpen] = useState(false);
+
+    const { theme } = useTheme();
 
     // const { employees } = useEmployees();
 
@@ -492,7 +496,7 @@ const Page: React.FC = () => {
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
-        <div className="relative min-h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%] bg-backgroundBlue">
+        <div className="relative min-h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -503,7 +507,7 @@ const Page: React.FC = () => {
 
             {/* Левая колонка (меню + календарь) */}
             <aside
-                className={`bg-darkBlue text-white p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
+                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
@@ -525,7 +529,7 @@ const Page: React.FC = () => {
                 </div>
 
                 {/* Средний блок: календарь */}
-                <div className="hidden md:block mt-4 bg-[#f8f8f8] rounded-lg p-2 text-black shadow-inner flex-shrink-0">
+                <div className="hidden md:block mt-4 rounded-lg p-2 shadow-inner flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))]">
                     <CustomCalendarDesktop
                         year={year}
                         month={month}
@@ -595,7 +599,7 @@ const Page: React.FC = () => {
 
             {/* Правая колонка (контент) */}
             <main
-                className="bg-backgroundBlue text-white p-4 w-full min-h-screen md:min-h-0 md:h-auto"
+                className="bg-[rgb(var(--background))] text-[rgb(var(--foreground))] p-4 w-full min-h-screen md:min-h-0 md:h-auto"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
                 <div>
@@ -622,7 +626,12 @@ const Page: React.FC = () => {
 
 
                 {/* Заголовок */}
-                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
+                <div className="flex items-center p-3 rounded-md mb-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))]">
+
+                    <div className="flex items-center gap-3">
+                        <span>Тема: {theme}</span>
+                        <ThemeToggle />
+                    </div>
 
                     <span className="ml-auto font-semibold text-sm">
                         Расписание
@@ -630,7 +639,7 @@ const Page: React.FC = () => {
                 </div>
 
                 {/* Календарь — показывать только на мобильных */}
-                <section className="block md:hidden bg-white text-black w-full px-4 py-2">
+                <div className="block md:hidden w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-sm p-3 mb-4">
                     <CustomCalendarMobile
                         year={year}
                         month={month}
@@ -639,15 +648,17 @@ const Page: React.FC = () => {
                         onPrevMonth={handlePrevMonth}
                         onNextMonth={handleNextMonth}
                     />
-                </section>
+                </div>
+
 
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {/* Правая колонка: 80% */}
-                    <section className="col-span-5 bg-white text-black p-4"> {/* rounded shadow */}
+                    <section className="col-span-5 p-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] rounded-2xl">{/* rounded shadow */}
 
                         <div className="mb-6">
                             <PeriodStatsModule branchId={id ? Number(id) : null} />
                         </div>
+
 
                         <ScheduleModule
                             employees={employees}

@@ -76,7 +76,7 @@ const ClientAutocomplete: React.FC<ClientAutocompleteProps> = ({ onSelect }) => 
                             setSearch(e.target.value);
                             setShowDropdown(true);
                         }}
-                        className="w-full p-2 border rounded"
+                        className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                     />
                     {showDropdown && (
                         <div className="absolute bg-white border rounded shadow w-full mt-1 z-10 max-h-60 overflow-y-auto">

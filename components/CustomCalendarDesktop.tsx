@@ -37,16 +37,16 @@ export const CustomCalendarDesktop: React.FC<CustomCalendarDesktopProps> = ({
     };
 
     return (
-        <div className="w-full bg-white rounded-lg shadow-md p-4">
+        <div className="w-full rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm p-3">
             {/* Навигация */}
             <div className="flex justify-between items-center mb-3">
                 <button
                     onClick={onPrevMonth}
-                    className="text-gray-600 hover:text-green-600 font-semibold"
+                    className="text-[rgb(var(--foreground))]/70 hover:text-green-600 font-semibold"
                 >
                     ←
                 </button>
-                <div className="font-semibold text-gray-700 capitalize cursor-default hover:text-green-600 transition">
+                <div className="font-semibold text-[rgb(var(--foreground))] capitalize cursor-default hover:text-green-600 transition">
                     {new Date(year, month - 1).toLocaleString("ru-RU", {
                         month: "long",
                         year: "numeric",
@@ -54,14 +54,14 @@ export const CustomCalendarDesktop: React.FC<CustomCalendarDesktopProps> = ({
                 </div>
                 <button
                     onClick={onNextMonth}
-                    className="text-gray-600 hover:text-green-600 font-semibold"
+                    className="text-[rgb(var(--foreground))]/70 hover:text-green-600 font-semibold"
                 >
                     →
                 </button>
             </div>
 
             {/* Дни недели */}
-            <div className="grid grid-cols-7 text-center font-semibold text-gray-500 mb-2">
+            <div className="grid grid-cols-7 text-center font-semibold text-[rgb(var(--foreground))]/60 mb-2">
                 {DAYS_OF_WEEK.map((d) => (
                     <div key={d}>{d}</div>
                 ))}
@@ -90,8 +90,8 @@ export const CustomCalendarDesktop: React.FC<CustomCalendarDesktopProps> = ({
                                 ? isSelected
                                     ? "bg-green-500 text-white shadow-md scale-105"
                                     : isHighlighted
-                                        ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                        : "hover:bg-gray-100"
+                                        ? "bg-green-500/15 text-green-500 hover:bg-green-500/25"
+                                        : "text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
                                 : "cursor-default"
                             }
   `}

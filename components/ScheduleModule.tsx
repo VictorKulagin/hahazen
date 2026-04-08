@@ -8,13 +8,7 @@ import { PlusIcon } from "@heroicons/react/24/solid";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 import {authStorage} from "@/services/authStorage"; // 👈 вместо PlusIcon
 import { Pencil, List, LayoutGrid } from "lucide-react";
-/*export interface ScheduleEvent {
-    id: string;
-    start: string;
-    end: string;
-    text: string;
-    master: number;
-}*/
+
 
 export interface ScheduleEvent {
     id: string;
@@ -158,7 +152,7 @@ export default function ScheduleModule({
             return "bg-blue-100 border border-blue-300 border-l-4 border-l-blue-500";
         }
 
-        return "bg-gray-100 border border-gray-300 border-l-4 border-l-gray-500";
+        return "bg-[rgba(255,255,255,0.02)] border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] border-l-4 border-l-gray-500";
     };
 
 
@@ -243,21 +237,6 @@ export default function ScheduleModule({
             localStorage.setItem("scheduleDesktopViewMode", mode);
         }
     };
-
-    /*const cards = useMemo(() => {
-        return events.map((ev) => {
-            const sm = toMins(ev.start);
-            const em = toMins(ev.end);
-            const duration = Math.max(0, em - sm);
-            //const top = ((sm - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx;
-            const top = ((sm - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx + 2;
-            const height = (duration / slotStepMin) * rowHeightPx;
-            const col = colRects[ev.master];
-            const left = col ? col.left : 100;
-            const width = col ? col.width : 120;
-            return { id: ev.id, top, height, left, width, ev };
-        });
-    }, [events, colRects, minMinutes, rowHeightPx, slotStepMin]);*/
 
 
     const cards = useMemo(() => {
@@ -368,7 +347,7 @@ export default function ScheduleModule({
         <>
 
             <div className="mb-3 hidden md:flex items-center justify-end">
-                <div className="relative inline-flex items-center rounded-2xl bg-gray-100 p-1 shadow-sm border border-gray-200">
+                <div className="relative inline-flex items-center rounded-2xl bg-white dark:bg-[rgba(255,255,255,0.02)] p-1 shadow-sm border border-gray-200 dark:border-[rgba(255,255,255,0.08)]">
                     <div
                         className={`absolute top-1 bottom-1 w-[112px] rounded-xl bg-green-500 shadow-sm transition-all duration-300 ${
                             viewMode === "list" ? "left-1" : "left-[113px]"
@@ -381,7 +360,7 @@ export default function ScheduleModule({
                         className={`relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
                             viewMode === "list"
                                 ? "text-white"
-                                : "text-gray-600 hover:text-gray-900"
+                                : "text-gray-600 dark:text-white/70 hover:text-black dark:hover:text-white"
                         }`}
                     >
                         <List size={16} className="transition-transform duration-200 group-hover:scale-110" />
@@ -394,7 +373,7 @@ export default function ScheduleModule({
                         className={`relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
                             viewMode === "grid"
                                 ? "text-white"
-                                : "text-gray-600 hover:text-gray-900"
+                                : "text-gray-600 dark:text-white/70 hover:text-black dark:hover:text-white"
                         }`}
                     >
                         <LayoutGrid size={16} className="transition-transform duration-200" />
@@ -428,13 +407,20 @@ export default function ScheduleModule({
                     return (
                         <div
                             key={employee.id}
-                            className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+                            className="rounded-2xl border border-gray-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[rgba(255,255,255,0.02)] shadow-sm overflow-hidden"
                         >
                             {/* 👤 Заголовок мастера */}
-                            <div className="flex items-center justify-between border-b bg-gray-50 px-4 py-3">
+                            <div className="
+flex items-center justify-between
+px-4 py-3
+rounded-xl
+bg-gray-50 dark:bg-[rgba(255,255,255,0.03)]
+border border-gray-200 dark:border-[rgba(255,255,255,0.08)]
+shadow-sm
+">
                                 <button
                                     type="button"
-                                    className="font-semibold text-gray-900 text-left"
+                                    className="font-semibold text-[rgb(var(--foreground))] text-left"
                                     onClick={
                                         authStorage.has("master:update")
                                             ? () => onMasterClick?.(employee)
@@ -482,11 +468,11 @@ export default function ScheduleModule({
                                                 onClick={() => onEventClick?.(event)}
                                                 className={`w-full text-left rounded-xl border p-3 ${getEventColors(event)}`}
                                             >
-                                                <div className="text-xs text-gray-500">
+                                                <div className="text-xs text-black/70">
                                                     {event.start} – {event.end}
                                                 </div>
 
-                                                <div className="font-semibold text-gray-900">
+                                                <div className="font-semibold text-black">
                                                     {event.text}
                                                 </div>
 
@@ -502,7 +488,7 @@ export default function ScheduleModule({
                                         );
                                     })
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center py-6 text-gray-400 border border-dashed border-gray-200 rounded-xl">
+                                    <div className="flex flex-col items-center justify-center py-6 text-[rgb(var(--foreground))]/70 border border-dashed border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] rounded-xl">
                                         <span className="text-xl mb-1">📭</span>
                                         <span className="text-sm">Нет записей</span>
                                     </div>
@@ -520,7 +506,7 @@ export default function ScheduleModule({
                                                         masterIdx
                                                     )
                                                 }
-                                                className="px-2 py-1 text-xs rounded-full border border-gray-200 bg-white text-gray-600"
+                                                className="px-2 py-1 text-xs rounded-full border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] text-[rgb(var(--foreground))]/70"
                                             >
                                                 {slot.start}
                                             </button>
@@ -544,10 +530,10 @@ export default function ScheduleModule({
 
             {viewMode === "grid" && (
                 <div ref={scheduleRef} className="hidden md:block overflow-x-auto overflow-y-auto relative max-h-[75vh]">
-            <div  className="relative border border-gray-300 rounded bg-gradient-to-b from-white to-gray-50 min-w-max">
+            <div  className="relative border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] rounded bg-[rgba(255,255,255,0.02)] min-w-max">
                 {/* Заголовок */}
-                <div ref={headerRowRef} className="flex sticky top-0 bg-gray-50 z-10 h-10 border-b shadow-[0_1px_0_rgba(0,0,0,0.05)]">
-                    <div className="flex-none w-[70px] sm:w-[80px] md:w-[90px] bg-gray-100 border-r border-gray-300 text-center font-semibold p-1 sticky left-0 z-30 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
+                <div ref={headerRowRef} className="flex sticky top-0 bg-[rgba(255,255,255,0.02)] z-10 h-10 border-b shadow-[0_1px_0_rgba(0,0,0,0.05)]">
+                    <div className="flex-none w-[70px] sm:w-[80px] md:w-[90px] bg-[rgba(255,255,255,0.02)] border-r border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] text-center font-semibold p-1 sticky left-0 z-30 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
                         <span className="sm:hidden">⏱</span>
                         <span className="hidden sm:block">Время</span>
                     </div>
@@ -555,7 +541,7 @@ export default function ScheduleModule({
 
                             <div
                                 key={i}
-                                className="col-master flex-1 min-w-[180px] border-r border-gray-300 p-1 text-center font-semibold text-gray-800 cursor-pointer hover:bg-gray-100"
+                                className="col-master flex-1 min-w-[180px] border-r border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] p-1 text-center font-semibold text-[rgb(var(--foreground))] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]"
                                 onClick={authStorage.has("master:create")
                                     ? () => onMasterClick?.(employees[i])
                                     : undefined
@@ -576,7 +562,7 @@ export default function ScheduleModule({
                     {/* 👉 ОТДЕЛЬНАЯ КОЛОНКА */}
                     {authStorage.has("master:create") && (
                         <div
-                            className="hidden sm:flex flex-none min-w-[180px] border-r border-gray-300 p-2 justify-center">
+                            className="hidden sm:flex flex-none min-w-[180px] border-r border-[rgba(255,255,255,0.08)] p-2 justify-center">
                             <button
                                 onClick={onAddEntity}
                                 className="px-3 py-2 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 transition flex items-center gap-2"
@@ -595,11 +581,11 @@ export default function ScheduleModule({
                         <div className="flex" key={rowIdx}>
                             <div className="
   flex-none w-[70px] sm:w-[80px] md:w-[90px] h-[40px]
-  border-t border-gray-100
-  border-r border-gray-100
+  border-t border-[rgba(255,255,255,0.08)]
+  border-r border-[rgba(255,255,255,0.08)]
   flex items-center justify-end pr-3
-  text-[13px] font-medium text-gray-700 tabular-nums
-  bg-white
+  text-[13px] font-medium text-[rgb(var(--foreground))] tabular-nums
+ bg-[rgba(255,255,255,0.02)]
   sticky left-0 z-10
 ">
                                 {toTime(min)}
@@ -614,11 +600,11 @@ export default function ScheduleModule({
                                     <div
                                         key={masterIdx}
                                         className={`col-master flex-1 min-w-[180px] h-[40px] border-t border-l ${
-                                            masterIdx % 2 === 0 ? "border-gray-200" : "border-gray-100"
+                                            masterIdx % 2 === 0 ? "border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)]" : "border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)]"
                                         } ${
                                             working
-                                                ? "bg-white hover:bg-blue-50"
-                                                : "bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_2px,#f5f5f5_2px,#f5f5f5_4px)]"
+                                                ? "bg-white dark:bg-[rgba(255,255,255,0.02)] hover:bg-gray-50 dark:hover:bg-[rgba(255,255,255,0.04)]"
+                                                : "bg-[repeating-linear-gradient(135deg,#fafafa_0,#fafafa_2px,#f5f5f5_2px,#f5f5f5_4px)] dark:bg-[repeating-linear-gradient(135deg,rgba(255,255,255,0.02)_0px,rgba(255,255,255,0.02)_2px,rgba(255,255,255,0.04)_2px,rgba(255,255,255,0.04)_4px)]"
                                         }`}
 
                                         onClick={
@@ -632,7 +618,7 @@ export default function ScheduleModule({
                             {/* 👇 ВАЖНО: добавляем пустую колонку внутри flex */}
                             {authStorage.has("master:create") && (
                                 <div
-                                    className="hidden sm:block flex-none min-w-[180px] h-[40px] border-t border-l border-gray-200 bg-white"/>
+                                    className="hidden sm:block flex-none min-w-[180px] h-[40px] border-t border-l border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)]"/>
                             )}
                         </div>
                     ))}
@@ -661,7 +647,7 @@ export default function ScheduleModule({
     <span className="
         absolute right-1 top-[45%] -translate-y-1/2
         text-[10px] text-red-500/80 font-medium
-        bg-white px-1
+        bg-[rgba(255,255,255,0.02)] px-1
     ">
         {currentTime}
     </span>
@@ -671,7 +657,7 @@ export default function ScheduleModule({
                             <div className="flex-1 h-[2px] bg-red-300 shadow-[0_0_6px_rgba(248,113,113,0.5)]" />
 
                             {/* 👈 правый маркер (можно оставить или убрать) */}
-                            <div className="ml-2 px-1.5 py-[1px] text-[10px] text-red-400 bg-white/80 rounded">
+                            <div className="ml-2 px-1.5 py-[1px] text-[10px] text-red-400 bg-[rgba(255,255,255,0.02)]/80 rounded">
                                 {currentTime}
                             </div>
                         </div>
@@ -736,17 +722,17 @@ export default function ScheduleModule({
                             )}
 
                             <div className="relative z-10">
-                <span className="font-semibold text-gray-900 leading-tight block">
+                <span className="font-semibold text-black leading-tight block">
                     {c.ev.text}
                 </span>
 
-                                <span className="text-[11px] text-gray-500 block">
+                                <span className="text-[11px] text-black/70 block">
                     {c.ev.start} – {c.ev.end}
                 </span>
 
                                 <div className="flex items-center justify-between mt-1">
                                     {typeof c.ev.cost === "number" && (
-                                        <span className="text-[11px] text-gray-500">
+                                        <span className="text-[11px] text-black/70">
                             {c.ev.cost} сом
                         </span>
                                     )}

@@ -28,6 +28,8 @@ import Loader from "@/components/Loader";
 import {authStorage} from "@/services/authStorage";
 
 import { Pencil, Trash2 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/lib/theme/theme.context";
 
 const Page: React.FC = ( ) => {
 
@@ -64,6 +66,8 @@ const Page: React.FC = ( ) => {
 
     const { data: services = [], isLoading: servicesLoading, error: servicesError } = useServices();
     const { mutateAsync: deleteService } = useDeleteService(); // ✅ Добавлено
+
+    const { theme } = useTheme();
 
     const toggleFilModal = () => {
         setIsModalFilOpen((prev) => !prev);
@@ -272,7 +276,7 @@ const Page: React.FC = ( ) => {
 
             {/* Меню */}
             <aside
-                className={`bg-darkBlue text-white p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
+                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
@@ -381,6 +385,11 @@ const Page: React.FC = ( ) => {
 
                 {/* Заголовок */}
                 <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
+
+                    <div className="flex items-center gap-3">
+                        <span>Тема: {theme}</span>
+                        <ThemeToggle />
+                    </div>
 
                     <span className="ml-auto font-semibold text-sm">
                         Услуги

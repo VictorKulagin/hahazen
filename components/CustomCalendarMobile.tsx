@@ -68,23 +68,23 @@ const CustomCalendarMobile: React.FC<CustomCalendarMobileProps> = ({
             : [weeks[0]];
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-4 w-full">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-3 w-full border border-gray-200 dark:border-slate-700">
             {/* Заголовок */}
             <div className="flex items-center justify-between mb-2">
-                <button onClick={onPrevMonth} className="text-gray-500">←</button>
-                <div className="font-semibold text-gray-700 capitalize cursor-default hover:text-green-600 transition">
+                <button onClick={onPrevMonth} className="text-gray-500 dark:text-slate-400">←</button>
+                <div className="font-semibold text-gray-800 dark:text-slate-100 capitalize cursor-default hover:text-green-600 transition">
                     {new Date(year, month - 1).toLocaleString("ru-RU", {
                         month: "long",
                         year: "numeric",
                     })}
                 </div>
-                <button onClick={onNextMonth} className="text-gray-500">→</button>
+                <button onClick={onNextMonth} className="text-gray-500 dark:text-slate-400">→</button>
             </div>
 
             {/* Заголовки дней недели */}
             <div className="grid grid-cols-7 text-center mb-1">
                 {DAYS_OF_WEEK.map((d) => (
-                    <div key={d} className="text-sm font-medium text-gray-500">
+                    <div key={d} className="text-sm font-medium text-gray-500 dark:text-slate-400">
                         {d}
                     </div>
                 ))}
@@ -114,8 +114,9 @@ const CustomCalendarMobile: React.FC<CustomCalendarMobileProps> = ({
                                         ? isSelected
                                             ? "bg-green-500 text-white shadow-md scale-105"
                                             : isHighlighted
-                                                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                                : "hover:bg-gray-100"
+                                                ? "bg-green-100 text-green-700 hover:bg-green-200 \n" +
+                                                "dark:bg-green-500/15 dark:text-green-400 dark:hover:bg-green-500/25"
+                                                : "text-slate-900 dark:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-800"
                                         : "cursor-default"
                                     }
   `}
@@ -132,7 +133,7 @@ const CustomCalendarMobile: React.FC<CustomCalendarMobileProps> = ({
             {/* Кнопка свернуть/развернуть */}
             <button
                 onClick={() => setExpanded(!expanded)}
-                className="w-full mt-2 text-gray-500 flex items-center justify-center gap-1 text-sm"
+                className="w-full mt-3 text-gray-500 dark:text-slate-400 flex items-center justify-center gap-1 text-sm"
             >
                 {expanded ? (
                     <>
