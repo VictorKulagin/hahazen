@@ -14,17 +14,15 @@ import {cabinetDashboard} from "@/services/cabinetDashboard";
 import { deleteEmployee } from "@/services/employeeApi";
 import {AxiosError} from "axios";
 import usePhoneInput from '@/hooks/usePhoneInput';
-
-import { UI_validatePhone, validateName } from '@/components/Validations';
-
 import { CreateEmployeeModal } from "@/components/schedulePage/CreateEmployeeModal";
 import { EditEmployeeModal } from "@/components/schedulePage/EditEmployeeModal";
-
 import {useEmployeeServices, useSyncEmployeeServices} from "@/hooks/useServices";
 import SidebarMenu from "@/components/SidebarMenu";
 import Image from "next/image";
 import Loader from "@/components/Loader";
 import { authStorage } from "@/services/authStorage";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/lib/theme/theme.context";
 
 import { Pencil, Trash2, UserCircle2 } from "lucide-react";
 
@@ -64,6 +62,8 @@ const Page: React.FC = ( ) => {
     const [error, setError] = useState<string>("");
 
     const [isNotFound, setIsNotFound] = useState(false);
+
+    const { theme } = useTheme();
 
     const router = useRouter();
 
@@ -207,9 +207,6 @@ const Page: React.FC = ( ) => {
     console.log(id + " ID из данных филиала ....");
 
 
-
-
-
     const params = useParams();
     //const idFromUrl = params.id as string || null;
     let idFromUrl: string | null = null;
@@ -232,13 +229,6 @@ const Page: React.FC = ( ) => {
         // Изменяем заголовок страницы
         document.title = isNotFound ? "404 - Страница не найдена" : "Название вашей страницы";
     }, [isNotFound]);
-
-
-
-
-
-
-
 
 
     // Получение услуг мастера
@@ -315,12 +305,11 @@ const Page: React.FC = ( ) => {
         { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
     ];
 //debugger;
-    // Элементы меню
-    // Элементы меню
 
+    // Элементы меню
 
     return (
-        <div className="relative min-h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%] bg-backgroundBlue">
+        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -332,7 +321,7 @@ const Page: React.FC = ( ) => {
 
             {/* Меню */}
             <aside
-                className={`bg-darkBlue text-white p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
+                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
@@ -394,7 +383,7 @@ const Page: React.FC = ( ) => {
                     onClick={() => setIsMenuOpen(false)}
                 >
                     <div
-                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 bg-darkBlue transform translate-x-0 transition-transform duration-300"
+                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] transform translate-x-0 transition-transform duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <SidebarMenu
@@ -412,7 +401,7 @@ const Page: React.FC = ( ) => {
 
             {/* Правая колонка (контент) */}
             <main
-                className="bg-backgroundBlue p-4 h-full md:h-auto"
+                className="min-h-screen bg-[rgb(var(--background))] px-3 py-4 md:px-6 md:py-6"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
 
@@ -443,10 +432,19 @@ const Page: React.FC = ( ) => {
 
 
                 {/* Заголовок */}
-                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
-                    <span className="ml-auto font-semibold text-sm">
-                        Сотрудники
-                    </span>
+                <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Сотрудники
+                        </h1>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
+                            Тема: {theme}
+                        </span>
+                        <ThemeToggle />
+                    </div>
                 </div>
 
                 {/* Кнопка "Добавить сотрудника" */}
@@ -517,10 +515,41 @@ const EmployeesTable = ({
     handleEdit: (employee: Employee) => void;
     handleDelete: (id: number) => void;
 }) => {
+
+    const avatarColors = [
+        "bg-indigo-500",
+        "bg-pink-500",
+        "bg-orange-500",
+        "bg-green-500",
+        "bg-blue-500",
+        "bg-purple-500",
+        "bg-emerald-500",
+        "bg-rose-500",
+    ];
+
+    function getAvatarColor(name: string = "") {
+        let hash = 0;
+
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        const index = Math.abs(hash) % avatarColors.length;
+        return avatarColors[index];
+    }
+
     return (
         <div className="grid grid-cols-1 gap-4 mt-6">
-            <section className="bg-white text-black p-4 rounded shadow">
-                <h2 className="text-lg font-semibold mb-3">Сотрудники</h2>
+            <section className="rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
+                <div className="mb-5 flex items-center gap-3">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        Сотрудники
+                    </h2>
+
+                    <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
+        {employees.length}
+    </span>
+                </div>
 
                 {loading ? (
                     <div className="text-center text-gray-500">Загрузка...</div>
@@ -529,62 +558,71 @@ const EmployeesTable = ({
                 ) : employees.length === 0 ? (
                     <div className="text-center text-gray-500">Нет данных</div>
                 ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-3 md:space-y-4">
                         {employees.map((employee) => (
                             <div
                                 key={employee.id}
-                                className="rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 shadow-sm"
+                                className="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-5"
                             >
-                                <div className="flex items-center justify-between gap-3">
-                                    {/* Левая часть */}
-                                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                                        <div className="shrink-0 text-slate-300">
-                                            <UserCircle2 size={44} strokeWidth={1.5} />
+                                <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[56px_minmax(180px,1fr)_150px_220px_220px_auto] xl:items-center xl:gap-6">
+
+                                    {/* Аватар */}
+                                    <div className="flex items-center gap-3 xl:contents">
+                                        <div
+                                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white ${getAvatarColor(employee.name)}`}
+                                        >
+                                            {employee.name?.[0] || "?"}
                                         </div>
 
                                         <div className="min-w-0">
-                                            <div className="text-base font-semibold text-slate-900 truncate">
+                                            <div className="truncate text-[22px] font-semibold leading-tight text-gray-900 dark:text-white md:text-xl xl:text-lg">
                                                 {employee.name}
                                             </div>
 
-                                            <div className="text-sm text-slate-500 truncate">
-                                                {employee.specialty || "— не указано —"}
-                                            </div>
-
-                                            <div className="hidden md:block text-xs text-slate-400 mt-1">
-                                                Дата найма: {employee.hire_date || "— не указана —"}
+                                            <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                                {employee.specialty || "Роль не указана"}
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Правая часть */}
-                                    <div className="flex items-center gap-2 shrink-0">
+                                    {/* Дата найма */}
+                                    <div className="hidden text-sm text-gray-500 dark:text-gray-400 xl:block">
+                                        {employee.hire_date || "—"}
+                                    </div>
+
+                                    <div className="hidden truncate text-sm text-gray-500 dark:text-gray-400 xl:block">
+                                        {employee.email || "—"}
+                                    </div>
+
+                                    <div className="hidden text-sm text-gray-500 dark:text-gray-400 xl:block">
+                                        {employee.phone || "—"}
+                                    </div>
+
+                                    {/* Кнопки (пока без финальной стилизации) */}
+                                    <div className="flex items-center gap-2 self-start xl:self-center xl:justify-end">
                                         {authStorage.has("master:update") && (
                                             <button
                                                 onClick={() => handleEdit(employee)}
-                                                className="inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200 transition"
+                                                className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                                             >
-                                                <Pencil size={14} />
-                                                <span className="hidden sm:inline">Редактировать</span>
+                                                <span>Редактировать</span>
                                             </button>
                                         )}
 
                                         {authStorage.has("master:delete") && (
                                             <button
                                                 onClick={() => handleDelete(employee.id)}
-                                                className="inline-flex items-center justify-center rounded-md bg-red-500 p-2 text-white hover:bg-red-600 transition"
+                                                className="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-5 text-sm font-medium text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60 sm:px-5"
                                             >
-                                                <Trash2 size={16} />
+            <span className="sm:hidden">
+                <Trash2 size={15} />
+            </span>
+                                                <span className="hidden sm:inline">Удалить</span>
                                             </button>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* Доп. информация для десктопа */}
-                                <div className="hidden lg:flex items-center gap-4 mt-3 pl-[56px] text-xs text-slate-400">
-                                    {employee.email && <span>Email: {employee.email}</span>}
-                                    {employee.phone && <span>Телефон: {employee.phone}</span>}
-                                </div>
                             </div>
                         ))}
                     </div>

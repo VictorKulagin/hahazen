@@ -352,7 +352,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
 
 
     return (
-        <div className="relative min-h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%] bg-backgroundBlue">
+        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -443,7 +443,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
 
             {/* Правая колонка (контент) */}
             <main
-                className="bg-backgroundBlue text-white p-4 h-full md:h-auto"
+                className="min-h-screen bg-[rgb(var(--background))] px-3 py-4 md:px-6 md:py-6"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
 
@@ -525,19 +525,6 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                         setEditingClientId(null);
                     }}
                 />
-
-                {/* ✅ Новое окно — редактирование сотрудника */}
-                {/* <EditClientModal
-                    isOpen={isEditModalOpen}
-                    client={editingClient}
-                    onClose={() => setIsEditModalOpen(false)}
-                    onSave={(updated) => {
-                        setClients((prev) =>
-                            prev.map((c) => (c.id === updated.id ? updated : c))
-                        );
-                        setIsEditModalOpen(false);
-                    }}
-                /> */}
 
 
                 {/* Контент: две колонки */}
@@ -691,8 +678,6 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                             </div>
                                                         </div>
 
-
-                                                        {/* Сетка информации */}
                                                         {/* Сетка информации */}
                                                         <div className="space-y-4">
                                                             <Section title="Основное" items={mainInfo} />
@@ -701,13 +686,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                         </div>
 
                                                         {/* Редактировать */}
-                                                        {/*<button
-                                                            onClick={() => setIsEditing(true)}
-                                                            className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition flex items-center justify-center space-x-2"
-                                                        >
-                                                            <CakeIcon className="h-4 w-4" />
-                                                            <span>Редактировать</span>
-                                                        </button>*/}
+
 
                                                         {authStorage.has("master:create") && (
                                                             <button
@@ -842,11 +821,10 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                             Клиенты не найдены на странице {page}
                                         </div>
                                     )}
-                                    {/*</section>*/}
+
                                 <p>ID: {userData?.id}</p>
                             </div>
 
-                            {/*</div>*/}
                     </section>
                 </div>
             </main>

@@ -190,7 +190,7 @@ const Page: React.FC = () => {
 
 
     return (
-        <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
+        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -321,7 +321,7 @@ const Page: React.FC = () => {
 
             {/* Правая колонка (контент) */}
             <main
-                className="bg-backgroundBlue text-white p-4 h-full md:h-auto"
+                className="min-h-screen bg-[rgb(var(--background))] px-3 py-4 md:px-6 md:py-6"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
 

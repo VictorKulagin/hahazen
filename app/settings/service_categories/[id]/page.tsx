@@ -265,7 +265,7 @@ const Page: React.FC = ( ) => {
 
 
     return (
-        <div className="relative min-h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%] bg-backgroundBlue">
+        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -337,7 +337,7 @@ const Page: React.FC = ( ) => {
                     onClick={() => setIsMenuOpen(false)}
                 >
                     <div
-                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 bg-darkBlue transform translate-x-0 transition-transform duration-300"
+                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] transform translate-x-0 transition-transform duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <SidebarMenu
@@ -355,7 +355,7 @@ const Page: React.FC = ( ) => {
 
             {/* Правая колонка (контент) */}
             <main
-                className="bg-backgroundBlue  p-4 h-full md:h-auto"
+                className="min-h-screen bg-[rgb(var(--background))] px-3 py-4 md:px-6 md:py-6"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
 
@@ -384,21 +384,24 @@ const Page: React.FC = ( ) => {
                 </div>
 
                 {/* Заголовок */}
-                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
-
+                <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
                     <div className="flex items-center gap-3">
-                        <span>Тема: {theme}</span>
-                        <ThemeToggle />
+                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Услуги
+                        </h1>
                     </div>
 
-                    <span className="ml-auto font-semibold text-sm">
-                        Услуги
-                    </span>
+                    <div className="flex items-center gap-3">
+                        <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
+                            Тема: {theme}
+                        </span>
+                            <ThemeToggle />
+                    </div>
                 </div>
 
                 {/* Кнопка "Добавить услуги" */}
                 {authStorage.has("master:create") && (
-                    <div className="mb-4">
+                    <div className="mb-6">
                         <button
                             onClick={() => setIsServiceManagerOpen(true)}
                             className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
@@ -471,9 +474,17 @@ const ServicesTable = ({
     setSelectedService: React.Dispatch<React.SetStateAction<Services | null>>;
 }) => {
     return (
-        <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
-            <section className="bg-white text-black p-4 rounded shadow">
-                <h2 className="text-lg font-semibold mb-2">Услуги</h2>
+        <div className="grid grid-cols-1">
+            <section className="rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
+                <div className="mb-5 flex items-center gap-3">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                        Услуги
+                    </h2>
+
+                    <span className="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
+        {services.length}
+    </span>
+                </div>
 
                 <div className="overflow-auto">
                     {loading ? (
@@ -487,38 +498,61 @@ const ServicesTable = ({
                             {services.map((service) => (
                                 <div
                                     key={service.id}
-                                    className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm"
+                                    className="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-4"
                                 >
-                                    {/* Левая часть */}
-                                    <div>
-                                        <div className="font-semibold text-gray-800">
-                                            {service.name}
-                                        </div>
-                                        <div className="text-sm text-gray-500">
-                                            {service.duration_minutes} мин • {service.base_price} ₽
-                                        </div>
-                                    </div>
+                                    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(220px,1fr)_110px_110px_auto] lg:items-center lg:gap-6">
+                                        {/* Название + время + цена на мобиле */}
+                                        <div className="min-w-0">
+                                            <div className="text-base font-semibold text-gray-900 dark:text-white md:text-lg">
+                                                {service.name}
+                                            </div>
 
-                                    {/* Правая часть */}
-                                    <div className="flex items-center gap-2">
-                                        {authStorage.has("master:update") && (
-                                            <button
-                                                onClick={() => setSelectedService(service)}
-                                                className="inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200 transition"
-                                            >
-                                                <Pencil size={14} />
-                                                <span className="hidden sm:inline">Редактировать</span>
-                                            </button>
-                                        )}
+                                            <div className="mt-1 flex items-center gap-2 text-sm lg:hidden">
+            <span className="text-gray-500 dark:text-gray-400">
+                {service.duration_minutes} мин
+            </span>
 
-                                        {authStorage.has("master:delete") && (
-                                            <button
-                                                onClick={() => handleDelete(service.id)}
-                                                className="p-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        )}
+                                                <span className="text-gray-400 dark:text-gray-500">•</span>
+
+                                                <span className="font-semibold text-gray-900 dark:text-white">
+                {service.base_price} ₽
+            </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Длительность на desktop */}
+                                        <div className="hidden text-sm text-gray-500 dark:text-gray-400 lg:block lg:text-left">
+                                            {service.duration_minutes} мин
+                                        </div>
+
+                                        {/* Цена на desktop */}
+                                        <div className="hidden text-sm font-semibold text-gray-900 dark:text-white lg:block lg:text-left">
+                                            {service.base_price} ₽
+                                        </div>
+
+                                        {/* Кнопки */}
+                                        <div className="flex items-center gap-2 self-start lg:self-center lg:justify-end">
+                                            {authStorage.has("master:update") && (
+                                                <button
+                                                    onClick={() => setSelectedService(service)}
+                                                    className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                                                >
+                                                    <span>Редактировать</span>
+                                                </button>
+                                            )}
+
+                                            {authStorage.has("master:delete") && (
+                                                <button
+                                                    onClick={() => handleDelete(service.id)}
+                                                    className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60"
+                                                >
+                <span className="sm:hidden">
+                    <Trash2 size={15} />
+                </span>
+                                                    <span className="hidden sm:inline">Удалить</span>
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}

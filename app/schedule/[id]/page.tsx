@@ -496,7 +496,7 @@ const Page: React.FC = () => {
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
-        <div className="relative min-h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
+        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -599,7 +599,7 @@ const Page: React.FC = () => {
 
             {/* Правая колонка (контент) */}
             <main
-                className="bg-[rgb(var(--background))] text-[rgb(var(--foreground))] p-4 w-full min-h-screen md:min-h-0 md:h-auto"
+                className="min-h-screen bg-[rgb(var(--background))] px-3 py-4 md:px-6 md:py-6"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
                 <div>
@@ -626,16 +626,20 @@ const Page: React.FC = () => {
 
 
                 {/* Заголовок */}
-                <div className="flex items-center p-3 rounded-md mb-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))]">
-
+                <div
+                    className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
                     <div className="flex items-center gap-3">
-                        <span>Тема: {theme}</span>
-                        <ThemeToggle />
+                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Расписание
+                        </h1>
                     </div>
 
-                    <span className="ml-auto font-semibold text-sm">
-                        Расписание
-                    </span>
+                    <div className="flex items-center gap-3">
+        <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
+            Тема: {theme}
+        </span>
+                        <ThemeToggle />
+                    </div>
                 </div>
 
                 {/* Календарь — показывать только на мобильных */}
