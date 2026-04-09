@@ -128,6 +128,12 @@ export default function ScheduleModule({
     const scheduleRef = useRef<HTMLDivElement | null>(null);
     const headerRowRef = useRef<HTMLDivElement | null>(null);
     const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+    const [selectedMaster, setSelectedMaster] = useState<number | "all">("all");
+
+    const filteredEmployees =
+        selectedMaster === "all"
+            ? employees
+            : employees.filter((_, idx) => idx === selectedMaster);
 
     useEffect(() => setEvents(appointments), [appointments]);
 
@@ -398,9 +404,9 @@ export default function ScheduleModule({
         <>
 
             <div className="mb-3 hidden md:flex items-center justify-end">
-                <div className="relative inline-flex items-center rounded-2xl bg-white dark:bg-[rgba(255,255,255,0.02)] p-1 shadow-sm border border-gray-200 dark:border-[rgba(255,255,255,0.08)]">
+                <div className="relative inline-flex items-center rounded-2xl bg-white dark:bg-[#182235] p-1 shadow-sm border border-gray-200 dark:border-white/10">
                     <div
-                        className={`absolute top-1 bottom-1 w-[112px] rounded-xl bg-green-500 shadow-sm transition-all duration-300 ${
+                        className={`absolute top-1 bottom-1 w-[112px] rounded-xl bg-green-500 dark:bg-green-500 shadow-sm dark:shadow-[0_0_12px_rgba(34,197,94,0.18)] transition-all duration-300 ${
                             viewMode === "list" ? "left-1" : "left-[113px]"
                         }`}
                     />
@@ -411,7 +417,7 @@ export default function ScheduleModule({
                         className={`relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
                             viewMode === "list"
                                 ? "text-white"
-                                : "text-gray-600 dark:text-white/70 hover:text-black dark:hover:text-white"
+                                : "text-gray-600 dark:text-white/75 hover:text-black dark:hover:text-white"
                         }`}
                     >
                         <List size={16} className="transition-transform duration-200 group-hover:scale-110" />
@@ -437,7 +443,40 @@ export default function ScheduleModule({
             {/* 📱 МОБИЛЬНЫЙ РЕЖИМ */}
             {viewMode === "list" && (
                 <div className="block md:block space-y-3">
-                {employees.map((employee, masterIdx) => {
+
+                    <div className="overflow-x-auto pb-1">
+                        <div className="flex gap-2 min-w-max">
+                            <button
+                                type="button"
+                                onClick={() => setSelectedMaster("all")}
+                                className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                                    selectedMaster === "all"
+                                        ? "bg-green-500 text-white shadow-sm"
+                                        : "bg-white text-gray-700 border border-gray-200 dark:bg-[#1f2937] dark:text-white/80 dark:border-white/10"
+                                }`}
+                            >
+                                Все
+                            </button>
+
+                            {employees.map((employee, idx) => (
+                                <button
+                                    key={employee.id}
+                                    type="button"
+                                    onClick={() => setSelectedMaster(idx)}
+                                    className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                                        selectedMaster === idx
+                                            ? "bg-green-500 text-white shadow-sm"
+                                            : "bg-white text-gray-700 border border-gray-200 dark:bg-[#1f2937] dark:text-white/80 dark:border-white/10"
+                                    }`}
+                                >
+                                    {employee.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {filteredEmployees.map((employee) => {
+                        const masterIdx = employees.findIndex((e) => e.id === employee.id);
                     const employeeEvents = appointments
                         .filter((event) => event.master === masterIdx)
                         .sort((a, b) => toMins(a.start) - toMins(b.start));
