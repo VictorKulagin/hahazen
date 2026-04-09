@@ -8,7 +8,8 @@ import { companiesList } from "@/services/companiesList";
 import { useClients, useClient, useDeleteClient } from '@/hooks/useClient';
 import Pagination from '@/components/Pagination';
 import SidebarMenu from "@/components/SidebarMenu";
-
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/lib/theme/theme.context";
 
 import {Phone, Pencil, UserCircle2, Trash2} from "lucide-react";
 
@@ -85,6 +86,10 @@ const Page: React.FC = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(true);
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
 
+    const { theme } = useTheme();
+
+    const totalClients = (clientsData?.pagination?.totalPages ?? 0) * 20;
+
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
     const handleCancelEdit = () => {
@@ -105,7 +110,30 @@ const Page: React.FC = () => {
 
     const globalError = error || !companiesData || !branchesData ? error : "";
 
-const queryClient = useQueryClient(); // Импортируйте из @tanstack/react-query
+    const queryClient = useQueryClient(); // Импортируйте из @tanstack/react-query
+
+
+    const avatarColors = [
+        "bg-indigo-500",
+        "bg-pink-500",
+        "bg-orange-500",
+        "bg-green-500",
+        "bg-blue-500",
+        "bg-purple-500",
+        "bg-emerald-500",
+        "bg-rose-500",
+    ];
+
+    function getAvatarColor(name: string = "") {
+        let hash = 0;
+
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        const index = Math.abs(hash) % avatarColors.length;
+        return avatarColors[index];
+    }
 
     // Функция предзагрузки
     const prefetchPage = (targetPage: number) => {
@@ -134,18 +162,18 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
     };
 
     const Section = ({ title, items }: any) => (
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">{title}</h2>
+        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">{title}</h2>
 
             <div className="space-y-3">
                 {items.map((item: any, idx: number) => (
                     <div key={idx} className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-gray-500">
-                            <item.icon className="h-5 w-5 text-gray-400" />
+                        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                            <item.icon className="h-5 w-5 text-gray-400 dark:text-gray-400" />
                             <span>{item.label}</span>
                         </div>
 
-                        <div className="font-medium text-gray-900">
+                        <div className="font-medium text-gray-900 dark:text-white">
                             {item.value || "—"}
                         </div>
                     </div>
@@ -365,7 +393,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
             {/* Левая колонка (меню) */}
             {/* Меню */}
             <aside
-                className={`bg-darkBlue text-white p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
+                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
@@ -426,7 +454,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                     onClick={() => setIsMenuOpen(false)}
                 >
                     <div
-                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 bg-darkBlue transform translate-x-0 transition-transform duration-300"
+                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] transform translate-x-0 transition-transform duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <SidebarMenu
@@ -472,11 +500,20 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
 
 
                 {/* Заголовок */}
-                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
+                <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Клиентская база
+                        </h1>
+                    </div>
 
-                    <span className="ml-auto font-semibold text-sm">
-                        Клиентская база
-                    </span>
+
+                    <div className="flex items-center gap-3">
+                        <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
+                            Тема: {theme}
+                        </span>
+                        <ThemeToggle />
+                    </div>
                 </div>
 
 
@@ -530,7 +567,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                 {/* Контент: две колонки */}
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
                     {/* Первая колонка */}
-                    <section className="bg-white text-black p-4 rounded shadow">
+                    <section className="rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
 
                         {/* Ссылка с динамическим путем */}
                         {/*<div className="mb-2">*/}
@@ -549,14 +586,14 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                 setPage(1);
                                                 setSearchQuery(serializeFilters(filters));
                                             }}
-                                            className="bg-white rounded-xl shadow-sm p-4 mb-6"
+                                            className="mb-6 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none"
                                         >
                                             {/* Header */}
                                             <div className="flex items-center justify-between mb-4">
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsFilterOpen((v) => !v)}
-                                                    className="text-base font-semibold text-slate-900"
+                                                    className="text-base font-semibold text-gray-900 dark:text-white"
                                                 >
                                                     Фильтр клиентов {isFilterOpen ? "▲" : "▼"}
                                                 </button>
@@ -566,7 +603,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                     onClick={() =>
                                                         setFilters({ name: "", last_name: "", phone: "", gender: "", vip: "" })
                                                     }
-                                                    className="text-sm text-slate-400 hover:text-slate-700 transition"
+                                                    className="text-sm text-gray-400 transition hover:text-gray-700 dark:text-gray-500 dark:hover:text-white"
                                                 >
                                                     Сбросить
                                                 </button>
@@ -583,7 +620,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                             onChange={(e) =>
                                                                 setFilters({ ...filters, name: e.target.value })
                                                             }
-                                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+                                                            className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-green-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                                         />
 
                                                         <input
@@ -593,7 +630,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                             onChange={(e) =>
                                                                 setFilters({ ...filters, last_name: e.target.value })
                                                             }
-                                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+                                                            className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-green-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                                         />
 
                                                         <input
@@ -603,7 +640,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                             onChange={(e) =>
                                                                 setFilters({ ...filters, phone: e.target.value })
                                                             }
-                                                            className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+                                                            className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-green-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                                         />
 
                                                         <select
@@ -611,7 +648,7 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                             onChange={(e) =>
                                                                 setFilters({ ...filters, gender: e.target.value })
                                                             }
-                                                            className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-400 outline-none"
+                                                            className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-green-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                                         >
                                                             <option value="">Пол</option>
                                                             <option value="male">Мужской</option>
@@ -628,6 +665,17 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                 </>
                                             )}
                                         </form>
+
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                                Клиенты
+                                            </h2>
+
+                                            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">
+                                                {totalClients ?? 0}
+                                            </span>
+                                        </div>
+
                                     </div>
                                     {isClientsLoading ? (
                                         <div className="text-center py-4">
@@ -648,41 +696,46 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                 ) : clientError ? (
                                                     <p className="text-red-600">Ошибка загрузки клиента: {clientError.message}</p>
                                                 ) : (
-                                                    <div className="space-y-4 p-4 bg-gray-50 rounded-xl shadow-md">
+                                                    <div className="space-y-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none md:p-6">
                                                         {/* Назад */}
                                                         <button
                                                             onClick={() => setSelectedClientId(null)}
-                                                            className="text-green-600 hover:text-green-800 font-semibold flex items-center space-x-2"
+                                                            className="flex items-center space-x-2 font-semibold text-green-600 transition hover:text-green-800 dark:text-green-400 dark:hover:text-green-300"
                                                         >
                                                             <ArrowLeftIcon className="h-5 w-5" />
                                                             <span>Назад</span>
                                                         </button>
 
-                                                        {/* Имя */}
-                                                        <h1 className="text-2xl font-bold text-gray-900 truncate">{selectedClient.name}</h1>
-
                                                         {/* Сетка информации */}
                                                         {/* Header с аватаром */}
                                                         <div className="flex items-center gap-5 mb-6">
-                                                            <div className="h-16 w-16 rounded-full bg-slate-200 flex items-center justify-center text-xl font-semibold text-slate-700 shadow-sm">
-                                                                {selectedClient.name?.[0] ?? "?"}
+
+                                                            {/* Аватар в карточке*/}
+                                                            <div
+                                                                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${getAvatarColor(selectedClient.name)}`}
+                                                            >
+                                                                {`${selectedClient.name?.[0] ?? ""}${selectedClient.last_name?.[0] ?? ""}`.toUpperCase() || "?"}
+
                                                             </div>
 
                                                             <div className="min-w-0">
-                                                                <h1 className="text-2xl font-semibold text-slate-900 leading-tight truncate">
+                                                                <h1 className="text-2xl font-semibold text-gray-900 leading-tight truncate dark:text-white">
                                                                     {selectedClient.name}
                                                                 </h1>
-                                                                <p className="text-base text-slate-500 truncate">
+                                                                <p className="text-base text-gray-500 truncate dark:text-gray-400">
                                                                     {selectedClient.last_name ?? "-"}
                                                                 </p>
                                                             </div>
                                                         </div>
 
                                                         {/* Сетка информации */}
-                                                        <div className="space-y-4">
+                                                        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
                                                             <Section title="Основное" items={mainInfo} />
                                                             <Section title="Контакты" items={contactInfo} />
-                                                            <Section title="Дополнительно" items={extraInfo} />
+
+                                                            <div className="xl:col-span-2">
+                                                                <Section title="Дополнительно" items={extraInfo} />
+                                                            </div>
                                                         </div>
 
                                                         {/* Редактировать */}
@@ -735,25 +788,54 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                                                 ? () => setSelectedClientId(client.id ?? null)
                                                                                 : undefined
                                                                         }
-                                                                        className={`rounded-xl border border-gray-200 bg-gray-50 px-3 py-3 shadow-sm transition hover:bg-white ${
-                                                                            authStorage.has("master:create") ? "cursor-pointer" : "cursor-default"
+                                                                        className={`rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-5 ${
+                                                                            authStorage.has("master:create")
+                                                                                ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-white/10"
+                                                                                : "cursor-default"
                                                                         }`}
                                                                     >
-                                                                        <div className="flex items-center justify-between gap-3">
-                                                                            <div className="flex items-center gap-3 min-w-0 flex-1">
-                                                                                <div className="shrink-0 text-slate-300">
-                                                                                    <UserCircle2 size={44} strokeWidth={1.5} />
-                                                                                </div>
+                                                                        <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[56px_minmax(220px,1fr)_220px_220px_auto] xl:items-center xl:gap-6">
+                                                                            <div className="flex items-center gap-3 xl:contents">
 
+                                                                                {/* Аватар */}
+
+
+
+
+
+                                                                                    {/* Аватар */}
+                                                                                    <div
+                                                                                        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${getAvatarColor(client.name)}`}
+                                                                                    >
+                                                                                        {`${client.name?.[0] ?? ""}${client.last_name?.[0] ?? ""}`.toUpperCase() || "?"}
+
+                                                                                    </div>
+
+
+
+
+                                                                                {/* Имя */}
                                                                                 <div className="min-w-0">
-                                                                                    <div className="text-base font-semibold text-slate-900 truncate">
+                                                                                    <div className="truncate text-[22px] font-semibold leading-tight text-gray-900 dark:text-white md:text-xl xl:text-lg">
                                                                                         {[client.name, client.last_name].filter(Boolean).join(" ")}
                                                                                     </div>
 
-                                                                                    <div className="text-sm text-slate-500 truncate">
+                                                                                    {/* мобила */}
+                                                                                    <div className="mt-1 text-sm text-gray-500 dark:text-gray-400 truncate xl:hidden">
                                                                                         {client.phone || "— не указан —"}
                                                                                     </div>
                                                                                 </div>
+
+                                                                                {/* Телефон (только desktop) */}
+                                                                                <div className="hidden text-sm text-gray-500 dark:text-gray-400 xl:block">
+                                                                                    {client.phone || "— не указан —"}
+                                                                                </div>
+
+                                                                                {/* Email (только desktop) */}
+                                                                                <div className="hidden truncate text-sm text-gray-500 dark:text-gray-400 xl:block">
+                                                                                    {client.email || "—"}
+                                                                                </div>
+
                                                                             </div>
 
                                                                             <div className="flex items-center gap-2 shrink-0">
@@ -767,10 +849,9 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                                                                 setEditingClientId(client.id ?? null);
                                                                                                 setIsEditModalOpen(true);
                                                                                             }}
-                                                                                            className="inline-flex items-center gap-2 rounded-md bg-blue-100 px-3 py-2 text-sm text-blue-700 hover:bg-blue-200 transition"
+                                                                                            className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                                                                                         >
-                                                                                            <Pencil size={14} />
-                                                                                            <span className="hidden sm:inline">Редактировать</span>
+                                                                                            <span>Редактировать</span>
                                                                                         </button>
 
                                                                                         {/* Удалить */}
@@ -787,9 +868,12 @@ const queryClient = useQueryClient(); // Импортируйте из @tanstack
                                                                                                     console.error("Ошибка удаления:", error);
                                                                                                 }
                                                                                             }}
-                                                                                            className="inline-flex items-center justify-center rounded-md bg-red-500 p-2 text-white hover:bg-red-600 transition"
+                                                                                            className="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-5 text-sm font-medium text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60"
                                                                                         >
-                                                                                            <Trash2 size={16} />
+                <span className="sm:hidden">
+                    <Trash2 size={15} />
+                </span>
+                                                                                            <span className="hidden sm:inline">Удалить</span>
                                                                                         </button>
                                                                                     </>
                                                                                 )}

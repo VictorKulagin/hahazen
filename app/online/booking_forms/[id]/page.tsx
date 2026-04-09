@@ -14,6 +14,8 @@ import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
 import SidebarMenu from "@/components/SidebarMenu";
 import Loader from "@/components/Loader";
+import {ThemeToggle} from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/lib/theme/theme.context";
 interface ApiError extends Error {
     data?: {
         message?: string;
@@ -30,8 +32,9 @@ const Page: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
 
-
     const [isModalFilOpen, setIsModalFilOpen] = useState(false);
+
+    const { theme } = useTheme();
 
     // Функция для открытия/закрытия модального окна
     const toggleFilModal = () => {
@@ -201,7 +204,7 @@ const Page: React.FC = () => {
 
             {/* Меню */}
             <aside
-                className={`bg-darkBlue text-white p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
+                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
@@ -261,7 +264,7 @@ const Page: React.FC = () => {
                     onClick={() => setIsMenuOpen(false)}
                 >
                     <div
-                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 bg-darkBlue transform translate-x-0 transition-transform duration-300"
+                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] transform translate-x-0 transition-transform duration-300"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <SidebarMenu
@@ -348,11 +351,19 @@ const Page: React.FC = () => {
                 </div>
 
                 {/* Заголовок */}
-                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
+                <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Онлайн-запись
+                        </h1>
+                    </div>
 
-                    <span className="ml-auto font-semibold text-sm">
-                        Онлайн-запись
-                    </span>
+                    <div className="flex items-center gap-3">
+                        <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
+                            Тема: {theme}
+                        </span>
+                        <ThemeToggle />
+                    </div>
                 </div>
 
                 {/* Контент: две колонки */}
