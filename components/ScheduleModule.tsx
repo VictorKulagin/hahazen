@@ -155,6 +155,57 @@ export default function ScheduleModule({
         return "bg-[rgba(255,255,255,0.02)] border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] border-l-4 border-l-gray-500";
     };
 
+    const getEventAccentLine = (event: ScheduleEvent) => {
+        if (event.visit_status === "no_show") return "bg-red-500";
+        if (event.payment_status === "paid") return "bg-green-500";
+        if (event.payment_status === "partial") return "bg-yellow-500";
+        if (event.visit_status === "arrived") return "bg-emerald-500";
+        if (event.visit_status === "expected") return "bg-blue-500";
+
+        return "bg-white/20";
+    };
+
+    const getEventStatusLabel = (event: ScheduleEvent) => {
+        if (event.visit_status === "no_show") {
+            return {
+                text: "Не пришёл",
+                className: "bg-red-50 text-red-600 border border-red-200",
+            };
+        }
+
+        if (event.payment_status === "paid") {
+            return {
+                text: "Оплачено",
+                className: "bg-green-50 text-green-600 border border-green-200",
+            };
+        }
+
+        if (event.payment_status === "partial") {
+            return {
+                text: "Частично",
+                className: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+            };
+        }
+
+        if (event.visit_status === "arrived") {
+            return {
+                text: "Пришел",
+                className: "bg-emerald-50 text-emerald-600 border border-emerald-200",
+            };
+        }
+
+        if (event.visit_status === "expected") {
+            return {
+                text: "Ожидается",
+                className: "bg-blue-50 text-blue-600 border border-blue-200",
+            };
+        }
+
+        return null;
+    };
+
+
+
 
     const recalcColRects = () => {
         if (!headerRowRef.current || !scheduleRef.current) return;
@@ -453,7 +504,11 @@ shadow-sm
                                         const currentStart = toMins(event.start);
                                         const currentEnd = toMins(event.end);
 
+                                        const statusLabel = getEventStatusLabel(event);
+                                        const accentLine = getEventAccentLine(event);
+
                                         const overlapEvent = employeeEvents.find((e) => {
+
                                             if (e.id === event.id) return false;
 
                                             const s = toMins(e.start);
@@ -466,24 +521,56 @@ shadow-sm
                                             <button
                                                 key={event.id}
                                                 onClick={() => onEventClick?.(event)}
-                                                className={`w-full text-left rounded-xl border p-3 ${getEventColors(event)}`}
+                                                className={`w-full text-left rounded-2xl border px-3 py-3 transition-all duration-200 hover:shadow-md ${getEventColors(event)}`}
                                             >
-                                                <div className="text-xs text-black/70">
-                                                    {event.start} – {event.end}
-                                                </div>
+                                                <div className="flex items-start gap-3">
+                                                    {/* Время */}
+                                                    <div className="flex w-12 shrink-0 flex-col items-center leading-none">
+            <span className="text-[22px] font-semibold tracking-tight text-black">
+                {event.start}
+            </span>
 
-                                                <div className="font-semibold text-black">
-                                                    {event.text}
-                                                </div>
+                                                        <div className="my-1 h-5 w-px bg-black/10" />
 
-                                                {overlapEvent && (
-                                                    <div className="mt-2 inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-2 py-1 text-[11px] text-red-600">
-                                                        <span>⚠</span>
-                                                        <span>
-                                Пересечение: {overlapEvent.start} – {overlapEvent.end}
-                            </span>
+                                                        <span className="text-[12px] text-black/45">
+                {event.end}
+            </span>
                                                     </div>
-                                                )}
+
+                                                    {/* Цветовой акцент */}
+                                                    <div className={`mt-0.5 h-14 w-1 shrink-0 rounded-full ${accentLine}`} />
+
+                                                    {/* Контент */}
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="font-semibold text-[16px] leading-5 text-black">
+                                                            {event.text}
+                                                        </div>
+
+                                                        {/* 👉 ВОТ СЮДА */}
+                                                        {statusLabel && (
+                                                            <div className="mt-2">
+            <span
+                className={`inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-medium ${statusLabel.className}`}
+            >
+                {statusLabel.text}
+            </span>
+                                                            </div>
+                                                        )}
+
+                                                        {typeof event.cost === "number" && (
+                                                            <div className="mt-1 text-[12px] text-black/55">
+                                                                {event.cost} сом
+                                                            </div>
+                                                        )}
+
+                                                        {overlapEvent && (
+                                                            <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] text-red-600">
+                                                                <span>⚠</span>
+                                                                <span>Пересечение</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </button>
                                         );
                                     })
@@ -692,10 +779,16 @@ shadow-sm
                             ((overlapEnd - overlapStart) / slotStepMin) * rowHeightPx;
                     }
 
+                    const statusLabel = getEventStatusLabel(c.ev);
+                    const accentLine = getEventAccentLine(c.ev);
+
+                    const isCompactCard = c.height < 60;
+                    const isVeryCompactCard = c.height < 44;
+
                     return (
                         <div
                             key={c.id}
-                            className={`absolute border rounded-xl shadow-sm p-2 flex flex-col justify-center cursor-pointer transition hover:shadow-md text-xs overflow-hidden ${getEventColors(c.ev)}`}
+                            className={`absolute border rounded-2xl shadow-sm px-3.5 py-2.5 flex flex-col justify-between cursor-pointer transition hover:shadow-md text-xs overflow-hidden ${getEventColors(c.ev)}`}
                             style={{
                                 top: isNaN(c.top) ? 0 : c.top,
                                 left: isNaN(c.left) ? 0 : c.left,
@@ -721,31 +814,65 @@ shadow-sm
                 </span>
                             )}
 
-                            <div className="relative z-10">
-                <span className="font-semibold text-black leading-tight block">
-                    {c.ev.text}
-                </span>
+                            <div className="relative z-10 h-full flex flex-col">
+                                <div className="flex items-start gap-2">
 
-                                <span className="text-[11px] text-black/70 block">
-                    {c.ev.start} – {c.ev.end}
-                </span>
+                                    <div className="flex w-12 shrink-0 flex-col items-center leading-none">
+    <span className="text-[14px] font-semibold text-black">
+        {c.ev.start}
+    </span>
 
-                                <div className="flex items-center justify-between mt-1">
-                                    {typeof c.ev.cost === "number" && (
-                                        <span className="text-[11px] text-black/70">
-                            {c.ev.cost} сом
-                        </span>
-                                    )}
+                                        {!isVeryCompactCard && (
+                                            <>
+                                                <div className="my-0.5 h-4 w-px bg-black/20" />
+                                                <span className="text-[10px] text-black/50">
+                {c.ev.end}
+            </span>
+                                            </>
+                                        )}
+                                    </div>
 
-                                    <div className="flex items-center gap-1">
-                                        {c.ev.visit_status === "expected" && <span title="Ожидается">🕒</span>}
-                                        {c.ev.visit_status === "arrived" && <span title="Пришел">✅</span>}
-                                        {c.ev.visit_status === "no_show" && <span title="Не пришел">❌</span>}
 
-                                        {c.ev.payment_status === "paid" && <span title="Оплачено">💰</span>}
-                                        {c.ev.payment_status === "partial" && <span title="Частично">🟡</span>}
+                                    <div className={`mt-0.5 h-8 w-1 shrink-0 rounded-full ${accentLine}`} />
+
+                                    <div className="min-w-0 flex-1">
+                <span className="font-semibold text-black leading-tight block truncate">
+        {c.ev.text}
+    </span>
+
+
+                                        {!isCompactCard && (statusLabel || typeof c.ev.cost === "number") && (
+                                            <div className="mt-1 flex items-center gap-2 flex-wrap">
+                                                {statusLabel && (
+                                                    <span
+                                                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium ${statusLabel.className}`}
+                                                    >
+                {statusLabel.text}
+            </span>
+                                                )}
+
+                                                {typeof c.ev.cost === "number" && (
+                                                    <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-white/60 text-black/70 border border-black/10">
+                {c.ev.cost} сом
+            </span>
+                                                )}
+                                            </div>
+                                        )}
+
                                     </div>
                                 </div>
+
+                                {!isCompactCard && (
+                                    <div className="mt-auto flex items-center justify-end pt-1">
+                                        <div className="flex items-center gap-1">
+                                            {c.ev.visit_status === "expected" && <span title="Ожидается">🕒</span>}
+                                            {c.ev.visit_status === "arrived" && <span title="Пришел">✅</span>}
+                                            {c.ev.visit_status === "no_show" && <span title="Не пришел">❌</span>}
+                                            {c.ev.payment_status === "paid" && <span title="Оплачено">💰</span>}
+                                            {c.ev.payment_status === "partial" && <span title="Частично">🟡</span>}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     );
