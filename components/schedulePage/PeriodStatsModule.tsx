@@ -74,9 +74,9 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
     return (
         <section className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-4 py-3 shadow-sm md:px-5 md:py-4">
             <div className="mb-3">
-                <div className="hidden md:flex items-center justify-between gap-6">
+                <div className="hidden md:flex items-start justify-between gap-6">
                     <div className="min-w-0">
-                        <h2 className="text-3xl font-semibold tracking-tight text-[rgb(var(--foreground))]">
+                        <h2 className="text-2xl lg:text-3xl font-semibold tracking-tight text-[rgb(var(--foreground))]">
                             {rangeType === "day" && "Сегодня"}
                             {rangeType === "week" && `Неделя: ${range.start} — ${range.end}`}
                             {rangeType === "month" && `Месяц: ${range.start} — ${range.end}`}
@@ -88,7 +88,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                     </div>
 
                     <div className="shrink-0">
-                        <div className="inline-flex rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--border))] p-1 shadow-sm">
+                        <div className="inline-flex gap-1 border border-[rgb(var(--border))] rounded-xl p-1">
                             {[
                                 { key: "day", label: "Сегодня" },
                                 { key: "week", label: "Неделя" },
@@ -141,41 +141,64 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                 </div>
             </div>
 
-            <div className="mb-4 hidden md:flex items-center rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] px-6 py-4 shadow-sm">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                        <CalendarDays className="h-5 w-5" />
+            <div className="mb-4 hidden md:flex items-end justify-between gap-6 border-t border-[rgb(var(--border))] pt-5">
+                <div className="flex items-center gap-6 lg:gap-10">
+                    <div className="flex items-center gap-3 min-w-[120px]">
+                        <div className="flex h-9 w-9 lg:h-10 lg:w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
+                            <CalendarDays className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <div className="text-xs uppercase tracking-wide text-[rgb(var(--foreground))]/50">
+                                Записей
+                            </div>
+                            <div className="mt-1 text-2xl lg:text-3xl font-semibold text-[rgb(var(--foreground))]">
+                                {isLoading ? "..." : data?.period_totals?.appointments_count ?? 0}
+                            </div>
+                        </div>
                     </div>
-                    <span className="text-sm text-[rgb(var(--foreground))]/60">Записей:</span>
-                    <span className="text-3xl font-semibold text-[rgb(var(--foreground))]">
-      {isLoading ? "..." : data?.period_totals?.appointments_count ?? 0}
-    </span>
+
+                    <div className="flex items-center gap-3 min-w-[110px] lg:min-w-[140px]">
+                        <div className="flex h-9 w-9 lg:h-10 lg:w-10 items-center justify-center rounded-xl bg-green-500/10 text-green-400">
+                            <Banknote className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <div className="text-xs uppercase tracking-wide text-[rgb(var(--foreground))]/50">
+                                Выручка
+                            </div>
+                            <div className="mt-1 text-2xl lg:text-3xl font-semibold text-green-400">
+                                {isLoading
+                                    ? "..."
+                                    : `${(data?.period_totals?.paid_amount ?? 0).toLocaleString("ru-RU")} сом`}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 min-w-[110px] lg:min-w-[140px]">
+                        <div className="flex h-9 w-9 lg:h-10 lg:w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400">
+                            <BarChart3 className="h-5 w-5" />
+                        </div>
+                        <div>
+                            <div className="text-xs uppercase tracking-wide text-[rgb(var(--foreground))]/50">
+                                Средний чек
+                            </div>
+                            <div className="mt-1 text-2xl lg:text-3xl font-semibold text-[rgb(var(--foreground))]">
+                                {isLoading ? "..." : `${avgCheck.toLocaleString("ru-RU")} сом`}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="mx-8 h-10 w-px bg-gray-200" />
-
-                <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-green-50 text-green-600">
-                        <Banknote className="h-5 w-5" />
+                <div className="shrink-0 text-right">
+                    <div className="text-sm font-medium text-[rgb(var(--foreground))]/75">
+                        {new Date().toLocaleDateString("ru-RU", {
+                            day: "numeric",
+                            month: "long",
+                            weekday: "short",
+                        })}
                     </div>
-                    <span className="text-sm text-[rgb(var(--foreground))]/60">Выручка:</span>
-                    <span className="text-3xl font-semibold text-[rgb(var(--foreground))]">
-      {isLoading
-          ? "..."
-          : `${(data?.period_totals?.paid_amount ?? 0).toLocaleString("ru-RU")} сом`}
-    </span>
-                </div>
-
-                <div className="mx-8 h-10 w-px bg-gray-200" />
-
-                <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                        <BarChart3 className="h-5 w-5" />
+                    <div className="mt-1 text-sm text-[rgb(var(--foreground))]/45">
+                        Рабочий день
                     </div>
-                    <span className="text-sm text-[rgb(var(--foreground))]/60">Средний чек:</span>
-                    <span className="text-3xl font-semibold text-[rgb(var(--foreground))]">
-      {isLoading ? "..." : `${avgCheck.toLocaleString("ru-RU")} сом`}
-    </span>
                 </div>
             </div>
 

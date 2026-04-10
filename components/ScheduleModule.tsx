@@ -171,6 +171,29 @@ export default function ScheduleModule({
         return "bg-white/20";
     };
 
+
+    const avatarColors = [
+        "bg-indigo-500",
+        "bg-pink-500",
+        "bg-orange-500",
+        "bg-green-500",
+        "bg-blue-500",
+        "bg-purple-500",
+        "bg-emerald-500",
+        "bg-rose-500",
+    ];
+
+    function getAvatarColor(name: string = "") {
+        let hash = 0;
+
+        for (let i = 0; i < name.length; i++) {
+            hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        }
+
+        const index = Math.abs(hash) % avatarColors.length;
+        return avatarColors[index];
+    }
+
     const getEventStatusLabel = (event: ScheduleEvent) => {
         if (event.visit_status === "no_show") {
             return {
@@ -497,20 +520,24 @@ export default function ScheduleModule({
                     return (
                         <div
                             key={employee.id}
-                            className="rounded-2xl border border-gray-200 dark:border-[rgba(255,255,255,0.08)] bg-white dark:bg-[rgba(255,255,255,0.02)] shadow-sm overflow-hidden"
+                            className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] overflow-hidden"
                         >
-                            {/* 👤 Заголовок мастера */}
-                            <div className="
-flex items-center justify-between
-px-4 py-3
-rounded-xl
-bg-gray-50 dark:bg-[rgba(255,255,255,0.03)]
-border border-gray-200 dark:border-[rgba(255,255,255,0.08)]
-shadow-sm
-">
+                            {/* 👤 Заголовок мастера Анимация на мастера */}
+                            <div
+                                className="
+        flex items-center justify-between gap-3
+        px-4 py-3
+        border-b border-[rgb(var(--border))]
+        bg-[rgba(255,255,255,0.02)]
+        transition-colors duration-200
+        hover:bg-[rgba(255,255,255,0.04)]
+        active:bg-[rgba(255,255,255,0.05)]
+    "
+                            >
                                 <button
                                     type="button"
-                                    className="font-semibold text-[rgb(var(--foreground))] text-left"
+                                    className="flex min-w-0 flex-1 items-center gap-3 text-left rounded-xl transition-all duration-150 active:scale-[0.99]
+        "
                                     onClick={
                                         authStorage.has("master:update")
                                             ? () => onMasterClick?.(employee)
@@ -518,13 +545,36 @@ shadow-sm
                                     }
                                     title="Редактировать сотрудника"
                                 >
-                                    {employee.name}
+                                    <div
+                                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white group-active:-translate-x-0.5 group-active:scale-95 ${getAvatarColor(employee.name)}`}
+                                    >
+                                        {employee.name
+                                            ?.split(" ")
+                                            .map((part) => part[0])
+                                            .slice(0, 2)
+                                            .join("")
+                                            .toUpperCase()}
+                                    </div>
+
+                                    <div className="min-w-0 flex-1">
+                                        <div className="truncate text-sm font-semibold text-[rgb(var(--foreground))]">
+                                            {employee.name}
+                                        </div>
+                                        <div className="truncate text-xs text-[rgb(var(--foreground))]/55">
+                                            {employee.specialty || "Роль не указана"}
+                                        </div>
+                                    </div>
                                 </button>
 
                                 <button
                                     type="button"
-                                    className="text-sm text-green-600 font-medium"
-                                    //onClick={() => onCellClick?.(9 * 60, masterIdx)}
+                                    className="
+            shrink-0 rounded-xl px-3 py-1.5
+            text-sm font-medium text-green-500
+            transition-colors duration-150
+            hover:bg-green-500/10
+            active:scale-[0.98]
+        "
                                     onClick={() =>
                                         onCellClick?.(
                                             freeSlots.length > 0 ? toMins(freeSlots[0].start) : 9 * 60,
@@ -658,32 +708,78 @@ shadow-sm
                 <div ref={scheduleRef} className="hidden md:block overflow-x-auto overflow-y-auto relative max-h-[75vh]">
             <div  className="relative border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] rounded bg-[rgba(255,255,255,0.02)] min-w-max">
                 {/* Заголовок */}
-                <div ref={headerRowRef} className="flex sticky top-0 bg-[rgba(255,255,255,0.02)] z-10 h-10 border-b shadow-[0_1px_0_rgba(0,0,0,0.05)]">
-                    <div className="flex-none w-[70px] sm:w-[80px] md:w-[90px] bg-[rgba(255,255,255,0.02)] border-r border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] text-center font-semibold p-1 sticky left-0 z-30 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]">
-                        <span className="sm:hidden">⏱</span>
-                        <span className="hidden sm:block">Время</span>
-                    </div>
-                    {masters.map((m, i) => (
-
-                            <div
-                                key={i}
-                                className="col-master flex-1 min-w-[180px] border-r border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] p-1 text-center font-semibold text-[rgb(var(--foreground))] cursor-pointer hover:bg-[rgba(255,255,255,0.02)]"
-                                onClick={authStorage.has("master:create")
-                                    ? () => onMasterClick?.(employees[i])
-                                    : undefined
-                                }
-                                title="Редактировать сотрудника"
-                            >
-
-                                {authStorage.has("master:update") && (
-                                    <button className="p-1 rounded opacity-40 group-hover:opacity-100 hover:bg-slate-100 transition">
-                                        <Pencil
-                                            size={14}
-                                            className="text-slate-500 hover:text-slate-700 transition"
-                                        />
-                                    </button>
-                                )} {m}
+                <div ref={headerRowRef} className="flex sticky top-0 z-20 h-14 border-b border-[rgb(var(--border))] bg-[rgb(var(--card))] backdrop-blur-sm">
+                    <div className="
+    flex-none w-[70px] sm:w-[80px] md:w-[90px]
+    border-r border-[rgb(var(--border))]
+    bg-[rgb(var(--card))]
+    px-3 py-3
+    sticky left-0 z-30
+">
+                        <div className="text-xs uppercase tracking-wide text-[rgb(var(--foreground))]/55">
+                            Время
                         </div>
+                    </div>
+                    {employees.map((employee, i) => (
+                        <button
+                            key={employee.id}
+                            type="button"
+                            className="
+    col-master group flex flex-1 min-w-[220px] items-center justify-between
+    border-r border-[rgb(var(--border))]
+    px-4 py-2 text-left
+    bg-[rgba(255,255,255,0.02)]
+    transition-all duration-150
+    active:scale-[0.99]
+        "
+                            onClick={
+                                authStorage.has("master:update")
+                                    ? () => onMasterClick?.(employee)
+                                    : undefined
+                            }
+                            title="Редактировать сотрудника"
+                        >
+                            <div className="flex min-w-0 items-center gap-3">
+                                <div
+                                    className={`
+        flex h-9 w-9 shrink-0 items-center justify-center
+        rounded-full text-xs font-semibold text-white
+        transition-transform duration-150
+        group-active:-translate-x-0.5
+        group-active:scale-95
+        ${getAvatarColor(employee.name)}
+    `}
+                                >
+                                    {employee.name
+                                        ?.split(" ")
+                                        .map((part) => part[0])
+                                        .slice(0, 2)
+                                        .join("")
+                                        .toUpperCase()}
+                                </div>
+
+                                <div className="min-w-0 transition-transform duration-150 group-active:-translate-x-0.5">
+                                    <div className="truncate text-sm font-semibold text-[rgb(var(--foreground))]">
+                                        {employee.name}
+                                    </div>
+                                    <div className="truncate text-xs text-[rgb(var(--foreground))]/55">
+                                        {employee.specialty || "Роль не указана"}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {authStorage.has("master:update") && (
+                                <span className="
+    ml-3 shrink-0 rounded-lg p-1 opacity-30
+    transition-all duration-150
+    group-hover:opacity-100
+    group-hover:bg-white/5
+    group-active:scale-90
+">
+                <Pencil size={14} className="text-[rgb(var(--foreground))]/60" />
+            </span>
+                            )}
+                        </button>
                     ))}
                     {/* 👉 ОТДЕЛЬНАЯ КОЛОНКА */}
                     {authStorage.has("master:create") && (
@@ -922,7 +1018,15 @@ shadow-sm
             {authStorage.has("master:create") && (
                 <button
                     onClick={onAddEntity}
-                    className="sm:hidden fixed bottom-6 right-6 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 transition"
+                    className="
+    md:hidden px-3 py-2 rounded-xl
+    bg-green-500 text-white
+    shadow-sm
+    hover:bg-green-600
+    transition-all duration-200
+    active:scale-[0.98]
+    flex items-center gap-2
+"
                     title="Добавить"
                 >
                     <UserPlusIcon className="h-6 w-6"/>

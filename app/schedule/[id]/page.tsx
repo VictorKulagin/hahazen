@@ -663,18 +663,22 @@ const Page: React.FC = () => {
                             <PeriodStatsModule branchId={id ? Number(id) : null} />
                         </div>
 
+                </section>
+                </div>
+                <section className="col-span-5 mt-4 p-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] rounded-2xl">{/* rounded shadow */}
 
-                        <ScheduleModule
-                            employees={employees}
-                            appointments={normalizedAppointments}
-                            schedules={schedules} // ✅ вот так
-                            selectedDate={selectedDate}
-                            onDateSelect={setSelectedDate}
-                            onCellClick={handleOpenCreateModal}
-                            onEventClick={handleEventClick}
-                            onMasterClick={handleMasterClick} // 👈 добавили
-                            onAddEntity={() => setIsCreateMenuOpen(true)} // 👈 открывает меню выбора
-                        />
+                                <ScheduleModule
+                                employees={employees}
+                                appointments={normalizedAppointments}
+                                schedules={schedules} // ✅ вот так
+                                selectedDate={selectedDate}
+                                onDateSelect={setSelectedDate}
+                                onCellClick={handleOpenCreateModal}
+                                onEventClick={handleEventClick}
+                                onMasterClick={handleMasterClick} // 👈 добавили
+                                onAddEntity={() => setIsCreateMenuOpen(true)} // 👈 открывает меню выбора
+                            />
+
 
                         <EditEmployeeModal
                             isOpen={!!selectedEmployee}
@@ -751,7 +755,7 @@ const Page: React.FC = () => {
                         />
 
                     </section>
-                </div>
+
             </main>
         </div>
     );
