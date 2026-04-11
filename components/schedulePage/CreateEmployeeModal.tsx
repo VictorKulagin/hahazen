@@ -109,6 +109,13 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
 
     const queryClient = useQueryClient();
 
+    const inputClass = "w-full px-4 py-3 rounded-xl \
+border border-gray-200 dark:border-white/10 \
+bg-white dark:bg-white/5 \
+text-black dark:text-white \
+transition \
+focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
+
     // дефолтные даты графика
     useEffect(() => {
         if (!isOpen) return;
@@ -366,9 +373,9 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
 
     return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end">
-            <div className="bg-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+            <div className="bg-white dark:bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
                 {/* Вкладки */}
-                <div className="flex justify-around border-b bg-gray-50">
+                <div className="flex justify-around border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))]">
                     {["info", "schedule", "services"].map((tab) => (
                         <button
                             key={tab}
@@ -376,7 +383,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                             className={`flex-1 py-3 text-sm capitalize transition ${
                                 activeTab === tab
                                     ? "border-b-2 border-green-500 font-semibold text-green-600"
-                                    : "text-gray-500 hover:text-gray-700"
+                                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
                             }`}
                         >
                             {tab === "info" && "Основное"}
@@ -387,17 +394,17 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                 </div>
 
                 {/* Контент */}
-                <div className="flex-1 overflow-y-auto p-4 text-black space-y-4 bg-gray-50">
+                <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white space-y-4 bg-gray-50 dark:bg-[rgb(var(--background))]">
                     {activeTab === "info" && (
                         <div className="space-y-4">
-                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Имя</label>
                                     <input
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={inputClass}
                                         placeholder="Имя"
                                         required
                                     />
@@ -409,7 +416,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                         type="text"
                                         value={lastName}
                                         onChange={(e) => setLastName(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={inputClass}
                                         placeholder="Фамилия"
                                     />
                                 </div>
@@ -420,7 +427,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                         type="text"
                                         value={specialty}
                                         onChange={(e) => setSpecialty(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={inputClass}
                                         placeholder="Например: массажист"
                                     />
                                 </div>
@@ -430,28 +437,32 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                     <select
                                         value={role}
                                         onChange={(e) => setRole(e.target.value as EmployeeRole)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={`${inputClass} bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white`}
                                     >
                                         {ROLE_OPTIONS.map((opt) => (
-                                            <option key={opt.value} value={opt.value}>
+                                            <option
+                                                key={opt.value}
+                                                value={opt.value}
+                                                className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white"
+                                            >
                                                 {opt.label}
                                             </option>
                                         ))}
                                     </select>
-                                    <p className="text-xs text-gray-500 mt-1">
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                         Статус сотрудника: ГД, админ или мастер.
                                     </p>
                                 </div>
                             </div>
 
-                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                     <input
                                         type="email"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={inputClass}
                                         placeholder="email@example.com"
                                     />
                                 </div>
@@ -462,7 +473,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                         type="tel"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={inputClass}
                                         placeholder="+7..."
                                     />
                                 </div>
@@ -473,7 +484,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                         type="date"
                                         value={hireDate}
                                         onChange={(e) => setHireDate(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={inputClass}
                                     />
                                 </div>
                             </div>
@@ -482,30 +493,30 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
 
                     {activeTab === "schedule" && (
                         <div className="space-y-4">
-                            <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div>
-                                    <label className="block mb-1 font-semibold">Дата начала</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Дата начала</label>
                                     <input
                                         type="date"
                                         value={localStartDate}
                                         onChange={(e) => setLocalStartDate(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={`${inputClass} appearance-none`}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block mb-1 font-semibold">Дата окончания</label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Дата окончания</label>
                                     <input
                                         type="date"
                                         value={localEndDate}
                                         onChange={(e) => setLocalEndDate(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={`${inputClass} appearance-none`}
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block font-semibold mb-2">Периоды</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Периоды</label>
                                 {periods.map((p, i) => (
-                                    <div key={i} className="flex gap-2 items-center bg-gray-50 border border-gray-200 rounded-xl p-2">
+                                    <div key={i} className="flex gap-2 items-center bg-gray-50 dark:bg-[rgb(var(--card))] border border-gray-200 dark:border-white/10 rounded-xl p-2">
                                         <select
                                             value={p.day}
                                             onChange={(e) =>
@@ -515,7 +526,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                     )
                                                 )
                                             }
-                                            className="p-2 border rounded  w-1/4"
+                                            className={inputClass}
                                         >
                                             {/*<option value="mon">Пн</option>
                                             <option value="tue">Вт</option>
@@ -526,7 +537,11 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                             <option value="sun">Вс</option>*/}
 
                                             {WEEK_DAYS.map((day) => (
-                                                <option key={day.value} value={day.value}>
+                                                <option
+                                                    key={day.value}
+                                                    value={day.value}
+                                                    className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white"
+                                                >
                                                     {day.label}
                                                 </option>
                                             ))}
@@ -540,7 +555,8 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                     prev.map((x, idx) => (idx === i ? { ...x, start: e.target.value } : x))
                                                 )
                                             }
-                                            className="p-2 border rounded w-1/3"
+                                            className={inputClass}
+                                            /*className="p-2 border rounded w-1/3"*/
                                         />
                                         <input
                                             type="time"
@@ -550,7 +566,8 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                     prev.map((x, idx) => (idx === i ? { ...x, end: e.target.value } : x))
                                                 )
                                             }
-                                            className="p-2 border rounded w-1/3"
+                                            className={inputClass}
+                                            /*className="p-2 border rounded w-1/3"*/
                                         />
                                         <button
                                             type="button"
@@ -564,13 +581,13 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                 <button
                                     type="button"
                                     onClick={() => setPeriods((prev) => [...prev, { day: "mon", start: "09:00", end: "18:00" }])}
-                                    className="text-green-600"
+                                    className="text-green-600 dark:text-green-400"
                                 >
                                     + Добавить период
                                 </button>
 
-                                <div className="mt-4 rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-4">
-                                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
+                                <div className="mt-4 rounded-2xl border border-dashed border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))] p-4">
+                                    <div className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
                                         Быстрое заполнение
                                     </div>
 
@@ -578,7 +595,12 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                         <button
                                             type="button"
                                             onClick={handleCopyToWorkWeek}
-                                            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+                                            className="w-full rounded-xl border border-gray-200 dark:border-white/10
+bg-white dark:bg-white/10
+px-4 py-3 text-sm font-medium
+text-gray-700 dark:text-white
+hover:bg-gray-100 dark:hover:bg-white/20
+transition"
                                         >
                                             Скопировать на Пн–Пт
                                         </button>
@@ -586,7 +608,12 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                         <button
                                             type="button"
                                             onClick={handleCopyToFullWeek}
-                                            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 transition"
+                                            className="w-full rounded-xl border border-gray-200 dark:border-white/10
+bg-white dark:bg-white/10
+px-4 py-3 text-sm font-medium
+text-gray-700 dark:text-white
+hover:bg-gray-100 dark:hover:bg-white/20
+transition"
                                         >
                                             Скопировать на всю неделю
                                         </button>
@@ -600,28 +627,28 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                     {activeTab === "services" && (
                         <div className="space-y-4">
                             {/* Новый блок создания услуги */}
-                            <div className="bg-white bborder border-gray-200 rounded-2xl p-4 space-y-4">
-                                <h4 className="font-semibold mb-2">Новая услуга</h4>
+                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
+                                <h4 className="font-semibold text-black dark:text-white mb-2">Новая услуга</h4>
                                 <input
                                     type="text"
                                     value={newServiceName}
                                     onChange={(e) => setNewServiceName(e.target.value)}
                                     placeholder="Название"
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                    className={inputClass}
                                 />
                                 <input
                                     type="number"
                                     value={newServicePrice}
                                     onChange={(e) => setNewServicePrice(Number(e.target.value))}
                                     placeholder="Цена"
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                    className={inputClass}
                                 />
                                 <input
                                     type="number"
                                     value={newServiceDuration}
                                     onChange={(e) => setNewServiceDuration(Number(e.target.value))}
                                     placeholder="Минуты"
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                    className={inputClass}
                                 />
                                 <button
                                     type="button"
@@ -635,10 +662,10 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                             {/* Picker услуг */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
-                                    <h4 className="font-semibold">Выберите услуги</h4>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Выберите услуги</label>
                                 </div>
 
-                                <div className="border border-gray-200 rounded-2xl p-3 bg-white relative">
+                                <div className="border border-gray-200 dark:border-white/10 rounded-2xl p-3 bg-white dark:bg-white/5 relative">
                                     {/* Выбранные услуги */}
                                     {selectedServices.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-3">
@@ -651,11 +678,11 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                 return (
                                                     <div
                                                         key={selected.service_id}
-                                                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-3"
+                                                        className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))] px-3 py-3"
                                                     >
                                                         <div className="flex items-center justify-between gap-2">
                                                             <div className="min-w-0">
-                                                                <div className="font-medium text-sm text-gray-800 truncate">
+                                                                <div className="font-medium text-sm text-gray-800 dark:text-white truncate">
                                                                     {service.name}
                                                                 </div>
                                                             </div>
@@ -663,7 +690,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeService(selected.service_id)}
-                                                                className="text-gray-400 hover:text-red-500"
+                                                                className="text-gray-400 dark:text-gray-500 hover:text-red-500"
                                                             >
                                                                 ×
                                                             </button>
@@ -671,7 +698,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
 
                                                         <div className="grid grid-cols-2 gap-3 mt-3">
                                                             <div>
-                                                                <label className="block text-xs text-gray-500 mb-1">
+                                                                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
                                                                     Индивидуальная цена
                                                                 </label>
                                                                 <input
@@ -695,12 +722,12 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                                             )
                                                                         )
                                                                     }
-                                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white"
+                                                                    className={inputClass}
                                                                 />
                                                             </div>
 
                                                             <div>
-                                                                <label className="block text-xs text-gray-500 mb-1">
+                                                                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
                                                                     Длительность, мин
                                                                 </label>
                                                                 <input
@@ -725,7 +752,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                                                             )
                                                                         )
                                                                     }
-                                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-white"
+                                                                    className={inputClass}
                                                                 />
                                                             </div>
                                                         </div>
@@ -746,13 +773,13 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                             }}
                                             onFocus={() => setIsServiceDropdownOpen(true)}
                                             placeholder="Search"
-                                            className="flex-1 p-2 border rounded-lg"
+                                            className={inputClass}
                                         />
 
                                         <button
                                             type="button"
                                             onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
-                                            className="w-10 h-10 rounded-lg border text-xl text-gray-600 hover:bg-gray-50"
+                                            className="w-10 h-10 rounded-lg border border-gray-200 dark:border-white/10 text-xl text-gray-600 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10"
                                         >
                                             +
                                         </button>
@@ -760,18 +787,18 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
 
                                     {/* Dropdown */}
                                     {isServiceDropdownOpen && filteredServices.length > 0 && (
-                                        <div className="absolute left-2 right-2 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-lg border bg-white shadow-lg">
+                                        <div className="absolute left-2 right-2 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-lg">
                                             {filteredServices.map((service) => (
                                                 <button
                                                     key={service.id}
                                                     type="button"
                                                     onClick={() => addService(service)}
-                                                    className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50"
+                                                    className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/10"
                                                 >
-                                <span className="text-sm text-gray-800">
+                                <span className="text-sm text-gray-800 dark:text-white">
                                     {service.name}
                                 </span>
-                                                    <span className="text-sm text-gray-500">
+                                                    <span className="text-sm text-gray-500 dark:text-gray-400">
                                     {service.base_price}₽
                                 </span>
                                                 </button>
@@ -782,7 +809,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                                     {isServiceDropdownOpen &&
                                         filteredServices.length === 0 &&
                                         serviceSearch.trim() !== "" && (
-                                            <div className="absolute left-2 right-2 top-full mt-2 z-20 rounded-lg border bg-white shadow-lg px-3 py-2 text-sm text-gray-500">
+                                            <div className="absolute left-2 right-2 top-full mt-2 z-20 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-lg px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
                                                 Ничего не найдено
                                             </div>
                                         )}
@@ -793,7 +820,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                 </div>
 
                 {/* Футер */}
-                <div className="p-4 border-t bg-white flex justify-end gap-2 shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] flex justify-end gap-2 shadow-[0_-2px_8px_rgba(0,0,0,0.04)] dark:shadow-none">
 
 
                     <div className="p-4">
@@ -812,7 +839,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                         <div className="flex justify-end gap-2">
                             <button
                                 onClick={onClose}
-                                className="px-4 py-2 bg-gray-300 rounded"
+                                className="px-4 py-2 bg-gray-300 dark:bg-white/10 text-black dark:text-white rounded"
                             >
                                 Закрыть
                             </button>
@@ -820,7 +847,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
                             <button
                                 onClick={handleSave}
                                 disabled={isSubmitting}
-                                className="px-4 py-2 bg-green-600 text-white rounded disabled:opacity-60"
+                                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-60"
                             >
                                 {isSubmitting ? "Создание..." : "Создать"}
                             </button>

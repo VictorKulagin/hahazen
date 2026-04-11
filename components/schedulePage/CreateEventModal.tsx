@@ -183,6 +183,12 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         setSelectedServices((prev) => prev.filter((s) => s.id !== serviceId));
     };
 
+    const inputClass = "w-full px-4 py-3 rounded-xl \
+border border-gray-200 dark:border-white/10 \
+bg-white dark:bg-white/5 \
+text-black dark:text-white \
+transition \
+focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
 // ✅ Обновление количества для выбранной услуги
     const updateQty = (serviceId: number, qty: number) => {
@@ -291,8 +297,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
   `}
         >
             <div
-                className={`
-      bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white w-[28rem] shadow-lg h-full
+               className={`
+      bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-[28rem] shadow-lg h-full
       transform transition-transform duration-300
       ${isOpen ? "translate-x-0" : "translate-x-full"}
     `}
@@ -318,8 +324,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
 
                 {/*<div className="bg-white rounded p-2 w-full max-w-md text-black">*/}
-                <div className="bg-white dark:bg-[rgb(var(--card))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
-                    <div className="p-4 border-b bg-gray-50 dark:bg-white/5 text-black dark:text-white font-semibold flex items-center justify-between">
+                <div className="bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+                    <div className="p-4 border-b bg-[rgb(var(--card))] text-[rgb(var(--foreground))] font-semibold flex items-center justify-between">
                         <span>Создать новое событие</span>
 
                         <button
@@ -350,7 +356,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                     )}
 
                     {/*<form onSubmit={handleSubmit} className="max-h-screen overflow-y-auto flex flex-col">*/}
-                    <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 bg-gray-50 dark:bg-[rgb(var(--background))]">
+                    <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 bg-[rgb(var(--background))]">
                         <div className="flex-1 overflow-y-auto p-4 text-black space-y-4">
 
                             {/* 1. Поиск клиента */}
@@ -425,19 +431,19 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={inputClass}
                                     />
                                     <input
                                         type="text"
                                         value={lastName}
                                         onChange={(e) => setLastName(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={inputClass}
                                     />
                                     <input
                                         type="tel"
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                        className={inputClass}
                                     />
 
                                     <div className="flex justify-end gap-6 pt-3 border-t border-gray-200">

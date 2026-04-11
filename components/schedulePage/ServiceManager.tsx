@@ -19,6 +19,12 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
 
     const [submitError, setSubmitError] = useState<string | null>(null);
 
+    const inputClass = "w-full px-4 py-3 rounded-xl \
+border border-gray-200 dark:border-white/10 \
+bg-white dark:bg-white/5 \
+text-black dark:text-white \
+transition \
+focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
     const getErrorMessage = (err: any) => {
         const msg =
@@ -72,47 +78,47 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
 
     return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end">
-            <div className="bg-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+            <div className="bg-white dark:bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
                 {/* Заголовок */}
-                <div className="p-4 border-b flex justify-between items-center bg-gray-50">
-                    <h2 className="text-lg font-bold text-black">Услуги</h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-gray-800">
+                <div className="p-4 border-b border-gray-200 dark:border-white/10 flex justify-between items-center bg-gray-50 dark:bg-[rgb(var(--card))]">
+                    <h2 className="text-lg font-bold text-black dark:text-white">Создать услуги</h2>
+                    <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white">
                         ✕
                     </button>
                 </div>
 
                 {/* Форма */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4 text-black">
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 text-black dark:text-white">
                     <div className="space-y-2">
-                        <label className="font-semibold block">Название услуги</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Название услуги</label>
                         <input
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Например: Массаж спины"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                            className={inputClass}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="font-semibold block">Цена (₽)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Цена (₽)</label>
                         <input
                             type="number"
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
                             placeholder="Введите цену"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                            className={inputClass}
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="font-semibold block">Длительность (мин)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Длительность (мин)</label>
                         <input
                             type="number"
                             value={duration}
                             onChange={(e) => setDuration(e.target.value)}
                             placeholder="30"
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-green-500/20 focus:border-green-500"
+                            className={inputClass}
                         />
                     </div>
 
@@ -124,7 +130,7 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
                 </div>
 
                 {/* Кнопки */}
-                <div className="p-4 border-t bg-gray-50 flex justify-end gap-2">
+                <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))] flex justify-end gap-2">
 
                     {submitError && (
                         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -135,7 +141,7 @@ export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
                     <button
                         type="button" // ✅ предотвращает случайный submit формы
                         onClick={onClose}
-                        className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                        className="px-4 py-2 bg-gray-300 dark:bg-white/10 text-black dark:text-white rounded hover:bg-gray-400 dark:hover:bg-white/20"
                     >
                         Закрыть
                     </button>
