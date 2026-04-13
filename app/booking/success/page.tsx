@@ -7,8 +7,8 @@ export default function BookingSuccess() {
     const router = useRouter();
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-5">
-            <div className="bg-white rounded-xl shadow-lg p-10 max-w-md w-full space-y-6">
+        <div className="min-h-screen bg-gray-50 dark:bg-[rgb(var(--background))] flex items-center justify-center p-5">
+            <div className="bg-white dark:bg-[rgb(var(--card))] rounded-xl shadow-lg dark:shadow-none border border-gray-200 dark:border-white/10 p-10 max-w-md w-full space-y-6">
                 <div className="animate-[scaleUp_0.6s_ease-in-out] flex justify-center">
                     <svg
                         className="w-18 h-18 text-green-500"
@@ -21,11 +21,11 @@ export default function BookingSuccess() {
                     </svg>
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-800 text-center">
+                <h1 className="text-3xl font-bold text-gray-800 dark:text-white text-center">
                     Бронирование подтверждено!
                 </h1>
 
-                <p className="text-gray-600 text-center leading-relaxed mb-8">
+                <p className="text-gray-600 dark:text-gray-400 text-center leading-relaxed mb-8">
                     Спасибо за вашу заявку. Мы ожидаем вас в указанное время.<br/>
                     Наш менеджер свяжется с вами для подтвержения деталей.
                 </p>

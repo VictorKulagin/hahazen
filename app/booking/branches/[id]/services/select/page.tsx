@@ -116,7 +116,7 @@ const ServiceSelectionPage = () => {
     ) || [];
 
     return (
-        <div className="min-h-screen bg-gray-50 p-4 pb-24">
+        <div className="min-h-screen bg-gray-50 dark:bg-[rgb(var(--background))] text-black dark:text-white p-4 pb-24">
             {/* Step indicators */}
             <div className="mb-8 flex gap-4">
                 <StepIndicator step={1} current={currentStep} target="services" label="Услуги"/>
@@ -141,10 +141,10 @@ const ServiceSelectionPage = () => {
                                 placeholder="Search services..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full p-3 pl-10 rounded-lg border border-gray-200 focus:ring-2 focus:ring-green-500"
+                                className="w-full p-3 pl-10 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-black dark:text-white focus:ring-2 focus:ring-green-500"
                             />
                             <svg
-                                className="absolute left-3 top-3.5 h-5 w-5 text-gray-400"
+                                className="absolute left-3 top-3.5 h-5 w-5 text-gray-400 dark:text-gray-500"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -163,10 +163,10 @@ const ServiceSelectionPage = () => {
                         {filteredServices.map(service => (
                             <label
                                 key={service.id}
-                                className={`p-6 bg-white rounded-xl shadow-sm border-2 transition-all ${
+                                className={`p-6 bg-white dark:bg-white/5 rounded-xl shadow-sm dark:shadow-none border-2 transition-all ${
                                     selectedServices.includes(service.id)
-                                        ? 'border-green-500 bg-green-50'
-                                        : 'border-gray-100 hover:border-green-200'
+                                        ? 'border-green-500 bg-green-50 dark:bg-green-500/10'
+                                        : 'border-gray-100 dark:border-white/10 hover:border-green-200'
                                 }`}
                             >
                                 <div className="flex items-start space-x-4">
@@ -178,7 +178,7 @@ const ServiceSelectionPage = () => {
                                     />
                                     <div className="flex-1">
                                         <h3 className="text-lg font-semibold mb-2">{service.name}</h3>
-                                        <div className="flex justify-between text-sm text-gray-600">
+                                        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                                             <span>⏳ {service.duration_minutes} min</span>
                                             <span>💲 {service.base_price} ₽</span>
                                         </div>
@@ -194,7 +194,7 @@ const ServiceSelectionPage = () => {
                 <div className="space-y-6">
                     <h2 className="text-2xl font-bold">Select Time</h2>
                     {Object.entries(groupedSlots).map(([date, times]) => (
-                        <div key={date} className="bg-white p-4 rounded-lg shadow-sm">
+                        <div key={date} className="bg-white dark:bg-[rgb(var(--card))] p-4 rounded-lg shadow-sm dark:shadow-none">
                             <div className="font-medium mb-2">
                                 {new Date(date).toLocaleDateString('ru-RU', {
                                     weekday: 'long',
@@ -210,7 +210,7 @@ const ServiceSelectionPage = () => {
                                         className={`p-2 text-sm rounded transition-colors ${
                                             selectedSlot === `${date}T${time}`
                                                 ? 'bg-green-600 text-white'
-                                                : 'bg-gray-100 hover:bg-green-100'
+                                                : 'bg-gray-100 dark:bg-white/10 hover:bg-green-100 dark:hover:bg-green-500/20'
                                         }`}
                                     >
                                         {time}
@@ -230,14 +230,14 @@ const ServiceSelectionPage = () => {
                             <button
                                 key={master.id}
                                 onClick={() => setSelectedMaster(master.id)}
-                                className={`p-6 bg-white rounded-xl shadow-sm border-2 transition-all 
+                                className={`p-6 bg-white dark:bg-white/5 rounded-xl shadow-sm dark:shadow-none border-2 transition-all
                                     ${selectedMaster === master.id
-                                    ? 'border-green-500 bg-green-50'
-                                    : 'border-gray-100 hover:border-green-200'}`}
+                                    ? 'border-green-500 bg-green-50 dark:bg-green-500/10'
+                                    : 'border-gray-100 dark:border-white/10 hover:border-green-200'}`}
                             >
                                 <div className="text-left">
                                     <h3 className="text-lg font-semibold mb-2">{master.name}</h3>
-                                    <p className="text-sm text-gray-600">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
                                         {master.specialization}
                                     </p>
                                 </div>
@@ -251,35 +251,35 @@ const ServiceSelectionPage = () => {
                 <div className="space-y-6 max-w-2xl mx-auto">
                     <h2 className="text-2xl font-bold">Подтверждение записи</h2>
 
-                    <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
+                    <div className="bg-white dark:bg-[rgb(var(--card))] p-6 rounded-lg shadow-sm dark:shadow-none space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Имя</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Имя</label>
                             <input
                                 type="text"
                                 value={clientData.name}
                                 onChange={(e) => setClientData({...clientData, name: e.target.value})}
-                                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500"
+                                className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-md bg-white dark:bg-white/5 text-black dark:text-white focus:ring-2 focus:ring-green-500"
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Телефон</label>
                             <input
                                 type="tel"
                                 value={clientData.phone}
                                 onChange={(e) => setClientData({...clientData, phone: e.target.value})}
-                                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500"
+                                className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-md bg-white dark:bg-white/5 text-black dark:text-white focus:ring-2 focus:ring-green-500"
                                 required
                             />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Комментарий</label>
                             <textarea
                                 value={clientData.comment}
                                 onChange={(e) => setClientData({...clientData, comment: e.target.value})}
-                                className="w-full p-2 border rounded-md focus:ring-2 focus:ring-green-500"
+                                className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-md bg-white dark:bg-white/5 text-black dark:text-white focus:ring-2 focus:ring-green-500"
                                 rows={3}
                             />
                         </div>
@@ -288,7 +288,7 @@ const ServiceSelectionPage = () => {
             )}
 
 
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+            <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[rgb(var(--card))] border-t border-gray-200 dark:border-white/10 p-4">
                 <div className="flex gap-4">
                     {currentStep !== 'services' && (
                         <button
@@ -297,7 +297,7 @@ const ServiceSelectionPage = () => {
                                 if (prev === 'master') return 'time';
                                 return 'services';
                             })}
-                            className="flex-1 py-3 px-6 rounded-lg border border-gray-300 hover:bg-gray-50"
+                            className="flex-1 py-3 px-6 rounded-lg border border-gray-300 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10"
                         >
                             Back
                         </button>
@@ -352,7 +352,7 @@ const StepIndicator = ({
     const isActive = current === target;
 
     return (
-        <div className={`flex items-center gap-2 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`}>
+        <div className={`flex items-center gap-2 ${isCompleted ? 'text-green-600' : 'text-gray-400 dark:text-gray-500'}`}>
             <div className={`w-6 h-6 rounded-full flex items-center justify-center 
         ${isCompleted ? 'bg-green-600 text-white' : 'bg-gray-200'}`}>
                 {step}
