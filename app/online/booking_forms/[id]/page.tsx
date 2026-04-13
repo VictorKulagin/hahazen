@@ -334,7 +334,7 @@ const Page: React.FC = () => {
                         <div className="fixed inset-0 flex items-center justify-left bg-black bg-opacity-50 z-50"
                              onClick={toggleFilModal} // Закрытие окна при клике по фону
                         >
-                            <div className="z-50 bg-white p-6 rounded-lg shadow-lg text-black absolute top-[100px] w-full sm:w-11/12 md:w-1/3"
+                            <div className="z-50 bg-white dark:bg-[rgb(var(--card))] p-6 rounded-lg shadow-lg dark:shadow-none text-black dark:text-white absolute top-[100px] w-full sm:w-11/12 md:w-1/3"
                                  onClick={(e) => e.stopPropagation()} // Остановка всплытия события
                             >
                                 <h2 className="text-lg font-bold mb-4">Филиалы</h2>
@@ -369,17 +369,17 @@ const Page: React.FC = () => {
                 {/* Контент: две колонки */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Первая колонка */}
-                    <section className="bg-white text-black p-4 rounded shadow">
+                    <section className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white p-4 rounded shadow dark:shadow-none">
                         <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2">Личные данные</h2>
+                            <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Личные данные</h2>
                         </div>
                         {/* Ссылка с динамическим путем */}
                         <div className="mb-2">
 
                             <div className="space-y-3">
-                                <p className="text-2xl font-bold">Привет, {userData?.name}! Раздел ещё в режиме разработки</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">Привет, {userData?.name}! Раздел ещё в режиме разработки</p>
 
-                                <p>ID: {userData?.id}</p>
+                                <p className="text-gray-700 dark:text-gray-300">ID: {userData?.id}</p>
 
                             </div>
 
@@ -401,9 +401,9 @@ const Page: React.FC = () => {
                     </section>
 
                     {/* Вторая колонка */}
-                    <section className="bg-white text-black p-4 rounded shadow">
+                    <section className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white p-4 rounded shadow dark:shadow-none">
                         <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2">Настройки</h2>
+                            <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Настройки</h2>
                         </div>
                         <p>Настройки филиала</p>
                     </section>

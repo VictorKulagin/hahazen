@@ -22,6 +22,8 @@ import { branchesList } from "@/services/branchesList";
 import EmployeesList from "@/components/EmployeesList";
 import SidebarMenu from "@/components/SidebarMenu";
 import Loader from "@/components/Loader";
+import {ThemeToggle} from "@/components/theme/ThemeToggle";
+import { useTheme } from "@/lib/theme/theme.context";
 
 const Page: React.FC = () => {
     // ✅ ВСЕ STATE ПЕРЕМЕННЫЕ
@@ -34,6 +36,7 @@ const Page: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string>("");
     const [isModalFilOpen, setIsModalFilOpen] = useState(false);
+    const { theme } = useTheme();
 
     const router = useRouter();
 
@@ -168,16 +171,16 @@ const Page: React.FC = () => {
 
 
     return (
-        <div className="relative h-screen md:grid md:grid-cols-[30%_70%] lg:grid-cols-[20%_80%]">
+        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
             {isMenuOpen && (
                 <div
-                    className="fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"
+                    className="fixed inset-0 bg-black/50 z-10 md:hidden"
                     onClick={() => setIsMenuOpen(false)}
                 ></div>
             )}
 
             <aside
-                className={`bg-darkBlue text-white p-4 fixed z-20 h-full transition-transform duration-300 md:relative md:translate-x-0 ${
+                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
                     isMenuOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
@@ -211,14 +214,14 @@ const Page: React.FC = () => {
             </aside>
 
             <main
-                className="bg-backgroundBlue text-white p-4 h-full md:h-auto"
+                className="min-h-screen bg-[rgb(var(--background))] px-3 py-4 md:px-6 md:py-6"
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
                 {isModalFilOpen && (
-                    <div className="fixed inset-0 flex items-center justify-left bg-black bg-opacity-50 z-50"
+                    <div className="fixed inset-0 flex items-center justify-left bg-black/50 z-50"
                          onClick={toggleFilModal}
                     >
-                        <div className="z-50 bg-white p-6 rounded-lg shadow-lg text-black absolute top-[100px] w-full sm:w-11/12 md:w-1/3"
+                        <div className="z-50 bg-white dark:bg-[rgb(var(--card))] p-6 rounded-lg shadow-lg dark:shadow-none text-black dark:text-white absolute top-[100px] w-full sm:w-11/12 md:w-1/3"
                              onClick={(e) => e.stopPropagation()}
                         >
                             <h2 className="text-lg font-bold mb-4">Филиалы</h2>
@@ -255,36 +258,46 @@ const Page: React.FC = () => {
                 </div>
 
                 {/* Заголовок */}
-                <div className="flex items-center bg-[#081b27] text-white p-3 rounded-md mb-4">
+                <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Кабинет
+                        </h1>
+                    </div>
 
-                    <span className="ml-auto font-semibold text-sm">
-                        Кабинет
-                    </span>
+                    <div className="flex items-center gap-3">
+                        <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
+                            Тема: {theme}
+                        </span>
+                        <ThemeToggle />
+                    </div>
                 </div>
 
+
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <section className="bg-white text-black p-4 rounded shadow">
+                    <section className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white p-4 rounded shadow dark:shadow-none">
                         <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2">Личные данные</h2>
+                            <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Личные данные</h2>
                         </div>
 
                         <div className="mb-2">
                             <div className="space-y-3">
-                                <p className="text-2xl font-bold">Привет, {userData?.name}!</p>
+                                <p className="text-2xl font-bold text-gray-900 dark:text-white">Привет, {userData?.name}!</p>
                                 <div className="flex items-center">
-                                    <AtSymbolIcon className="h-6 w-6 text-black mr-2" />
+                                    <AtSymbolIcon className="h-6 w-6 text-black dark:text-white mr-2" />
                                     <p>Email: {userData?.email}</p>
                                 </div>
                                 <div className="flex items-center">
-                                    <UserIcon className="h-6 w-6 text-black mr-2" />
+                                    <UserIcon className="h-6 w-6 text-black dark:text-white mr-2" />
                                     <p>Фамилия: {userData?.last_name}</p>
                                 </div>
                                 <div className="flex items-center">
-                                    <PhoneIcon className="h-6 w-6 text-black mr-2" />
+                                    <PhoneIcon className="h-6 w-6 text-black dark:text-white mr-2" />
                                     <p>Телефон: {userData?.phone}</p>
                                 </div>
                                 <div className="flex items-center">
-                                    <UserIcon className="h-6 w-6 text-black mr-2" />
+                                    <UserIcon className="h-6 w-6 text-black dark:text-white mr-2" />
                                     <p>Статус: {userData?.type}</p>
                                 </div>
                                 <p>ID: {userData?.id}</p>
@@ -299,21 +312,21 @@ const Page: React.FC = () => {
 
                         {Boolean(id) && (
                             <div className="mb-2">
-                                <Link href={`/settings/service_categories/${id}`} className="hover:underline">
+                                <Link href={`/settings/service_categories/${id}`} className="hover:underline text-gray-700 dark:text-gray-300">
                                     Услуги
                                 </Link>
                             </div>
                         )}
                         {Boolean(id) && (
                             <div className="mb-2">
-                                <Link href={`/settings/filial_staff/${id}`} className="hover:underline">
+                                <Link href={`/settings/filial_staff/${id}`} className="hover:underline text-gray-700 dark:text-gray-300">
                                     Сотрудники
                                 </Link>
                             </div>
                         )}
                     </section>
 
-                    <section className="bg-white text-black p-4 rounded shadow">
+                    <section className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white p-4 rounded shadow dark:shadow-none">
                         <div className="flex items-center mb-2">
                             <h2 className="text-lg font-semibold mb-2">Настройки</h2>
                         </div>
