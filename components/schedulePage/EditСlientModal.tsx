@@ -43,6 +43,13 @@ export const EditClientModal: React.FC<Props> = ({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
 
+    const inputClass = "w-full px-4 py-3 rounded-xl \
+border border-gray-200 dark:border-white/10 \
+bg-white dark:bg-white/5 \
+text-black dark:text-white \
+transition \
+focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
+
     // Заполняем форму при открытии / смене клиента
     useEffect(() => {
         if (!isOpen || !client) return;
@@ -155,17 +162,17 @@ export const EditClientModal: React.FC<Props> = ({
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end">
-            <div className="bg-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
-                <div className="p-4 border-b bg-gray-50 text-black font-semibold">
+        <div className="fixed inset-0 z-50 bg-black/50 flex justify-end">
+            <div className="bg-white dark:bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+                <div className="p-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))] text-black dark:text-white font-semibold">
                     Редактировать клиента
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-4 text-black space-y-4 bg-gray-50">
-                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white space-y-4 bg-gray-50 dark:bg-[rgb(var(--background))]">
+                    <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Имя *</label>
                         <input
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                            className={inputClass}
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Имя"
@@ -175,7 +182,7 @@ export const EditClientModal: React.FC<Props> = ({
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Фамилия</label>
                         <input
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                            className={inputClass}
                             value={lastName}
                             onChange={(e) => setLastName(e.target.value)}
                             placeholder="Фамилия"
@@ -185,7 +192,7 @@ export const EditClientModal: React.FC<Props> = ({
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Отчество</label>
                         <input
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                            className={inputClass}
                             value={patronymic}
                             onChange={(e) => setPatronymic(e.target.value)}
                             placeholder="Отчество"
@@ -194,10 +201,10 @@ export const EditClientModal: React.FC<Props> = ({
                     </div>
 
 
-                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                    <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
                         <input
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                            className={inputClass}
                             value={phone}
                             onChange={(e) => setPhone(e.target.value)}
                             placeholder="Телефон"
@@ -207,7 +214,7 @@ export const EditClientModal: React.FC<Props> = ({
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                         <input
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                            className={inputClass}
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             placeholder="Email"
@@ -215,31 +222,31 @@ export const EditClientModal: React.FC<Props> = ({
                     </div>
                     </div>
 
-                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                    <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Пол</label>
                             <select
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                className={`${inputClass} bg-white dark:bg-[rgb(var(--card))]`}
                                 value={gender}
                                 onChange={(e) => setGender(e.target.value as any)}
                             >
-                                <option value="">—</option>
-                                <option value="male">Муж</option>
-                                <option value="female">Жен</option>
+                                <option value="" className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">—</option>
+                                <option value="male" className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Муж</option>
+                                <option value="female" className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Жен</option>
                             </select>
                         </div>
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">VIP</label>
                             <select
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                className={`${inputClass} bg-white dark:bg-[rgb(var(--card))]`}
                                 value={vip}
                                 onChange={(e) => setVip(Number(e.target.value) as 0 | 1)}
                             >
-                                <option value={0}>Нет</option>
-                                <option value={1}>Да</option>
+                                <option value={0} className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Нет</option>
+                                <option value={1} className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Да</option>
                             </select>
                         </div>
                     </div>
@@ -249,7 +256,7 @@ export const EditClientModal: React.FC<Props> = ({
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Скидка %</label>
                             <input
                                 type="number"
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                className={inputClass}
                                 value={discount}
                                 onChange={(e) => setDiscount(Number(e.target.value))}
                                 placeholder="Скидка %"
@@ -259,7 +266,7 @@ export const EditClientModal: React.FC<Props> = ({
                             <label className="block text-sm font-medium text-gray-700 mb-1">Дата рождения</label>
                             <input
                                 type="date"
-                                className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                className={inputClass}
                                 value={birthDate}
                                 onChange={(e) => setBirthDate(e.target.value)}
                                 placeholder="Дата рождения"
@@ -268,11 +275,11 @@ export const EditClientModal: React.FC<Props> = ({
                     </div>
                     </div>
 
-                        <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                        <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Номер карты</label>
                         <input
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                            className={inputClass}
                             value={cardNumber}
                             onChange={(e) => setCardNumber(e.target.value)}
                             placeholder="Номер карты"
@@ -280,27 +287,27 @@ export const EditClientModal: React.FC<Props> = ({
                             </div>
                         </div>
 
-                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                    <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Онлайн-запись</label>
                         <select
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                            className={`${inputClass} bg-white dark:bg-[rgb(var(--card))]`}
                             value={forbidOnlineBooking}
                             onChange={(e) =>
                                 setForbidOnlineBooking(Number(e.target.value) as 0 | 1)
                             }
                         >
-                            <option value={0}>Разрешена</option>
-                            <option value={1}>Запрещена</option>
+                            <option value={0} className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Разрешена</option>
+                            <option value={1} className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Запрещена</option>
                         </select>
                         </div>
                     </div>
 
-                    <div className="bg-white border border-gray-200 rounded-2xl p-4 space-y-4">
+                    <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Комментарий</label>
                         <textarea
-                            className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                            className={`${inputClass} bg-white dark:bg-[rgb(var(--card))]`}
                             rows={3}
                             value={comment}
                             onChange={(e) => setComment(e.target.value)}
@@ -310,7 +317,7 @@ export const EditClientModal: React.FC<Props> = ({
                 </div>
 
                 {/* Футер: сообщения над кнопками */}
-                <div className="p-4 border-t bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.04)]">
+                <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)] dark:shadow-none">
                     <div className="flex justify-between items-center">
 
                         {/* Левая группа */}
@@ -330,7 +337,7 @@ export const EditClientModal: React.FC<Props> = ({
                                 onClick={onClose}
                                 disabled={isDeleting || isSubmitting}
                                 className="px-4 py-2 text-sm font-medium rounded-md
-                bg-gray-50 text-gray-700 hover:bg-gray-100
+                bg-gray-50 text-gray-700 dark:text-gray-300 hover:bg-gray-100
                 border border-gray-200 transition-all duration-200
                 disabled:opacity-60 disabled:cursor-not-allowed"
                             >
