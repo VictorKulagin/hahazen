@@ -297,59 +297,61 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
   `}
         >
             <div
-               className={`
-      bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-[28rem] shadow-lg h-full
-      transform transition-transform duration-300
-      ${isOpen ? "translate-x-0" : "translate-x-full"}
-    `}
-            >
+                className="
+    bg-[rgb(var(--background))] text-[rgb(var(--foreground))]
+    w-[28rem]
+    h-full
+    shadow-lg
 
-                <button
-                    type="button"
-                    onClick={onClose}
-                    className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 z-50 bg-white rounded-full shadow p-1"
-                    aria-label="Закрыть окно"
-                >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={2}
-                        stroke="currentColor"
-                        className="w-6 h-6"
-                    >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                    </svg>
-                </button>
+    rounded-l-2xl
+    rounded-tr-2xl
+
+    overflow-hidden
+  "
+            >
 
 
                 {/*<div className="bg-white rounded p-2 w-full max-w-md text-black">*/}
-                <div className="bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
-                    <div className="p-4 border-b bg-[rgb(var(--card))] text-[rgb(var(--foreground))] font-semibold flex items-center justify-between">
-                        <span>Создать новое событие</span>
+                <div className="relative bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+                    {/* Header */}
+                    <div className="sticky top-0 z-20 border-b border-white/10 bg-[rgb(var(--card))]/95 backdrop-blur-md">
+                        <div className="flex items-start justify-between px-4 py-0">
+                            <div className="flex items-start gap-3 min-w-0">
+                                <span className="mt-[1.30rem] h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.35)] shrink-0" />
 
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="absolute top-4 right-4 z-10 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white bg-white dark:bg-white/10 rounded-full border border-gray-200 dark:border-white/10 shadow-sm p-1 transition-colors"
-                            aria-label="Закрыть окно"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                strokeWidth={2}
-                                stroke="currentColor"
-                                className="w-5 h-5"
+                                <div className="min-w-0">
+                                    <h2 className="text-[17px] leading-[2.75] font-semibold text-[rgb(var(--foreground))] truncate">
+                                        Создание записи
+                                    </h2>
+
+                                </div>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="
+  mt-[8px]
+  flex h-9 w-9 shrink-0 items-center justify-center
+  rounded-xl
+  border border-gray-200 dark:border-white/10
+  bg-gray-100 text-gray-500
+  hover:bg-gray-200 hover:text-gray-700
+  dark:bg-white/5 dark:text-white/60
+  dark:hover:bg-white/10 dark:hover:text-white
+  transition
+"
+                                aria-label="Закрыть окно"
                             >
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
+                                <XMarkIcon className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                     </div>
 
                     {isOutsideSchedule && (
-                        <div
-                            className="bg-amber-50 border border-amber-200 text-amber-800 rounded-2xl px-4 py-3 text-sm flex items-start gap-2">
+                        <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
                             <span>⚠️</span>
                             <span>Сотрудник в этот день не работает. Запись вне графика</span>
                         </div>
@@ -822,30 +824,39 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                         {/* 5. Кнопки сохранения события */}
                         {/*<div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 py-4 px-6">*/}
-                        <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)] dark:shadow-none">
-                            <div className="flex justify-between gap-2">
-                                {submitError && (
-                                    <div
-                                        className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                                        {submitError}
-                                    </div>
-                                )}
+                        <div className="sticky bottom-0 z-20 border-t border-white/10 bg-[rgb(var(--card))]/95 backdrop-blur-md px-5 py-4">
+                            {(submitError || success) && (
+                                <div className="mb-3">
+                                    {submitError && (
+                                        <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-300">
+                                            {submitError}
+                                        </div>
+                                    )}
 
-                                {success && !submitError && (
-                                    <div
-                                        className="rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
-                                        ✅ Запись создана!
-                                    </div>
-                                )}
-                            </div>
+                                    {success && !submitError && (
+                                        <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-3 py-2 text-sm text-green-300">
+                                            ✅ Запись создана!
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
-                            <div className="flex justify-end gap-2">
+                            <div className="flex justify-end gap-3">
                                 <button
                                     type="button"
                                     onClick={onClose}
                                     disabled={loading}
-                                    className="px-4 py-2 text-sm font-medium rounded-md border border-gray-300
-      bg-gray-50 text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-all duration-200"
+                                    className="
+  h-11 px-5 rounded-xl
+  border border-gray-300
+  bg-white text-gray-700
+  hover:bg-gray-100
+  dark:border-white/10
+  dark:bg-white/[0.03]
+  dark:text-[rgb(var(--foreground))]
+  dark:hover:bg-white/10
+  transition disabled:opacity-50
+"
                                 >
                                     Закрыть
                                 </button>
@@ -853,12 +864,13 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm transition-all duration-200
-      ${loading
-                                        ? "bg-green-400 text-white cursor-not-allowed"
-                                        : "bg-green-600 text-white hover:bg-green-700 active:bg-green-800 shadow hover:shadow-md"}`}
+                                    className={`h-11 px-5 rounded-xl font-medium text-white transition disabled:opacity-50 ${
+                                        loading
+                                            ? "bg-green-500/70 cursor-not-allowed"
+                                            : "bg-green-600 hover:bg-green-700"
+                                    }`}
                                 >
-                                    {loading ? "Создание..." : "Сохранить"}
+                                    {loading ? "Сохранение..." : "Сохранить"}
                                 </button>
                             </div>
                         </div>

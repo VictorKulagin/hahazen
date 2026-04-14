@@ -204,7 +204,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
 
     return (
         <div className="fixed inset-0 z-50 flex justify-end bg-black bg-opacity-50">
-            <div className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+            <div className="bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-full shadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden">
                 <div className="h-full flex flex-col">
 
                 <button
@@ -226,9 +226,37 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
 
                 </button>
 
-                    <h2 className="px-4 pt-4 pb-3 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-white/5 text-black dark:text-white font-semibold">
-                        Редактировать запись
-                    </h2>
+                    <div className="sticky top-0 z-20 border-b border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md">
+                        <div className="flex items-start justify-between px-4 py-0">
+                            <div className="flex items-start gap-3 min-w-0">
+                                <span className="mt-[1.3rem] h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+
+                                <h2 className="text-[17px] leading-[2.75] font-semibold text-[rgb(var(--foreground))] truncate">
+                                    Редактировать запись
+                                </h2>
+                            </div>
+
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="
+        mt-[8px]
+        flex h-9 w-9 items-center justify-center
+        rounded-xl
+        border border-gray-200 dark:border-white/10
+        bg-gray-100 text-gray-500
+        hover:bg-gray-200 hover:text-gray-700
+        dark:bg-white/5 dark:text-white/60
+        dark:hover:bg-white/10 dark:hover:text-white
+        transition
+      "
+                            >
+                                <XMarkIcon className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
+                    </div>
 
                     {/*<form onSubmit={handleSave} className="max-h-screen overflow-y-auto flex flex-col bg-gray-50">*/}
                     <form onSubmit={handleSave} className="flex flex-col h-full min-h-0 bg-gray-50 dark:bg-[rgb(var(--background))]">
@@ -593,42 +621,57 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
 
 
                             {/* Контейнер с отступами */}
-                            <div className="flex justify-between gap-2">
-                                {/* Левая кнопка — Удалить */}
+                            <div className="flex justify-between gap-3">
+                                {/* Удалить */}
                                 <button
                                     type="button"
                                     onClick={handleDelete}
                                     disabled={isDeleting}
-                                    className={`px-4 py-2 text-sm font-medium rounded-md border transition-all duration-200
-        ${
+                                    className={`
+      h-11 px-5 rounded-xl border transition
+      ${
                                         isDeleting
                                             ? "bg-red-50 text-red-400 border-red-100 cursor-not-allowed"
-                                            : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100 active:bg-red-200"
-                                    }`}
+                                            : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                                    }
+    `}
                                 >
                                     {isDeleting ? "Удаление..." : "Удалить"}
                                 </button>
 
-                                {/* Правая группа — Закрыть / Сохранить */}
-                                <div className="flex gap-2">
+                                {/* Правая группа */}
+                                <div className="flex gap-3">
+                                    {/* Закрыть */}
                                     <button
                                         type="button"
                                         onClick={onClose}
-                                        className="px-4 py-2 text-sm font-medium rounded-md border border-gray-200
-          bg-gray-50 text-gray-700 hover:bg-gray-100 active:bg-gray-200 transition-all duration-200"
+                                        className="
+        h-11 px-5 rounded-xl
+        border border-gray-300
+        bg-white text-gray-700
+        hover:bg-gray-100
+        dark:border-white/10
+        dark:bg-white/[0.03]
+        dark:text-[rgb(var(--foreground))]
+        dark:hover:bg-white/10
+        transition
+      "
                                     >
                                         Закрыть
                                     </button>
 
+                                    {/* Сохранить */}
                                     <button
                                         type="submit"
                                         disabled={isUpdating || updatingClient}
-                                        className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm transition-all duration-200
-          ${
+                                        className={`
+        h-11 px-5 rounded-xl font-medium text-white transition
+        ${
                                             isUpdating || updatingClient
-                                                ? "bg-green-400 text-white cursor-not-allowed"
-                                                : "bg-green-600 text-white hover:bg-green-700 active:bg-green-800 shadow hover:shadow-md"
-                                        }`}
+                                                ? "bg-green-500/70 cursor-not-allowed"
+                                                : "bg-green-600 hover:bg-green-700"
+                                        }
+      `}
                                     >
                                         {isUpdating || updatingClient ? "Сохранение..." : "Сохранить"}
                                     </button>
