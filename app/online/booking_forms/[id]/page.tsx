@@ -16,6 +16,11 @@ import SidebarMenu from "@/components/SidebarMenu";
 import Loader from "@/components/Loader";
 import {ThemeToggle} from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
+
+import {
+    ClipboardDocumentIcon, ShareIcon,
+    ArrowTopRightOnSquareIcon
+} from "@heroicons/react/24/outline";
 interface ApiError extends Error {
     data?: {
         message?: string;
@@ -34,6 +39,9 @@ const Page: React.FC = () => {
 
     const [isModalFilOpen, setIsModalFilOpen] = useState(false);
 
+    const [copied, setCopied] = useState(false);
+    const [shared, setShared] = useState(false);
+
     const { theme } = useTheme();
 
     // Функция для открытия/закрытия модального окна
@@ -50,6 +58,44 @@ const Page: React.FC = () => {
     const handleLogout = () => {
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
+    };
+
+    const handleCopy = async () => {
+        try {
+            await navigator.clipboard.writeText(
+                `https://hahazen.com/booking/branches/${id}/services/select`
+            );
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleShare = async () => {
+        const url = `https://hahazen.com/booking/branches/${id}/services/select`;
+
+        try {
+            if (navigator.share) {
+                await navigator.share({
+                    title: "Онлайн-запись",
+                    text: "Записаться онлайн",
+                    url,
+                });
+                setShared(true);
+            } else {
+                await navigator.clipboard.writeText(url);
+                setCopied(true);
+            }
+
+            setTimeout(() => {
+                setShared(false);
+                setCopied(false);
+            }, 2000);
+
+        } catch (err) {
+            console.error(err);
+        }
     };
 
 
@@ -164,6 +210,7 @@ const Page: React.FC = () => {
     }, [idFromUrl, id]);
 
 
+    { console.log(userData + id + "userData id"); }
 
     // 🔹 Единая обработка загрузки
     if (globalLoading) {
@@ -367,46 +414,82 @@ const Page: React.FC = () => {
                 </div>
 
                 {/* Контент: две колонки */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Первая колонка */}
-                    <section className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white p-4 rounded shadow dark:shadow-none">
-                        <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Личные данные</h2>
+                <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] p-5 shadow-sm space-y-4">
+
+                    {/* Заголовок */}
+                    <div>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            🌐 Онлайн-запись
+                        </h2>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Делитесь ссылкой и получайте клиентов
+                        </p>
+                    </div>
+
+                    {/* Ссылка */}
+                    <div className="flex items-center gap-2">
+                        <div className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-sm truncate">
+                            https://hahazen.com/booking/branches/{id}/services/select
                         </div>
-                        {/* Ссылка с динамическим путем */}
-                        <div className="mb-2">
 
-                            <div className="space-y-3">
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">Привет, {userData?.name}! Раздел ещё в режиме разработки</p>
+                        <button
+                            onClick={handleCopy}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition group relative"
+                        >
+                            <ClipboardDocumentIcon className="h-5 w-5 text-gray-600 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white transition" />
 
-                                <p className="text-gray-700 dark:text-gray-300">ID: {userData?.id}</p>
+                            {copied && (
+                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-black text-white px-2 py-1 rounded">
+            Скопировано
+        </span>
+                            )}
+                        </button>
 
-                            </div>
+                        <button
+                            onClick={handleShare}
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition group relative"
+                        >
+                            <ShareIcon className="h-5 w-5 text-gray-600 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white transition" />
 
-                        </div>
-                        {/*{Boolean(id) && (
-                            <div className="mb-2">
-                                <Link href={`/settings/service_categories/${id}`} className="hover:underline">
-                                    Услуги
-                                </Link>
-                            </div>
-                        )}
-                        {Boolean(id) && (
-                            <div className="mb-2">
-                                <Link href={`/settings/filial_staff/${id}`} className="hover:underline">
-                                    Сотрудники
-                                </Link>
-                            </div>
-                        )}*/}
-                    </section>
+                            {/* Tooltip */}
+                            {shared && (
+                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-black text-white px-2 py-1 rounded">
+            Поделились
+        </span>
+                            )}
 
-                    {/* Вторая колонка */}
-                    <section className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white p-4 rounded shadow dark:shadow-none">
-                        <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Настройки</h2>
-                        </div>
-                        <p>Настройки филиала</p>
-                    </section>
+                            {copied && (
+                                <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs bg-black text-white px-2 py-1 rounded">
+            Скопировано
+        </span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Статистика */}
+                    {/*<div className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                        <p>🔹 Переходов: <span className="font-medium">24</span></p>
+                        <p>🔹 Последний визит: <span className="font-medium">2 часа назад</span></p>
+                    </div>*/}
+
+                    {/* Кнопки */}
+                    {/*<div className="flex flex-wrap gap-2">
+                        <button className="px-4 py-2 rounded-xl bg-green-500 text-white hover:bg-green-600 transition">
+                            Скопировать ссылку
+                        </button>
+
+                        <a
+                            href="https://hahazen.com/booking/branches/{`id`}/services/select"
+                            target="_blank"
+                            className="px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 transition"
+                        >
+                            Открыть
+                        </a>
+
+                        <button className="px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/10 transition">
+                            Поделиться
+                        </button>
+                    </div>*/}
                 </div>
             </main>
         </div>
