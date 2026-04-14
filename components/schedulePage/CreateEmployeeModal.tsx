@@ -373,7 +373,40 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
     return (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end">
-            <div className="bg-white dark:bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+            <div className="bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-full shadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden flex flex-col">
+
+
+                <div className="sticky top-0 z-20 border-b border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md">
+                    <div className="flex items-start justify-between px-4 py-0">
+                        <div className="flex items-start gap-3 min-w-0">
+                            <span className="mt-[1.3rem] h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+
+                            <h2 className="text-[17px] leading-[2.75] font-semibold truncate">
+                                Создание сотрудника
+                            </h2>
+                        </div>
+
+                        <button
+                            onClick={onClose}
+                            className="
+        mt-[8px]
+        flex h-9 w-9 items-center justify-center
+        rounded-xl
+        border border-gray-200 dark:border-white/10
+        bg-gray-100 text-gray-500
+        hover:bg-gray-200 hover:text-gray-700
+        dark:bg-white/5 dark:text-white/60
+        dark:hover:bg-white/10 dark:hover:text-white
+        transition
+      "
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
+                </div>
+
                 {/* Вкладки */}
                 <div className="flex justify-around border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))]">
                     {["info", "schedule", "services"].map((tab) => (
@@ -820,46 +853,56 @@ transition"
                 </div>
 
                 {/* Футер */}
-                <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] flex justify-end gap-2 shadow-[0_-2px_8px_rgba(0,0,0,0.04)] dark:shadow-none">
+                <div className="sticky bottom-0 z-20 border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md px-4 py-4">
 
-
-                    <div className="p-4">
-                        {submitError && (
-                            <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                                {submitError}
-                            </div>
-                        )}
-
-                        {success && (
-                            <div className="mb-3 rounded-md border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-                                ✅ Сотрудник успешно создан!
-                            </div>
-                        )}
-
-                        <div className="flex justify-end gap-2">
-                            <button
-                                onClick={onClose}
-                                className="px-4 py-2 bg-gray-300 dark:bg-white/10 text-black dark:text-white rounded"
-                            >
-                                Закрыть
-                            </button>
-
-                            <button
-                                onClick={handleSave}
-                                disabled={isSubmitting}
-                                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-60"
-                            >
-                                {isSubmitting ? "Создание..." : "Создать"}
-                            </button>
+                    {(submitError || success) && (
+                        <div className="mb-3">
+                            {submitError && (
+                                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                                    {submitError}
+                                </div>
+                            )}
+                            {success && (
+                                <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-3 py-2 text-sm text-green-300">
+                                    ✅ Сотрудник создан
+                                </div>
+                            )}
                         </div>
-                    </div>
+                    )}
 
-                    {/*<button onClick={onClose} className="px-4 py-2 bg-gray-300 rounded">
-                        Закрыть
-                    </button>*/}
-                    {/*<button onClick={handleSave} className="px-4 py-2 bg-green-600 text-white rounded">
-                        Создать
-                    </button>*/}
+                    <div className="flex justify-end gap-3">
+                        <button
+                            onClick={onClose}
+                            className="
+        h-11 px-5 rounded-xl
+        border border-gray-300
+        bg-white text-gray-700
+        hover:bg-gray-100
+        dark:border-white/10
+        dark:bg-white/[0.03]
+        dark:text-[rgb(var(--foreground))]
+        dark:hover:bg-white/10
+        transition
+      "
+                        >
+                            Закрыть
+                        </button>
+
+                        <button
+                            onClick={handleSave}
+                            disabled={isSubmitting}
+                            className={`
+        h-11 px-5 rounded-xl font-medium text-white transition
+        ${
+                                isSubmitting
+                                    ? "bg-green-500/70 cursor-not-allowed"
+                                    : "bg-green-600 hover:bg-green-700"
+                            }
+      `}
+                        >
+                            {isSubmitting ? "Создание..." : "Создать"}
+                        </button>
+                    </div>
                 </div>
 
                 {/*submitError && (
