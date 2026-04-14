@@ -163,9 +163,36 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
     return (
         <div className="fixed inset-0 z-50 bg-black/50 flex justify-end">
-            <div className="bg-white dark:bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
-                <div className="p-4 border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))] text-black dark:text-white font-semibold">
-                    Редактировать клиента
+            <div className="bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-full shadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden flex flex-col">
+                <div className="sticky top-0 z-20 border-b border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md">
+                    <div className="flex items-start justify-between px-4 py-0">
+                        <div className="flex items-start gap-3 min-w-0">
+                            <span className="mt-[1.3rem] h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+
+                            <h2 className="text-[17px] leading-[2.75] font-semibold text-[rgb(var(--foreground))] truncate">
+                                Редактирование клиента
+                            </h2>
+                        </div>
+
+                        <button
+                            onClick={onClose}
+                            className="
+        mt-[8px]
+        flex h-9 w-9 items-center justify-center
+        rounded-xl
+        border border-gray-200 dark:border-white/10
+        bg-gray-100 text-gray-500
+        hover:bg-gray-200 hover:text-gray-700
+        dark:bg-white/5 dark:text-white/60
+        dark:hover:bg-white/10 dark:hover:text-white
+        transition
+      "
+                        >
+                            ✕
+                        </button>
+                    </div>
+
+                    <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white space-y-4 bg-gray-50 dark:bg-[rgb(var(--background))]">
@@ -317,45 +344,75 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 </div>
 
                 {/* Футер: сообщения над кнопками */}
-                <div className="p-4 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-[0_-2px_8px_rgba(0,0,0,0.04)] dark:shadow-none">
-                    <div className="flex justify-between items-center">
+                <div className="sticky bottom-0 z-20 border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md px-4 py-4">
 
-                        {/* Левая группа */}
-                        <div className="flex gap-2">
-                            <button
-                                onClick={handleDelete}
-                                disabled={isDeleting || isSubmitting}
-                                className="px-4 py-2 text-sm font-medium rounded-md
-                bg-red-50 text-red-600 hover:bg-red-100
-                border border-red-200 transition-all duration-200
-                disabled:opacity-60 disabled:cursor-not-allowed"
-                            >
-                                {isDeleting ? "Удаление..." : "Удалить"}
-                            </button>
+                    {(submitError || success) && (
+                        <div className="mb-3">
+                            {submitError && (
+                                <div className="rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                                    {submitError}
+                                </div>
+                            )}
+                            {success && (
+                                <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-3 py-2 text-sm text-green-300">
+                                    ✅ Сохранено
+                                </div>
+                            )}
+                        </div>
+                    )}
 
+                    <div className="flex justify-between gap-3">
+                        {/* Удалить */}
+                        <button
+                            onClick={handleDelete}
+                            disabled={isDeleting || isSubmitting}
+                            className={`
+        h-11 px-5 rounded-xl border transition
+        ${
+                                isDeleting
+                                    ? "bg-red-50 text-red-400 border-red-100 cursor-not-allowed"
+                                    : "bg-red-50 text-red-600 border-red-200 hover:bg-red-100"
+                            }
+      `}
+                        >
+                            {isDeleting ? "Удаление..." : "Удалить"}
+                        </button>
+
+                        <div className="flex gap-3">
+                            {/* Закрыть */}
                             <button
                                 onClick={onClose}
-                                disabled={isDeleting || isSubmitting}
-                                className="px-4 py-2 text-sm font-medium rounded-md
-                bg-gray-50 text-gray-700 dark:text-gray-300 hover:bg-gray-100
-                border border-gray-200 transition-all duration-200
-                disabled:opacity-60 disabled:cursor-not-allowed"
+                                className="
+          h-11 px-5 rounded-xl
+          border border-gray-300
+          bg-white text-gray-700
+          hover:bg-gray-100
+          dark:border-white/10
+          dark:bg-white/[0.03]
+          dark:text-[rgb(var(--foreground))]
+          dark:hover:bg-white/10
+          transition
+        "
                             >
                                 Закрыть
                             </button>
-                        </div>
 
-                        {/* Правая кнопка */}
-                        <button
-                            onClick={handleSave}
-                            disabled={isSubmitting || isDeleting}
-                            className="px-4 py-2 text-sm font-medium rounded-md
-            bg-green-600 text-white hover:bg-green-700
-            shadow-sm hover:shadow-md transition-all duration-200
-            disabled:opacity-60 disabled:cursor-not-allowed"
-                        >
-                            {isSubmitting ? "Сохранение..." : "Сохранить"}
-                        </button>
+                            {/* Сохранить */}
+                            <button
+                                onClick={handleSave}
+                                disabled={isSubmitting || isDeleting}
+                                className={`
+          h-11 px-5 rounded-xl font-medium text-white transition
+          ${
+                                    isSubmitting || isDeleting
+                                        ? "bg-green-500/70 cursor-not-allowed"
+                                        : "bg-green-600 hover:bg-green-700"
+                                }
+        `}
+                            >
+                                {isSubmitting ? "Сохранение..." : "Сохранить"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
