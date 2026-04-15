@@ -6,12 +6,8 @@ import Link from "next/link";
 import { cabinetDashboard } from "@/services/cabinetDashboard";
 import { companiesList } from "@/services/companiesList";
 import {
-    UserGroupIcon,
-    UsersIcon,
-    GlobeAltIcon,
-    Cog8ToothIcon,
-    ChevronDownIcon,
-    ChevronUpIcon,
+    ChevronDoubleLeftIcon,
+    ChevronDoubleRightIcon,
     UserIcon,
     ArrowRightOnRectangleIcon,
     AtSymbolIcon,
@@ -24,6 +20,7 @@ import SidebarMenu from "@/components/SidebarMenu";
 import Loader from "@/components/Loader";
 import {ThemeToggle} from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
+import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 
 const Page: React.FC = () => {
     // ✅ ВСЕ STATE ПЕРЕМЕННЫЕ
@@ -37,6 +34,8 @@ const Page: React.FC = () => {
     const [error, setError] = useState<string>("");
     const [isModalFilOpen, setIsModalFilOpen] = useState(false);
     const { theme } = useTheme();
+    //const [collapsed, setCollapsed] = useState(false);
+    const { collapsed, setCollapsed, isReady } = useSidebarCollapsed();
 
     const router = useRouter();
 
@@ -171,7 +170,10 @@ const Page: React.FC = () => {
 
 
     return (
-        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
+        <div
+            className={`relative min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--foreground))]
+  md:grid ${collapsed ? "md:grid-cols-[96px_1fr]" : "md:grid-cols-[320px_1fr]"}`}
+        >
             {isMenuOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 z-10 md:hidden"
@@ -180,37 +182,55 @@ const Page: React.FC = () => {
             )}
 
             <aside
-                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
-                    isMenuOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
+                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))]
+  fixed z-20 h-full flex flex-col transition-all duration-300
+  md:relative md:translate-x-0
+  ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
+  ${collapsed ? "w-[96px] p-3" : "w-[320px] p-4"}`}
             >
-                <div
-                    className="border-b border-gray-400 p-2 flex items-center cursor-pointer"
-                    onClick={toggleFilModal}
-                >
-                    <Image
-                        src="/logo.png"
-                        alt="Логотип"
-                        width={32}
-                        height={32}
-                        className="mr-2"
-                    />
-                    <span>{companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Компания не найдена"}</span>
+                {/* Верх: логотип */}
+                <div className="border-b border-gray-400 p-2 flex items-center justify-between">
+                    <button
+                        className="flex items-center min-w-0 flex-1"
+                        onClick={toggleFilModal}
+                    >
+                        <Image
+                            src="/logo.png"
+                            alt="Логотип"
+                            width={32}
+                            height={32}
+                            className="mr-2"
+                        />
+                        {!collapsed && (
+                            <span className="text-sm font-medium truncate">
+        {companiesData?.[0]?.name || "Компания не найдена"}
+      </span>
+                        )}
+                    </button>
 
-
+                    <button
+                        onClick={() => setCollapsed((prev) => !prev)}
+                        className="ml-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition"
+                    >
+                        {collapsed ? (
+                            <ChevronDoubleRightIcon className="h-5 w-5" />
+                        ) : (
+                            <ChevronDoubleLeftIcon className="h-5 w-5" />
+                        )}
+                    </button>
                 </div>
-
                 {/* Меню */}
-                <div className="flex-grow mt-4 overflow-y-auto">
+                <div className="flex-grow mt-4 overflow-y-auto overflow-x-hidden">
                     <SidebarMenu
                         id={id}
                         companyName={companiesData?.[0]?.name}
                         userData={userData}
                         variant="desktop"
                         onLogout={handleLogout}
+                        collapsed={collapsed}
+                        setCollapsed={setCollapsed}
                     />
                 </div>
-
             </aside>
 
             <main
@@ -236,18 +256,7 @@ const Page: React.FC = () => {
                     </div>
                 )}
 
-                {/* ✅ Кнопка открытия меню (мобильная версия) */}
-                {/* Мобильная кнопка */}
-                <div className="md:hidden fixed top-3 left-3 z-30">
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
-                    >
-                    </button>
-                </div>
 
-                {/* Мобильное всплывающее меню */}
-                {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
                 <div className="md:hidden fixed top-3 left-3 z-30">
                     <button
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -256,6 +265,30 @@ const Page: React.FC = () => {
                         <Bars3Icon className="h-6 w-6 text-white" />
                     </button>
                 </div>
+
+                {/* Мобильное всплывающее меню */}
+                {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
+                {/* Мобильный дровер */}
+                {isMenuOpen && (
+                    <div
+                        className="md:hidden fixed inset-0 z-20 bg-black/50"
+                        onClick={() => setIsMenuOpen(false)}
+                    >
+                        <div
+                            className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] transform translate-x-0 transition-transform duration-300"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <SidebarMenu
+                                id={id}
+                                companyName={companiesData?.[0]?.name}
+                                userData={userData}
+                                variant="mobile"
+                                onLogout={handleLogout}
+                                onNavigate={() => setIsMenuOpen(false)} // закрываем при переходе
+                            />
+                        </div>
+                    </div>
+                )}
 
                 {/* Заголовок */}
                 <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">

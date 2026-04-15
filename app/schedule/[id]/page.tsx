@@ -5,7 +5,10 @@ import { useEffect } from 'react';
 import { withAuth } from "@/hoc/withAuth";
 import Image from "next/image";
 import {
- Bars3Icon
+    Bars3Icon,
+    ChevronDoubleLeftIcon,
+    ChevronDoubleRightIcon,
+    CalendarIcon
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
@@ -43,6 +46,8 @@ import Loader from "@/components/Loader";
 import PeriodStatsModule from "@/components/schedulePage/PeriodStatsModule";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
+
+import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -72,6 +77,11 @@ const Page: React.FC = () => {
     const [error, setError] = useState<string>("");
     const [isCreateEmployeeOpen, setIsCreateEmployeeOpen] = useState(false);
     const [isCreateClientOpen, setIsCreateClientOpen] = useState(false);
+
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+    //const [collapsed, setCollapsed] = useState(false);
+    const { collapsed, setCollapsed, isReady } = useSidebarCollapsed();
 
     const { theme } = useTheme();
 
@@ -210,6 +220,7 @@ const Page: React.FC = () => {
         const t = setTimeout(() => setLoading(false), 2000);
         return () => clearTimeout(t);
     }, []);
+
 
     const id = branchesData?.[0]?.id ?? null;
     console.log("ID из данных PAGE:", id);
@@ -496,7 +507,10 @@ const Page: React.FC = () => {
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
-        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
+        <div
+            className={`relative min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--foreground))]
+  md:grid ${collapsed ? "md:grid-cols-[96px_1fr]" : "md:grid-cols-[320px_1fr]"}`}
+        >
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -507,29 +521,107 @@ const Page: React.FC = () => {
 
             {/* Левая колонка (меню + календарь) */}
             <aside
-                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
-                    isMenuOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
+                className={`relative hidden md:flex overflow-visible bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))]
+  fixed z-20 h-full flex flex-col transition-all duration-300
+  md:relative md:translate-x-0
+  ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
+  ${collapsed ? "w-[96px] p-3" : "w-[320px] p-4"}`}
             >
+
+                {isCalendarOpen && (
+                    <div className="absolute left-full top-16 ml-3 z-50 w-[320px]">
+                        <div
+                            className="bg-[rgb(var(--card))] p-4 rounded-2xl border border-[rgb(var(--border))] shadow-2xl"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <CustomCalendarDesktop
+                                year={year}
+                                month={month}
+                                daysWithAppointments={bookedDaysData?.days ?? []}
+                                onDateSelect={(date) => {
+                                    handleDateSelect(date);
+                                    setIsCalendarOpen(false);
+                                }}
+                                onPrevMonth={handlePrevMonth}
+                                onNextMonth={handleNextMonth}
+                            />
+                        </div>
+                    </div>
+                )}
+
                 {/* Верх: логотип */}
-                <div
-                    className="border-b border-gray-400 p-2 flex items-center cursor-pointer"
-                    onClick={toggleFilModal}
-                >
-                    <Image
-                        src="/logo.png"
-                        alt="Логотип"
-                        width={32}
-                        height={32}
-                        className="mr-2"
-                    />
-                    <span className="text-sm font-medium truncate">
-      {companiesData?.[0]?.name || "Компания не найдена"}
-    </span>
+                <div className="border-b border-gray-400 p-2 flex items-center justify-between">
+                    <button
+                        className="flex items-center min-w-0 flex-1"
+                        onClick={toggleFilModal}
+                    >
+                        <Image
+                            src="/logo.png"
+                            alt="Логотип"
+                            width={32}
+                            height={32}
+                            className="mr-2"
+                        />
+                        {!collapsed && (
+                            <span className="text-sm font-medium truncate">
+        {companiesData?.[0]?.name || "Компания не найдена"}
+      </span>
+                        )}
+                    </button>
+
+                    <button
+                        //onClick={() => setCollapsed((prev) => !prev)}
+                        onClick={() => {
+                            setCollapsed((prev) => {
+                                const next = !prev;
+                                if (!next) setIsCalendarOpen(false); // при раскрытии закрываем
+                                return next;
+                            });
+                        }}
+                        className="ml-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition"
+                    >
+                        {collapsed ? (
+                            <ChevronDoubleRightIcon className="h-5 w-5" />
+                        ) : (
+                            <ChevronDoubleLeftIcon className="h-5 w-5" />
+                        )}
+                    </button>
                 </div>
 
+
+
+                {collapsed ? (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsCalendarOpen((prev) => !prev);
+                        }}
+                        className="
+      flex items-center justify-center
+      w-full h-12
+      rounded-xl
+      bg-white/5
+      hover:bg-white/10
+      transition
+    "
+                    >
+                        <CalendarIcon className="w-6 h-6" />
+                    </button>
+                ) : (
+                    <div className="hidden md:block mt-4 rounded-lg p-2 shadow-inner bg-[rgb(var(--card))] border border-[rgb(var(--border))]">
+                        <CustomCalendarDesktop
+                            year={year}
+                            month={month}
+                            daysWithAppointments={bookedDaysData?.days ?? []}
+                            onDateSelect={handleDateSelect}
+                            onPrevMonth={handlePrevMonth}
+                            onNextMonth={handleNextMonth}
+                        />
+                    </div>
+                )}
+
                 {/* Средний блок: календарь */}
-                <div className="hidden md:block mt-4 rounded-lg p-2 shadow-inner flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))]">
+                {/*<div className="hidden md:block mt-4 rounded-lg p-2 shadow-inner flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))]">
                     <CustomCalendarDesktop
                         year={year}
                         month={month}
@@ -538,31 +630,24 @@ const Page: React.FC = () => {
                         onPrevMonth={handlePrevMonth}
                         onNextMonth={handleNextMonth}
                     />
-                </div>
+                </div>*/}
 
                 {/* Основное меню — тянется вниз, если экран высокий */}
                 {/* Меню */}
-                <div className="flex-grow mt-4 overflow-y-auto">
+                <div className="flex-grow mt-4 overflow-y-auto overflow-x-hidden">
                     <SidebarMenu
                         id={id}
                         companyName={companiesData?.[0]?.name}
                         userData={userData}
                         variant="desktop"
                         onLogout={handleLogout}
+                        collapsed={collapsed}
+                        setCollapsed={setCollapsed}
                     />
                 </div>
             </aside>
 
 
-            {/* ✅ Кнопка открытия меню (мобильная версия) */}
-            {/* Мобильная кнопка */}
-            <div className="md:hidden fixed top-3 left-3 z-30">
-                <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
-                >
-                </button>
-            </div>
 
             {/* Мобильное всплывающее меню */}
             {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
@@ -600,7 +685,11 @@ const Page: React.FC = () => {
             {/* Правая колонка (контент) */}
             <main
                 className="min-h-screen bg-[rgb(var(--background))] px-3 py-4 md:px-6 md:py-6"
-                onClick={() => isMenuOpen && setIsMenuOpen(false)}
+                //onClick={() => isMenuOpen && setIsMenuOpen(false)}
+                onClick={() => {
+                    if (isMenuOpen) setIsMenuOpen(false);
+                    if (isCalendarOpen) setIsCalendarOpen(false);
+                }}
             >
                 <div>
                     {/* Модальное окно Филиалы */}

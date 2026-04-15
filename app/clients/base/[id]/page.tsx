@@ -11,7 +11,7 @@ import SidebarMenu from "@/components/SidebarMenu";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 
-import {Phone, Pencil, UserCircle2, Trash2} from "lucide-react";
+import {Pencil, Trash2} from "lucide-react";
 
 
 
@@ -24,10 +24,10 @@ import {
     GiftIcon,
     CreditCardIcon,
     CakeIcon,
-    SparklesIcon,
-    UserGroupIcon,
     Bars3Icon,
-    ChatBubbleLeftRightIcon
+    ChatBubbleLeftRightIcon,
+    ChevronDoubleLeftIcon,
+    ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
@@ -40,6 +40,7 @@ import {authStorage} from "@/services/authStorage";
 import {fetchEmployees} from "@/services/employeeApi";
 import {EditClientModal} from "@/components/schedulePage/EditСlientModal";
 import {CreateClientModal} from "@/components/schedulePage/CreateСlientModal";
+import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 
 
 
@@ -85,6 +86,8 @@ const Page: React.FC = () => {
 
     const [isFilterOpen, setIsFilterOpen] = useState(true);
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+    //const [collapsed, setCollapsed] = useState(false);
+    const { collapsed, setCollapsed, isReady } = useSidebarCollapsed();
 
     const { theme } = useTheme();
 
@@ -289,16 +292,6 @@ const Page: React.FC = () => {
     }, []);
 
 
-    /*useEffect(() => {
-        const apply = () => {
-            const mobile = window.innerWidth < 768;
-            setIsFilterOpen(!mobile);
-        };
-
-        apply();
-        window.addEventListener("resize", apply);
-        return () => window.removeEventListener("resize", apply);
-    }, []);*/
 
     useEffect(() => {
         // один раз при первом рендере (когда уже есть window)
@@ -380,7 +373,10 @@ const Page: React.FC = () => {
 
 
     return (
-        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
+        <div
+            className={`relative min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--foreground))]
+  md:grid ${collapsed ? "md:grid-cols-[96px_1fr]" : "md:grid-cols-[320px_1fr]"}`}
+        >
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -393,35 +389,53 @@ const Page: React.FC = () => {
             {/* Левая колонка (меню) */}
             {/* Меню */}
             <aside
-                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
-                    isMenuOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
+                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))]
+  fixed z-20 h-full flex flex-col transition-all duration-300
+  md:relative md:translate-x-0
+  ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
+  ${collapsed ? "w-[96px] p-3" : "w-[320px] p-4"}`}
             >
-
                 {/* Верх: логотип */}
-                <div
-                    className="border-b border-gray-400 p-2 flex items-center cursor-pointer"
-                    onClick={toggleFilModal}
-                >
-                    <Image
-                        src="/logo.png"
-                        alt="Логотип"
-                        width={32}
-                        height={32}
-                        className="mr-2"
-                    />
-                    <span className="text-sm font-medium truncate">
-      {companiesData?.[0]?.name || "Компания не найдена"}
-    </span>
+                <div className="border-b border-gray-400 p-2 flex items-center justify-between">
+                    <button
+                        className="flex items-center min-w-0 flex-1"
+                        onClick={toggleFilModal}
+                    >
+                        <Image
+                            src="/logo.png"
+                            alt="Логотип"
+                            width={32}
+                            height={32}
+                            className="mr-2"
+                        />
+                        {!collapsed && (
+                            <span className="text-sm font-medium truncate">
+        {companiesData?.[0]?.name || "Компания не найдена"}
+      </span>
+                        )}
+                    </button>
+
+                    <button
+                        onClick={() => setCollapsed((prev) => !prev)}
+                        className="ml-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition"
+                    >
+                        {collapsed ? (
+                            <ChevronDoubleRightIcon className="h-5 w-5" />
+                        ) : (
+                            <ChevronDoubleLeftIcon className="h-5 w-5" />
+                        )}
+                    </button>
                 </div>
                 {/* Меню */}
-            <div className="flex-grow mt-4 overflow-y-auto">
+                <div className="flex-grow mt-4 overflow-y-auto overflow-x-hidden">
             <SidebarMenu
             id={id}
             companyName={companiesData?.[0]?.name}
             userData={userData}
             variant="desktop"
             onLogout={handleLogout}
+            collapsed={collapsed}
+            setCollapsed={setCollapsed}
             />
         </div>
         </aside>

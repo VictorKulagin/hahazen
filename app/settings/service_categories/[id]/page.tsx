@@ -3,8 +3,9 @@
 import React, {useEffect, useState, useRef} from "react";
 
 import {
-    TrashIcon,
-    PencilIcon, Bars3Icon // Для редактирования
+    Bars3Icon, // Для редактирования
+    ChevronDoubleLeftIcon,
+    ChevronDoubleRightIcon,
 } from "@heroicons/react/24/outline";
 import {withAuth} from "@/hoc/withAuth";
 import {useParams, useRouter} from "next/navigation";
@@ -30,6 +31,7 @@ import {authStorage} from "@/services/authStorage";
 import { Pencil, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
+import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 
 const Page: React.FC = ( ) => {
 
@@ -61,6 +63,9 @@ const Page: React.FC = ( ) => {
     const [error, setError] = useState<string>("");
 
     const [isNotFound, setIsNotFound] = useState(false);
+
+    //const [collapsed, setCollapsed] = useState(false);
+    const { collapsed, setCollapsed, isReady } = useSidebarCollapsed();
 
     const router = useRouter();
 
@@ -265,7 +270,10 @@ const Page: React.FC = ( ) => {
 
 
     return (
-        <div className="relative min-h-screen md:grid md:grid-cols-[320px_1fr] bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
+        <div
+            className={`relative min-h-screen bg-[rgb(var(--background))] text-[rgb(var(--foreground))]
+  md:grid ${collapsed ? "md:grid-cols-[96px_1fr]" : "md:grid-cols-[320px_1fr]"}`}
+        >
             {/* Подложка для клика вне меню */}
             {isMenuOpen && (
                 <div
@@ -276,34 +284,53 @@ const Page: React.FC = ( ) => {
 
             {/* Меню */}
             <aside
-                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] p-4 fixed z-20 h-full flex flex-col transition-transform duration-300 md:relative md:translate-x-0 ${
-                    isMenuOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
+                className={`bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))]
+  fixed z-20 h-full flex flex-col transition-all duration-300
+  md:relative md:translate-x-0
+  ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
+  ${collapsed ? "w-[96px] p-3" : "w-[320px] p-4"}`}
             >
                 {/* Верх: логотип */}
-                <div
-                    className="border-b border-gray-400 p-2 flex items-center cursor-pointer"
-                    onClick={toggleFilModal}
-                >
-                    <Image
-                        src="/logo.png"
-                        alt="Логотип"
-                        width={32}
-                        height={32}
-                        className="mr-2"
-                    />
-                    <span className="text-sm font-medium truncate">
-      {companiesData?.[0]?.name || "Компания не найдена"}
-    </span>
+                <div className="border-b border-gray-400 p-2 flex items-center justify-between">
+                    <button
+                        className="flex items-center min-w-0 flex-1"
+                        onClick={toggleFilModal}
+                    >
+                        <Image
+                            src="/logo.png"
+                            alt="Логотип"
+                            width={32}
+                            height={32}
+                            className="mr-2"
+                        />
+                        {!collapsed && (
+                            <span className="text-sm font-medium truncate">
+        {companiesData?.[0]?.name || "Компания не найдена"}
+      </span>
+                        )}
+                    </button>
+
+                    <button
+                        onClick={() => setCollapsed((prev) => !prev)}
+                        className="ml-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition"
+                    >
+                        {collapsed ? (
+                            <ChevronDoubleRightIcon className="h-5 w-5" />
+                        ) : (
+                            <ChevronDoubleLeftIcon className="h-5 w-5" />
+                        )}
+                    </button>
                 </div>
                 {/* Меню */}
-                <div className="flex-grow mt-4 overflow-y-auto">
+                <div className="flex-grow mt-4 overflow-y-auto overflow-x-hidden">
                     <SidebarMenu
                         id={id}
                         companyName={companiesData?.[0]?.name}
                         userData={userData}
                         variant="desktop"
                         onLogout={handleLogout}
+                        collapsed={collapsed}
+                        setCollapsed={setCollapsed}
                     />
                 </div>
             </aside>
