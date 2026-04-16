@@ -1,10 +1,10 @@
-'use client'; // Указывает на использование клиентского рендеринга
+'use client';
 
-import {useRouter} from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useRegisterForm } from "@/hooks/useRegisterForm";
 import { registerUser } from "@/services/userApi";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
-// Интерфейс для данных, отправляемых на сервер
 export default function RegisterPage() {
     const {
         formState: { username, password, email, name, lastName },
@@ -25,7 +25,6 @@ export default function RegisterPage() {
 
     const handlePasswordKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         const input = e.currentTarget;
-
         if (e.key === " " && input.selectionStart === 0) {
             e.preventDefault();
         }
@@ -36,7 +35,6 @@ export default function RegisterPage() {
         setIsLoading(true);
 
         try {
-            // Вызываем функцию для регистрации
             const newUser = await registerUser({
                 username,
                 password,
@@ -45,16 +43,10 @@ export default function RegisterPage() {
                 last_name: lastName,
             });
 
-            // Логируем ответ сервера
-            console.log("Ответ сервера:", newUser);
-
-            // Проверяем, есть ли токен в ответе
             // @ts-ignore
             if (newUser.access_token) {
                 // @ts-ignore
-                localStorage.setItem("access_token", newUser.access_token); // Сохраняем токен
-                // @ts-ignore
-                console.log("Токен сохранён:", newUser.access_token);
+                localStorage.setItem("access_token", newUser.access_token);
             } else {
                 throw new Error("Ошибка: Сервер не вернул access_token.");
             }
@@ -63,7 +55,6 @@ export default function RegisterPage() {
             setError("");
             setTimeout(() => router.push("/companies"), 2000);
         } catch (err: any) {
-            // Обрабатываем ошибки
             if (err.response?.status === 422) {
                 const errors = err.response.data;
                 const usernameError = errors.find((err: any) => err.field === "username");
@@ -85,19 +76,51 @@ export default function RegisterPage() {
     };
 
     return (
-        <>
-            <div className="flex flex-col items-center">
-                <img src="/logo.png" alt="Logo" className="w-24 h-24 mb-4"/>
-                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Вход в аккаунт</h2>
+        <div className="relative min-h-screen overflow-hidden bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.08),transparent_35%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent)]" />
+
+            <div className="absolute right-4 top-4 z-10">
+                <ThemeToggle />
             </div>
-            <div className="min-h-screen flex items-center justify-center bg-gray-100">
-                <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-                    <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Регистрация</h2>
-                    {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                    {success && <p className="text-green-500 text-sm mb-4">{success}</p>}
-                    <form onSubmit={handleRegister} className="space-y-4 text-black">
+
+            <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
+                <div className="w-full max-w-md rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none sm:p-8">
+                    <div className="mb-6 flex flex-col items-center text-center">
+                        <img
+                            src="/logo.png"
+                            alt="Hahazen"
+                            className="mb-4 h-16 w-16 rounded-2xl object-cover shadow-md"
+                        />
+
+                        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-green-500">
+                            Hahazen
+                        </p>
+
+                        <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
+                            Регистрация
+                        </h1>
+
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            Создайте аккаунт, чтобы управлять расписанием, клиентами и услугами.
+                        </p>
+                    </div>
+
+                    {error && (
+                        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
+                            {error}
+                        </div>
+                    )}
+
+                    {success && (
+                        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-300">
+                            {success}
+                        </div>
+                    )}
+
+                    <form onSubmit={handleRegister} className="space-y-4">
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="name" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Имя
                             </label>
                             <input
@@ -105,13 +128,14 @@ export default function RegisterPage() {
                                 id="name"
                                 value={name}
                                 onChange={handleInputChange}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                                className="block w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="Введите ваше имя"
                                 required
                             />
                         </div>
+
                         <div>
-                            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="lastName" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Фамилия
                             </label>
                             <input
@@ -119,13 +143,14 @@ export default function RegisterPage() {
                                 id="lastName"
                                 value={lastName}
                                 onChange={handleInputChange}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                                className="block w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="Введите вашу фамилию"
                                 required
                             />
                         </div>
+
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Электронная почта
                             </label>
                             <input
@@ -134,13 +159,14 @@ export default function RegisterPage() {
                                 value={email}
                                 onChange={handleInputChange}
                                 onKeyDown={handleEmailKeyDown}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                                className="block w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="example@mail.com"
                                 required
                             />
                         </div>
+
                         <div>
-                            <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="username" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Имя пользователя
                             </label>
                             <input
@@ -148,13 +174,14 @@ export default function RegisterPage() {
                                 id="username"
                                 value={username}
                                 onChange={handleInputChange}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                                className="block w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="Введите имя пользователя"
                                 required
                             />
                         </div>
+
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                            <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                 Пароль
                             </label>
                             <input
@@ -163,28 +190,31 @@ export default function RegisterPage() {
                                 value={password}
                                 onChange={handleInputChange}
                                 onKeyDown={handlePasswordKeyDown}
-                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                                className="block w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-sm text-gray-900 shadow-sm outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                 placeholder="Введите пароль"
                                 required
                             />
                         </div>
+
                         <button
                             type="submit"
-                            className="w-full bg-green-500 text-white py-2 px-4 rounded-md shadow hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                            disabled={isLoading}
+                            className="w-full rounded-xl bg-green-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-600 disabled:opacity-70"
                         >
-                            Зарегистрироваться
+                            {isLoading ? "Регистрация..." : "Зарегистрироваться"}
                         </button>
                     </form>
-                    <div className="text-center mt-4">
-                        <p className="text-sm text-gray-600">
-                            Уже есть аккаунт?{' '}
-                            <a href="/signin" className="text-green-500 hover:underline">
+
+                    <div className="mt-6 border-t border-gray-200 pt-4 text-center dark:border-white/10">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Уже есть аккаунт?{" "}
+                            <a href="/signin" className="font-medium text-green-500 hover:text-green-400">
                                 Войти
                             </a>
                         </p>
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 }
