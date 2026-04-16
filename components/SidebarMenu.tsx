@@ -134,33 +134,31 @@ export default function SidebarMenu({
 
             {/* ===== Профиль и выход (сразу под меню) ===== */}
             <div className="border-t border-[rgb(var(--border))] mt-auto pt-3">
-
                 <Link
                     href="/cabinet"
-                    className="flex items-center gap-3 hover:bg-white/5 transition-colors duration-300 rounded-xl p-3"
+                    className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3 hover:bg-white/10 transition-colors duration-300"
                 >
-                    <img
-                        src="/logo.png"
-                        alt="logo"
-                        className="h-8 w-8 rounded-full shadow-md bg-green-600/10 p-1"
-                    />
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/20 text-green-400 font-semibold">
+                        {(userData?.name?.[0] || "T").toUpperCase()}
+                    </div>
+
                     {!collapsed && (
-                        <div>
-                            <p className="text-[rgb(var(--sidebar-foreground))] font-semibold text-sm">
+                        <div className="min-w-0">
+                            <p className="truncate text-[rgb(var(--sidebar-foreground))] font-semibold text-sm">
                                 {userData?.name || "Test"}
                             </p>
-                            <p className="text-[rgb(var(--muted-foreground))] text-xs italic">
+                            <p className="truncate text-[rgb(var(--muted-foreground))] text-xs">
                                 {userData?.email || "test@mail.ru"}
                             </p>
                         </div>
                     )}
                 </Link>
+
                 <button
                     onClick={onLogout}
                     className="flex items-center text-green-500 hover:text-green-400 text-sm font-medium transition mt-2"
                 >
                     <ArrowRightOnRectangleIcon className="h-5 w-5 mr-1" />
-
                     {!collapsed && "Выйти"}
                 </button>
             </div>
