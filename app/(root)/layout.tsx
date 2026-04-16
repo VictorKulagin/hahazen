@@ -7,7 +7,7 @@ export default function Layout({
 }) {
     return (
         <main className="font-work-sans">
-            <Navbar/>
+            {/*<Navbar/>*/}
             {children}
         </main>
     )
