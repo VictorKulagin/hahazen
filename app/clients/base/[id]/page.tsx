@@ -28,6 +28,7 @@ import {
     ChatBubbleLeftRightIcon,
     ChevronDoubleLeftIcon,
     ChevronDoubleRightIcon,
+    PlusIcon
 } from "@heroicons/react/24/outline";
 import {useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
@@ -91,7 +92,7 @@ const Page: React.FC = () => {
 
     const { theme } = useTheme();
 
-    const totalClients = (clientsData?.pagination?.totalPages ?? 0) * 20;
+    const totalClients = (clientsData?.pagination?.totalPages ?? 0) * 20; /*Грубо, нужно заменить*/
 
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
@@ -514,32 +515,53 @@ const Page: React.FC = () => {
 
 
                 {/* Заголовок */}
-                <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Клиентская база
-                        </h1>
-                    </div>
+                <div className="mb-6 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                                <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
+                                    Клиентская база
+                                </h1>
 
+                                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
+                    {totalClients ?? 0}
+                </span>
+                            </div>
 
-                    <div className="flex items-center gap-3">
-                        <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
-                            Тема: {theme}
-                        </span>
-                        <ThemeToggle />
+                            <p className="mt-1 hidden text-sm text-gray-500 dark:text-gray-400 md:block">
+                                Управление клиентами, фильтрами и карточками
+                            </p>
+                        </div>
+
+                        <div className="flex items-center gap-2 md:gap-3">
+                            {authStorage.has("master:create") && (
+                                <button
+                                    onClick={() => setIsAddModalOpen(true)}
+                                    className="hidden md:inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600"
+                                >
+                                    + Добавить клиента
+                                </button>
+                            )}
+
+                            <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
+                Тема: {theme}
+            </span>
+
+                            <ThemeToggle />
+                        </div>
                     </div>
                 </div>
 
 
                 {/* Кнопка "Добавить сотрудника" */}
-                {authStorage.has("master:create") && (
+                {/*authStorage.has("master:create") && (
                     <button
                         onClick={() => setIsAddModalOpen(true)}
                         className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
                     >
                         + Добавить клиента
                     </button>
-                )}
+                )*/}
 
 
                 {/* ✅ Новое окно — добавление сотрудника */}
@@ -576,6 +598,16 @@ const Page: React.FC = () => {
                         setEditingClientId(null);
                     }}
                 />
+
+                {authStorage.has("master:create") && (
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="fixed bottom-5 right-5 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition hover:bg-green-600 md:hidden"
+                        aria-label="Добавить клиента"
+                    >
+                        <PlusIcon className="h-6 w-6" />
+                    </button>
+                )}
 
 
                 {/* Контент: две колонки */}
@@ -920,7 +952,7 @@ const Page: React.FC = () => {
                                         </div>
                                     )}
 
-                                <p>ID: {userData?.id}</p>
+                                {/*<p>ID: {userData?.id}</p>*/}
                             </div>
 
                     </section>

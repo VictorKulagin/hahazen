@@ -425,17 +425,24 @@ const Page: React.FC = () => {
                 </div>
 
                 {/* Заголовок */}
-                <div className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
-                    <div className="flex items-center gap-3">
-                        <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                            Онлайн-запись
-                        </h1>
+                <div
+                    className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                            <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
+                                Онлайн-запись
+                            </h1>
+                        </div>
+
+                        <p className="mt-1 hidden text-sm text-gray-500 dark:text-gray-400 md:block">
+                            Управление публичной записью, доступными услугами и слотами
+                        </p>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
-                            Тема: {theme}
-                        </span>
+        <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
+            Тема: {theme}
+        </span>
                         <ThemeToggle />
                     </div>
                 </div>
