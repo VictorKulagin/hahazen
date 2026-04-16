@@ -101,7 +101,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                         key={item.key}
                                         type="button"
                                         onClick={() => setRangeType(item.key as RangeType)}
-                                        className={`min-w-[110px] rounded-xl px-5 py-2.5 text-sm font-medium transition-all ${
+                                        className={`min-w-[110px] rounded-xl px-5 py-2.5 text-sm font-medium transition-all duration-300 ease-out ${
                                             isActive
                                                 ? "bg-green-600 text-white shadow-sm"
                                                 : "text-[rgb(var(--foreground))] hover:bg-[rgb(var(--card))]"
@@ -216,7 +216,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
             )}
 
             {!isLoading && !isError && data && (
-                <>
+                <div key={rangeType} className="animate-fadeInSoft">
                 {rangeType !== "day" && (
                     <div className="hidden overflow-x-auto rounded-2xl border bborder-[rgb(var(--border))] md:block">
                         <table className="min-w-full text-sm">
@@ -277,7 +277,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                             key={item.key}
                                             type="button"
                                             onClick={() => setRangeType(item.key as RangeType)}
-                                            className={`rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                                            className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-300 ease-out ${
                                                 isActive
                                                     ? "bg-green-600 text-white shadow-sm"
                                                     : "text-[rgb(var(--foreground))]/70 hover:text-[rgb(var(--foreground))]"
@@ -346,7 +346,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                             )}
                         </div>
                     )}
-                </>
+                </div>
             )}
         </section>
     );

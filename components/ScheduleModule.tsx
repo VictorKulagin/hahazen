@@ -429,7 +429,7 @@ export default function ScheduleModule({
             <div className="mb-3 hidden md:flex items-center justify-end">
                 <div className="relative inline-flex items-center rounded-2xl bg-white dark:bg-[#182235] p-1 shadow-sm border border-gray-200 dark:border-white/10">
                     <div
-                        className={`absolute top-1 bottom-1 w-[112px] rounded-xl bg-green-500 dark:bg-green-500 shadow-sm dark:shadow-[0_0_12px_rgba(34,197,94,0.18)] transition-all duration-300 ${
+                        className={`absolute top-1 bottom-1 w-[112px] rounded-xl bg-green-500 shadow-md transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                             viewMode === "list" ? "left-1" : "left-[113px]"
                         }`}
                     />
@@ -437,26 +437,26 @@ export default function ScheduleModule({
                     <button
                         type="button"
                         onClick={() => handleViewModeChange("list")}
-                        className={`relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
+                        className={`group relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-200 ${
                             viewMode === "list"
                                 ? "text-white"
                                 : "text-gray-600 dark:text-white/75 hover:text-black dark:hover:text-white"
                         }`}
                     >
-                        <List size={16} className="transition-transform duration-200 group-hover:scale-110" />
+                        <List size={16} className="transition-transform duration-200 group-hover:scale-[1.03]" />
                         <span>Список</span>
                     </button>
 
                     <button
                         type="button"
                         onClick={() => handleViewModeChange("grid")}
-                        className={`relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 active:scale-[0.98] ${
+                        className={`group relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-200 ${
                             viewMode === "grid"
                                 ? "text-white"
                                 : "text-gray-600 dark:text-white/70 hover:text-black dark:hover:text-white"
                         }`}
                     >
-                        <LayoutGrid size={16} className="transition-transform duration-200" />
+                        <LayoutGrid size={16} className="transition-transform duration-200 group-hover:scale-[1.03]" />
                         <span>Сетка</span>
                     </button>
                 </div>
@@ -465,14 +465,17 @@ export default function ScheduleModule({
 
             {/* 📱 МОБИЛЬНЫЙ РЕЖИМ */}
             {viewMode === "list" && (
-                <div className="block md:block space-y-3">
+                <div
+                    key={`list-${selectedMaster}`}
+                    className="block md:block space-y-3 animate-fadeInSoft"
+                >
 
                     <div className="overflow-x-auto pb-1">
                         <div className="flex gap-2 min-w-max">
                             <button
                                 type="button"
                                 onClick={() => setSelectedMaster("all")}
-                                className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                                className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition-all duration-300 ease-out ${
                                     selectedMaster === "all"
                                         ? "bg-green-500 text-white shadow-sm"
                                         : "bg-white text-gray-700 border border-gray-200 dark:bg-[#1f2937] dark:text-white/80 dark:border-white/10"
@@ -486,7 +489,7 @@ export default function ScheduleModule({
                                     key={employee.id}
                                     type="button"
                                     onClick={() => setSelectedMaster(idx)}
-                                    className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                                    className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition-all duration-300 ease-out ${
                                         selectedMaster === idx
                                             ? "bg-green-500 text-white shadow-sm"
                                             : "bg-white text-gray-700 border border-gray-200 dark:bg-[#1f2937] dark:text-white/80 dark:border-white/10"
@@ -520,7 +523,7 @@ export default function ScheduleModule({
                     return (
                         <div
                             key={employee.id}
-                            className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] overflow-hidden"
+                            className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] overflow-hidden animate-fadeInSoft"
                         >
                             {/* 👤 Заголовок мастера Анимация на мастера */}
                             <div
@@ -705,7 +708,10 @@ export default function ScheduleModule({
             )}
 
             {viewMode === "grid" && (
-                <div ref={scheduleRef} className="hidden md:block overflow-x-auto overflow-y-auto relative max-h-[75vh]">
+                <div
+                    ref={scheduleRef}
+                    className="hidden md:block overflow-x-auto overflow-y-auto relative max-h-[75vh] animate-fadeInSoft"
+                >
             <div  className="relative border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] rounded bg-[rgba(255,255,255,0.02)] min-w-max">
                 {/* Заголовок */}
                 <div ref={headerRowRef} className="flex sticky top-0 z-20 h-14 border-b border-[rgb(var(--border))] bg-[rgb(var(--card))] backdrop-blur-sm">

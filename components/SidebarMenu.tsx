@@ -74,19 +74,19 @@ export default function SidebarMenu({
                                 href={href}
                                 onClick={onNavigate}
                                 title={collapsed ? title : undefined}
-                                className={`group relative z-10 flex items-center rounded-xl py-3 transition-all duration-200 ${
+                                className={`group relative z-10 flex items-center rounded-xl py-3 transition-all duration-250 ease-out ${
                                     collapsed ? "justify-center px-0" : "px-3"
                                 } ${
                                     active
-                                        ? "bg-gradient-to-r from-green-500/80 to-green-600/90 text-white shadow-md"
-                                        : "text-[rgb(var(--sidebar-foreground))] hover:bg-[rgb(var(--sidebar-hover))]"
+                                        ? "bg-gradient-to-r from-green-500/80 to-green-600/90 text-white shadow-sm"
+                                        : "text-[rgb(var(--sidebar-foreground))] hover:bg-[rgb(var(--sidebar-hover))] hover:bg-[rgb(var(--sidebar-hover))]"
                                 }`}
                             >
                                 {active && (
-                                    <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-green-300" />
+                                    <span className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-green-300 shadow-[0_0_10px_rgba(134,239,172,0.45)]" />
                                 )}
 
-                                <Icon className="h-5 w-5 md:h-6 md:w-6 shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                                <Icon className="h-5 w-5 md:h-6 md:w-6 shrink-0 transition-all duration-200 ease-out group-hover:scale-[1.03]" />
                                 {!collapsed && (
                                     <span
                                         className={`ml-3 font-medium ${
@@ -100,27 +100,30 @@ export default function SidebarMenu({
                                 {collapsed && (
                                     <span
                                         className="
-      pointer-events-none
-      absolute
-      left-full
-      top-1/2
-      -translate-y-1/2
-      ml-2
-      px-3 py-1.5
-      text-xs
-      font-medium
-      rounded-lg
-      shadow-lg
-      whitespace-nowrap
-      opacity-0
-      group-hover:opacity-100
-      transition-all duration-150
-      z-[9999]
-      bg-[rgb(var(--background))]
-      text-[rgb(var(--foreground))]
-      border border-[rgb(var(--border))]
-      opacity-0 translate-x-1 group-hover:opacity-100 group-hover:translate-x-0
-    "
+  pointer-events-none
+  absolute
+  left-full
+  top-1/2
+  z-[9999]
+  ml-2
+  -translate-y-1/2
+  translate-x-1
+  whitespace-nowrap
+  rounded-lg
+  border border-[rgb(var(--border))]
+  bg-[rgb(var(--background))]
+  px-3 py-1.5
+  text-xs
+  font-medium
+  text-[rgb(var(--foreground))]
+  shadow-lg
+  opacity-0
+  transition-all
+  duration-200
+  ease-out
+  group-hover:translate-x-0
+  group-hover:opacity-100
+"
                                     >
     {title}
   </span>
@@ -136,7 +139,7 @@ export default function SidebarMenu({
             <div className="border-t border-[rgb(var(--border))] mt-auto pt-3">
                 <Link
                     href="/cabinet"
-                    className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3 hover:bg-white/10 transition-colors duration-300"
+                    className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3 transition-all duration-300 ease-out hover:-translate-y-[1px] hover:bg-white/10 hover:shadow-md"
                 >
                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/20 text-green-400 font-semibold">
                         {(userData?.name?.[0] || "T").toUpperCase()}
@@ -156,9 +159,9 @@ export default function SidebarMenu({
 
                 <button
                     onClick={onLogout}
-                    className="flex items-center text-green-500 hover:text-green-400 text-sm font-medium transition mt-2"
+                    className="group mt-2 flex items-center text-sm font-medium text-green-500 transition-all duration-200 hover:text-green-400"
                 >
-                    <ArrowRightOnRectangleIcon className="h-5 w-5 mr-1" />
+                    <ArrowRightOnRectangleIcon className="mr-1 h-5 w-5 transition-transform duration-200 hover:text-green-400" />
                     {!collapsed && "Выйти"}
                 </button>
             </div>

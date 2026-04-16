@@ -527,123 +527,105 @@ const Page: React.FC = () => {
   ${isMenuOpen ? "translate-x-0" : "-translate-x-full"}
   ${collapsed ? "w-[96px] p-3" : "w-[320px] p-4"}`}
             >
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <div className="sidebar-ambient sidebar-ambient-1" />
+                    <div className="sidebar-ambient sidebar-ambient-2" />
+                </div>
 
-                {isCalendarOpen && (
-                    <div className="absolute left-full top-16 ml-3 z-50 w-[320px]">
-                        <div
-                            className="bg-[rgb(var(--card))] p-4 rounded-2xl border border-[rgb(var(--border))] shadow-2xl"
-                            onClick={(e) => e.stopPropagation()}
+                <div className="relative z-10 flex h-full flex-col">
+                    {isCalendarOpen && (
+                        <div className="absolute left-full top-16 ml-3 z-50 w-[320px]">
+                            <div
+                                className="bg-[rgb(var(--card))] p-4 rounded-2xl border border-[rgb(var(--border))] shadow-2xl"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                <CustomCalendarDesktop
+                                    year={year}
+                                    month={month}
+                                    daysWithAppointments={bookedDaysData?.days ?? []}
+                                    onDateSelect={(date) => {
+                                        handleDateSelect(date);
+                                        setIsCalendarOpen(false);
+                                    }}
+                                    onPrevMonth={handlePrevMonth}
+                                    onNextMonth={handleNextMonth}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Верх: логотип */}
+                    <div className="border-b border-gray-400 p-2 flex items-center justify-between">
+                        <button
+                            className="flex items-center min-w-0 flex-1"
+                            onClick={toggleFilModal}
                         >
+                            <Image
+                                src="/logo.png"
+                                alt="Логотип"
+                                width={32}
+                                height={32}
+                                className="mr-2"
+                            />
+                            {!collapsed && (
+                                <span className="text-sm font-medium truncate">
+                        {companiesData?.[0]?.name || "Компания не найдена"}
+                    </span>
+                            )}
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setCollapsed((prev) => {
+                                    const next = !prev;
+                                    if (!next) setIsCalendarOpen(false);
+                                    return next;
+                                });
+                            }}
+                            className="ml-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition"
+                        >
+                            {collapsed ? (
+                                <ChevronDoubleRightIcon className="h-5 w-5" />
+                            ) : (
+                                <ChevronDoubleLeftIcon className="h-5 w-5" />
+                            )}
+                        </button>
+                    </div>
+
+                    {collapsed ? (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setIsCalendarOpen((prev) => !prev);
+                            }}
+                            className="flex items-center justify-center w-full h-12 rounded-xl bg-white/5 hover:bg-white/10 transition"
+                        >
+                            <CalendarIcon className="w-6 h-6" />
+                        </button>
+                    ) : (
+                        <div className="hidden md:block mt-4 rounded-lg p-2 shadow-inner bg-[rgb(var(--card))] border border-[rgb(var(--border))]">
                             <CustomCalendarDesktop
                                 year={year}
                                 month={month}
                                 daysWithAppointments={bookedDaysData?.days ?? []}
-                                onDateSelect={(date) => {
-                                    handleDateSelect(date);
-                                    setIsCalendarOpen(false);
-                                }}
+                                onDateSelect={handleDateSelect}
                                 onPrevMonth={handlePrevMonth}
                                 onNextMonth={handleNextMonth}
                             />
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* Верх: логотип */}
-                <div className="border-b border-gray-400 p-2 flex items-center justify-between">
-                    <button
-                        className="flex items-center min-w-0 flex-1"
-                        onClick={toggleFilModal}
-                    >
-                        <Image
-                            src="/logo.png"
-                            alt="Логотип"
-                            width={32}
-                            height={32}
-                            className="mr-2"
-                        />
-                        {!collapsed && (
-                            <span className="text-sm font-medium truncate">
-        {companiesData?.[0]?.name || "Компания не найдена"}
-      </span>
-                        )}
-                    </button>
-
-                    <button
-                        //onClick={() => setCollapsed((prev) => !prev)}
-                        onClick={() => {
-                            setCollapsed((prev) => {
-                                const next = !prev;
-                                if (!next) setIsCalendarOpen(false); // при раскрытии закрываем
-                                return next;
-                            });
-                        }}
-                        className="ml-2 flex h-9 w-9 items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 transition"
-                    >
-                        {collapsed ? (
-                            <ChevronDoubleRightIcon className="h-5 w-5" />
-                        ) : (
-                            <ChevronDoubleLeftIcon className="h-5 w-5" />
-                        )}
-                    </button>
-                </div>
-
-
-
-                {collapsed ? (
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setIsCalendarOpen((prev) => !prev);
-                        }}
-                        className="
-      flex items-center justify-center
-      w-full h-12
-      rounded-xl
-      bg-white/5
-      hover:bg-white/10
-      transition
-    "
-                    >
-                        <CalendarIcon className="w-6 h-6" />
-                    </button>
-                ) : (
-                    <div className="hidden md:block mt-4 rounded-lg p-2 shadow-inner bg-[rgb(var(--card))] border border-[rgb(var(--border))]">
-                        <CustomCalendarDesktop
-                            year={year}
-                            month={month}
-                            daysWithAppointments={bookedDaysData?.days ?? []}
-                            onDateSelect={handleDateSelect}
-                            onPrevMonth={handlePrevMonth}
-                            onNextMonth={handleNextMonth}
+                    <div className="flex-grow mt-4 overflow-y-auto overflow-x-hidden">
+                        <SidebarMenu
+                            id={id}
+                            companyName={companiesData?.[0]?.name}
+                            userData={userData}
+                            variant="desktop"
+                            onLogout={handleLogout}
+                            collapsed={collapsed}
+                            setCollapsed={setCollapsed}
                         />
                     </div>
-                )}
-
-                {/* Средний блок: календарь */}
-                {/*<div className="hidden md:block mt-4 rounded-lg p-2 shadow-inner flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))]">
-                    <CustomCalendarDesktop
-                        year={year}
-                        month={month}
-                        daysWithAppointments={bookedDaysData?.days ?? []}
-                        onDateSelect={handleDateSelect}
-                        onPrevMonth={handlePrevMonth}
-                        onNextMonth={handleNextMonth}
-                    />
-                </div>*/}
-
-                {/* Основное меню — тянется вниз, если экран высокий */}
-                {/* Меню */}
-                <div className="flex-grow mt-4 overflow-y-auto overflow-x-hidden">
-                    <SidebarMenu
-                        id={id}
-                        companyName={companiesData?.[0]?.name}
-                        userData={userData}
-                        variant="desktop"
-                        onLogout={handleLogout}
-                        collapsed={collapsed}
-                        setCollapsed={setCollapsed}
-                    />
                 </div>
             </aside>
 

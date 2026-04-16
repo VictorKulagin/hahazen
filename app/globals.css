@@ -419,6 +419,12 @@
   --foreground: 15 23 42;
   --card: 255 255 255;
   --border: 226 232 240;
+
+
+  --sidebar: 255 255 255;
+  --sidebar-foreground: 15 23 42;
+  --sidebar-hover: 241 245 249;
+  --muted-foreground: 100 116 139;
 }
 
 .dark {
@@ -426,6 +432,13 @@
   --foreground: 241 245 249;
   --card: 24 34 54;
   --border: 30 41 59;
+
+
+
+  --sidebar: 2 6 23;
+  --sidebar-foreground: 241 245 249;
+  --sidebar-hover: 15 23 42;
+  --muted-foreground: 148 163 184;
 }
 
 
@@ -461,6 +474,85 @@ body {
 html {
   font-size: 15px;
   letter-spacing: 0.2px;
+}
+
+
+@keyframes sidebarFloatOne {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translateY(-16px) translateX(6px);
+    opacity: 0.16;
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.1;
+  }
+}
+
+@keyframes sidebarFloatTwo {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.08;
+  }
+  50% {
+    transform: translateY(12px) translateX(-4px);
+    opacity: 0.14;
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.08;
+  }
+}
+
+.sidebar-ambient {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(55px);
+  pointer-events: none;
+}
+
+.sidebar-ambient-1 {
+  right: -30px;
+  top: 160px;
+  width: 190px;
+  height: 360px;
+  background: rgba(59, 130, 246, 0.16);
+  animation: sidebarFloatOne 12s ease-in-out infinite;
+}
+
+.sidebar-ambient-2 {
+  right: -10px;
+  bottom: 100px;
+  width: 150px;
+  height: 280px;
+  background: rgba(34, 197, 94, 0.12);
+  animation: sidebarFloatTwo 14s ease-in-out infinite;
+}
+
+.dark .sidebar-ambient-1 {
+  background: rgba(59, 130, 246, 0.22);
+}
+
+.dark .sidebar-ambient-2 {
+  background: rgba(34, 197, 94, 0.16);
+}
+
+@keyframes fadeInSoft {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fadeInSoft {
+  animation: fadeInSoft 0.32s ease-out;
 }
 
 
