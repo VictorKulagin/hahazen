@@ -4,10 +4,10 @@ import { useEmployees } from "@/hooks/useEmployees";
 import { isWorkingSlot } from "@/components/utils/isWorkingSlot";
 import type { EmployeeSchedule } from "@/services/employeeScheduleApi";
 import { Employee } from "@/services/employeeApi";
-import { PlusIcon } from "@heroicons/react/24/solid";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 import {authStorage} from "@/services/authStorage"; // 👈 вместо PlusIcon
 import { Pencil, List, LayoutGrid } from "lucide-react";
+import Image from "next/image";
 
 
 export interface ScheduleEvent {
@@ -667,8 +667,14 @@ export default function ScheduleModule({
                                         );
                                     })
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center py-6 text-[rgb(var(--foreground))]/70 border border-dashed border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] rounded-xl">
-                                        <span className="text-xl mb-1">📭</span>
+                                    <div className="-mx-4 flex flex-col items-center justify-center py-4 text-[rgb(var(--foreground))]/70 border border-dashed border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] rounded-xl">
+                                        <Image
+                                            src="/no_appointment_yet.png"
+                                            alt="No appointments"
+                                            width={96}
+                                            height={96}
+                                            className="mb-2 opacity-80"
+                                        />
                                         <span className="text-sm">Нет записей</span>
                                     </div>
                                 )}
@@ -697,15 +703,19 @@ export default function ScheduleModule({
                     );
                 })}
 
-                <button
-                    onClick={onAddEntity}
-                    className="sm:hidden fixed bottom-6 right-6 z-40 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 active:scale-95 transition"
-                    title="Добавить"
-                >
-                    <UserPlusIcon className="h-6 w-6" />
-                </button>
+
+
             </div>
             )}
+
+
+            <button
+                onClick={onAddEntity}
+                className="sm:hidden fixed bottom-6 right-6 z-40 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 active:scale-95 transition"
+                title="Добавить"
+            >
+                <UserPlusIcon className="h-6 w-6" />
+            </button>
 
             {viewMode === "grid" && (
                 <div
