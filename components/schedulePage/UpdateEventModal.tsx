@@ -362,33 +362,58 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                     return (
                                                         <div
                                                             key={selected.id}
-                                                            className="flex items-center gap-2 rounded-full bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 px-3 py-1.5 text-gray-800 dark:text-white"
+                                                            className="
+              flex items-center gap-2
+              rounded-full
+              px-4 py-2
+              border border-white/10
+              bg-white/[0.06]
+              text-white
+            "
                                                         >
-                                <span className="text-sm font-medium text-gray-800">
-                                    {service.name}
-                                </span>
+            <span className="text-sm text-white/90">
+              {service.name}
+            </span>
 
-                                                            <span className="text-sm text-gray-500">
-                                    {price}₽
-                                </span>
+                                                            <span className="text-sm text-white/55">
+              {price}₽
+            </span>
 
                                                             <div className="flex items-center gap-1 ml-1">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateQty(selected.id, selected.qty - 1)}
-                                                                    className="w-6 h-6 rounded-full border bg-white text-sm hover:bg-gray-50"
+                                                                    className="
+                  w-7 h-7
+                  flex items-center justify-center
+                  rounded-full
+                  border border-white/10
+                  bg-white/[0.04]
+                  text-white/80
+                  hover:bg-white/[0.08]
+                  transition-colors
+                "
                                                                 >
-                                                                    -
+                                                                    −
                                                                 </button>
 
-                                                                <span className="min-w-[20px] text-center text-sm">
-                                        {selected.qty}
-                                    </span>
+                                                                <span className="min-w-[18px] text-center text-sm font-medium text-white">
+                {selected.qty}
+              </span>
 
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateQty(selected.id, selected.qty + 1)}
-                                                                    className="w-6 h-6 rounded-full border bg-white text-sm hover:bg-gray-50"
+                                                                    className="
+                  w-7 h-7
+                  flex items-center justify-center
+                  rounded-full
+                  border border-white/10
+                  bg-white/[0.10]
+                  text-white
+                  hover:bg-white/[0.14]
+                  transition-colors
+                "
                                                                 >
                                                                     +
                                                                 </button>
@@ -397,7 +422,15 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeService(selected.id)}
-                                                                className="ml-1 text-gray-400 hover:text-red-500"
+                                                                className="
+                ml-1
+                w-6 h-6
+                flex items-center justify-center
+                rounded-full
+                text-white/45
+                hover:text-white/75
+                transition-colors
+              "
                                                             >
                                                                 <XMarkIcon className="w-4 h-4" />
                                                             </button>
@@ -416,21 +449,23 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                     setIsServiceDropdownOpen(true);
                                                 }}
                                                 onFocus={() => setIsServiceDropdownOpen(true)}
-                                                placeholder="Поиск"
-                                                className="flex-1 px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                                placeholder="Поиск услуг"
+                                                className="flex-1 px-4 py-3 rounded-xl border border-white/10 bg-white/[0.06] text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-white/10"
                                             />
 
                                             <button
                                                 type="button"
                                                 onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
-                                                className="w-11 h-11 rounded-xl border border-gray-200 text-xl text-gray-600 hover:bg-gray-50 transition-colors"
+                                                className="w-11 h-11 flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-white/80 hover:bg-white/[0.10] transition-colors"
                                             >
-                                                +
+                                                <span className="text-lg leading-none">+</span>
                                             </button>
                                         </div>
 
                                         {isServiceDropdownOpen && filteredServices.length > 0 && (
-                                            <div className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-lg">
+                                            <div
+                                                className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-2xl border border-white/10 bg-[rgb(var(--card))] shadow-xl"
+                                            >
                                                 {filteredServices.map((item) => {
                                                     const price = item.individual_price ?? item.base_price;
 
@@ -439,10 +474,15 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                                             key={item.service_id}
                                                             type="button"
                                                             onClick={() => addService(item.service_id)}
-                                                            className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/10"
+                                                            className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-white/10 transition-colors"
                                                         >
-                                                            <span className="text-sm text-gray-800">{item.name}</span>
-                                                            <span className="text-sm text-gray-500">{price}₽</span>
+            <span className="text-sm text-white">
+              {item.name}
+            </span>
+
+                                                            <span className="text-sm text-white/60">
+              {price}₽
+            </span>
                                                         </button>
                                                     );
                                                 })}
@@ -452,7 +492,16 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                         {isServiceDropdownOpen &&
                                             filteredServices.length === 0 &&
                                             serviceSearch.trim() !== "" && (
-                                                <div className="absolute left-2 right-2 top-full mt-2 z-20 rounded-lg border bg-white shadow-lg px-3 py-2 text-sm text-gray-500">
+                                                <div
+                                                    className="
+          absolute left-2 right-2 top-full mt-2 z-20
+          rounded-xl
+          border border-white/10
+          bg-[rgb(var(--card))]
+          px-4 py-3
+          text-sm text-white/60
+        "
+                                                >
                                                     Ничего не найдено
                                                 </div>
                                             )}

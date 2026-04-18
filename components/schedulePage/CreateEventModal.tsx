@@ -104,6 +104,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
 
+
     const {data: services = [], isLoading} = useEmployeeServices(
         employeeId ?? undefined
     );
@@ -582,9 +583,9 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateQty(selected.id, selected.qty - 1)}
-                                                                    className="w-6 h-6 rounded-full border bg-white text-sm hover:bg-gray-50"
+                                                                    className=" w-7 h-7 flex items-center justify-center rounded-full dbg-gray-200  ark:bg-white/10 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-white text-sm font-medium transition-all duration-150 hover:bg-gray-300 dark:hover:bg-white/20 active:scale-90"
                                                                 >
-                                                                    -
+                                                                    −
                                                                 </button>
 
                                                                 <span className="min-w-[20px] text-center text-sm">
@@ -594,7 +595,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateQty(selected.id, selected.qty + 1)}
-                                                                    className="w-6 h-6 rounded-full border bg-white text-sm hover:bg-gray-50"
+                                                                    className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-200 dark:bg-white/10 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-white text-sm font-medium transition-all duration-150 hover:bg-gray-300 dark:hover:bg-white/20 active:scale-90"
                                                                 >
                                                                     +
                                                                 </button>
@@ -623,23 +624,24 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                     setIsServiceDropdownOpen(true);
                                                 }}
                                                 onFocus={() => setIsServiceDropdownOpen(true)}
-                                                placeholder="Поиск"
+                                                placeholder="Поиск услуг"
                                                 className="flex-1 px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                                             />
 
                                             <button
                                                 type="button"
                                                 onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
-                                                className="w-11 h-11 rounded-xl border border-gray-200 text-xl text-gray-600 hover:bg-gray-50 transition-colors"
+                                                className=" relative w-11 h-11 rounded-xl flex items-center justify-center  bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-white/10 hover:scale-[1.03] active:scale-[0.96] shadow-sm hover:shadow-md"
                                             >
-                                                +
+                                                <span className="text-lg leading-none">+</span>
                                             </button>
                                         </div>
 
                                         {/* dropdown */}
                                         {isServiceDropdownOpen && filteredServices.length > 0 && (
                                             <div
-                                                className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-lg">
+                                                className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto  rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-xl backdrop-blur-sm transition-all duration-200 animate-in fade-in slide-in-from-top-1"
+                                            >
                                                 {filteredServices.map((item) => {
                                                     const price = item.individual_price ?? item.base_price;
 
@@ -648,10 +650,22 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                             key={item.service_id}
                                                             type="button"
                                                             onClick={() => addService(item.service_id)}
-                                                            className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/10"
+                                                            className="
+          flex w-full items-center justify-between
+          px-4 py-3
+          text-left
+          transition
+          hover:bg-gray-100
+          dark:hover:bg-white/10
+        "
                                                         >
-                                                            <span className="text-sm text-gray-800">{item.name}</span>
-                                                            <span className="text-sm text-gray-500">{price}₽</span>
+        <span className="text-sm text-gray-900 dark:text-white">
+          {item.name}
+        </span>
+
+                                                            <span className="text-sm text-gray-500 dark:text-white/60">
+          {price}₽
+        </span>
                                                         </button>
                                                     );
                                                 })}

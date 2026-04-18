@@ -805,16 +805,16 @@ transition"
                                                 setIsServiceDropdownOpen(true);
                                             }}
                                             onFocus={() => setIsServiceDropdownOpen(true)}
-                                            placeholder="Search"
+                                            placeholder="Поиск услуг"
                                             className={inputClass}
                                         />
 
                                         <button
                                             type="button"
                                             onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
-                                            className="w-10 h-10 rounded-lg border border-gray-200 dark:border-white/10 text-xl text-gray-600 dark:text-white hover:bg-gray-50 dark:hover:bg-white/10"
+                                            className="w-11 h-11 flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-white/80 hover:bg-white/[0.10] transition-colors"
                                         >
-                                            +
+                                            <span className="text-lg leading-none">+</span>
                                         </button>
                                     </div>
 
