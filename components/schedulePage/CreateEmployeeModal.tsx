@@ -549,7 +549,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Периоды</label>
                                 {periods.map((p, i) => (
-                                    <div key={i} className="flex gap-2 items-center bg-gray-50 dark:bg-[rgb(var(--card))] border border-gray-200 dark:border-white/10 rounded-xl p-2">
+                                    <div
+                                        key={i}
+                                        className="flex gap-2 items-center rounded-2xl border border-gray-200 dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-2"
+                                    >
                                         <select
                                             value={p.day}
                                             onChange={(e) =>
@@ -559,16 +562,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                     )
                                                 )
                                             }
-                                            className={inputClass}
+                                            className={`${inputClass} max-w-[7.5rem]`}
                                         >
-                                            {/*<option value="mon">Пн</option>
-                                            <option value="tue">Вт</option>
-                                            <option value="wed">Ср</option>
-                                            <option value="thu">Чт</option>
-                                            <option value="fri">Пт</option>
-                                            <option value="sat">Сб</option>
-                                            <option value="sun">Вс</option>*/}
-
                                             {WEEK_DAYS.map((day) => (
                                                 <option
                                                     key={day.value}
@@ -578,8 +573,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                     {day.label}
                                                 </option>
                                             ))}
-
                                         </select>
+
                                         <input
                                             type="time"
                                             value={p.start}
@@ -588,9 +583,9 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                     prev.map((x, idx) => (idx === i ? { ...x, start: e.target.value } : x))
                                                 )
                                             }
-                                            className={inputClass}
-                                            /*className="p-2 border rounded w-1/3"*/
+                                            className={`${inputClass} max-w-[7rem]`}
                                         />
+
                                         <input
                                             type="time"
                                             value={p.end}
@@ -599,13 +594,13 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                     prev.map((x, idx) => (idx === i ? { ...x, end: e.target.value } : x))
                                                 )
                                             }
-                                            className={inputClass}
-                                            /*className="p-2 border rounded w-1/3"*/
+                                            className={`${inputClass} max-w-[7rem]`}
                                         />
+
                                         <button
                                             type="button"
                                             onClick={() => setPeriods((prev) => prev.filter((_, idx) => idx !== i))}
-                                            className="text-red-500"
+                                            className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition"
                                         >
                                             ×
                                         </button>
@@ -613,8 +608,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 ))}
                                 <button
                                     type="button"
-                                    onClick={() => setPeriods((prev) => [...prev, { day: "mon", start: "09:00", end: "18:00" }])}
-                                    className="text-green-600 dark:text-green-400"
+                                    onClick={() =>
+                                        setPeriods((prev) => [...prev, { day: "mon", start: "09:00", end: "18:00" }])
+                                    }
+                                    className="mt-2 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-500/10 transition"
                                 >
                                     + Добавить период
                                 </button>

@@ -621,7 +621,9 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 {/* Контейнер с прокруткой */}
                                 <div className="max-h-96 overflow-y-auto pr-1">
                                     {periods.map((p, i) => (
-                                        <div key={i} className="grid grid-cols-[2rem_6rem_1fr_1fr_2rem] gap-2 items-center mb-2">
+                                        <div key={i}
+                                             className="flex gap-2 items-center rounded-2xl border border-gray-200 dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-2"
+                                        >
                                             {/* Стрелки */}
                                             <div className="flex flex-col items-center">
                                                 <button
@@ -692,7 +694,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                         )
                                                     )
                                                 }
-                                                className={inputClass}
+                                                className={`${inputClass} max-w-[7rem]`}
                                             />
                                             <input
                                                 type="time"
@@ -704,14 +706,14 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                         )
                                                     )
                                                 }
-                                                className={inputClass}
+                                                className={`${inputClass} max-w-[7rem]`}
                                             />
 
                                             {/* Удаление */}
                                             <button
                                                 type="button"
                                                 onClick={() => setPeriods(prev => prev.filter((_, idx) => idx !== i))}
-                                                className="text-red-500 hover:text-red-700"
+                                                className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl text-red-500 hover:bg-red-500/10 transition"
                                             >
                                                 ×
                                             </button>
@@ -722,8 +724,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 {/* Добавить период */}
                                 <button
                                     type="button"
-                                    onClick={() => setPeriods(prev => [...prev, { day: "mon", start: "09:00", end: "18:00" }])}
-                                    className="text-green-600 mt-2"
+                                    onClick={() =>
+                                        setPeriods((prev) => [...prev, { day: "mon", start: "09:00", end: "18:00" }])
+                                    }
+                                    className="mt-2 inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium text-green-600 dark:text-green-400 hover:bg-green-500/10 transition"
                                 >
                                     + Добавить период
                                 </button>
