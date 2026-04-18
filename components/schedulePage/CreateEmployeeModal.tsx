@@ -812,7 +812,7 @@ transition"
                                         <button
                                             type="button"
                                             onClick={() => setIsServiceDropdownOpen((prev) => !prev)}
-                                            className="w-11 h-11 flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-white/80 hover:bg-white/[0.10] transition-colors"
+                                            className=" relative w-[3.125rem] h-[3.125rem] rounded-xl flex items-center justify-center  bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-600 dark:text-white/70 transition-all duration-200 hover:bg-gray-200 dark:hover:bg-white/10 hover:shadow-md"
                                         >
                                             <span className="text-lg leading-none">+</span>
                                         </button>
