@@ -366,7 +366,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <UserCircle2 className="w-5 h-5 text-gray-500 dark:text-gray-400"/>
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <h3 className="text-[13px] font-semibold tracking-wide text-gray-900 dark:text-white/90">
                                         Клиент
                                     </h3>
                                 </div>
@@ -473,15 +473,14 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <Clock className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <h3 className="text-[13px] font-semibold tracking-wide text-gray-900 dark:text-white/90">
                                         Время
                                     </h3>
                                 </div>
 
                                 <div className="flex gap-3 w-full">
                                     <div className="flex-1">
-                                        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Время
-                                            начала</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Время начала</label>
                                         <input
                                             type="time"
                                             value={timeStart}
@@ -508,7 +507,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     </div>
 
                                     <div className="flex-1">
-                                        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Время окончания</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Время окончания</label>
                                         <input
                                             type="time"
                                             value={timeEnd}
@@ -541,7 +540,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Package className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                        <h3 className="text-[13px] font-semibold tracking-wide text-gray-900 dark:text-white/90">
                                             Услуги
                                         </h3>
                                     </div>
@@ -687,14 +686,16 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <CreditCard className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                    <h3 className="text-[13px] font-semibold tracking-wide text-gray-900 dark:text-white/90">
                                         Оплата
                                     </h3>
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Стоимость</label>
+                                        <label className="mb-2 block text-[12px] font-medium text-gray-600 dark:text-white/45">
+                                            Стоимость
+                                        </label>
                                         <input
                                             type="number"
                                             min={0}
@@ -714,7 +715,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                     setIsManualCost(false);
                                                     setCost(calculateServicesCost());
                                                 }}
-                                                className="text-xs text-blue-600 mt-1"
+                                                className="mt-2 text-xs font-medium text-blue-600 dark:text-blue-400"
                                             >
                                                 Сбросить к расчету
                                             </button>
@@ -722,14 +723,16 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     </div>
 
                                     <div>
-                                        <span className="text-sm font-medium text-gray-900 dark:text-gray-100">Статус визита</span>
-                                        <div className="inline-flex w-full rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden bg-white dark:bg-white/5">
+                                        <label className="mb-2 block text-[12px] font-medium text-gray-600 dark:text-white/45">
+                                            Статус визита
+                                        </label>
+                                        <div className="inline-flex w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/[0.04] p-1">
                                             <button
                                                 type="button"
                                                 onClick={() => setVisitStatus("expected")}
-                                                className={`flex-1 px-3 py-2 text-sm transition-colors ${
+                                                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                                                     visitStatus === "expected"
-                                                        ? "bg-blue-100 text-blue-700 font-medium"
+                                                        ? "bg-blue-50 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
                                                         : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
                                                 }`}
                                             >
@@ -739,7 +742,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             <button
                                                 type="button"
                                                 onClick={() => setVisitStatus("arrived")}
-                                                className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                                                     visitStatus === "arrived"
                                                         ? "bg-green-100 text-green-700 font-medium"
                                                         : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
@@ -751,7 +754,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             <button
                                                 type="button"
                                                 onClick={() => setVisitStatus("no_show")}
-                                                className={`flex-1 px-3 py-2 text-sm border-l transition-colors ${
+                                                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                                                     visitStatus === "no_show"
                                                         ? "bg-red-100 text-red-700 font-medium"
                                                         : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
@@ -763,18 +766,18 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     </div>
 
                                     <div>
-  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-    Статус оплаты
-  </span>
+                                        <label className="mb-2 block text-[12px] font-medium text-gray-600 dark:text-white/45">
+                                            Статус оплаты
+                                        </label>
 
-                                        <div className="inline-flex w-full rounded-lg border border-gray-200 dark:border-white/10 overflow-hidden bg-white dark:bg-white/5">
+                                        <div className="inline-flex w-full rounded-xl border border-gray-200 dark:border-white/10 bg-gray-100 dark:bg-white/[0.04] p-1">
                                             <button
                                                 type="button"
                                                 onClick={() => {
                                                     setPaymentStatus("unpaid");
                                                     setPaymentMethod(null);
                                                 }}
-                                                className={`flex-1 px-3 py-2 text-sm transition-colors ${
+                                                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                                                     paymentStatus === "unpaid"
                                                         ? "bg-gray-100 text-gray-800 font-medium dark:bg-white/10 dark:text-white"
                                                         : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
@@ -786,7 +789,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             <button
                                                 type="button"
                                                 onClick={() => setPaymentStatus("partial")}
-                                                className={`flex-1 px-3 py-2 text-sm border-l border-gray-200 dark:border-white/10 transition-colors ${
+                                                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                                                     paymentStatus === "partial"
                                                         ? "bg-yellow-100 text-yellow-700 font-medium dark:bg-yellow-500/20 dark:text-yellow-300"
                                                         : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
@@ -798,7 +801,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             <button
                                                 type="button"
                                                 onClick={() => setPaymentStatus("paid")}
-                                                className={`flex-1 px-3 py-2 text-sm border-l border-gray-200 dark:border-white/10 transition-colors ${
+                                                className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                                                     paymentStatus === "paid"
                                                         ? "bg-green-500 text-white font-medium dark:bg-green-500/80 dark:text-white"
                                                         : "bg-white dark:bg-transparent text-gray-700 dark:text-white/70 hover:bg-gray-50 dark:hover:bg-white/10"
@@ -810,7 +813,9 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     </div>
 
                                     <div>
-                                        <label className="text-sm font-medium text-gray-900 dark:text-gray-100">Способ оплаты</label>
+                                        <label className="mb-2 block text-[12px] font-medium text-gray-600 dark:text-white/45">
+                                            Способ оплаты
+                                        </label>
                                         <select
                                             value={paymentMethod ?? ""}
                                             disabled={paymentStatus === "unpaid"}
@@ -821,13 +826,16 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                         : (e.target.value as "cash" | "card" | "transfer")
                                                 )
                                             }
-                                            className="w-full p-2 border border-gray-200 dark:border-white/10 rounded bg-white dark:bg-white/5 text-black dark:text-white disabled:bg-gray-100 dark:disabled:bg-white/5 disabled:text-gray-400"
+                                            className="w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/[0.04] px-4 py-3 text-gray-900 dark:text-white/85 focus:outline-none focus:ring-2 focus:ring-gray-300/70 dark:focus:ring-white/10 disabled:bg-gray-100 dark:disabled:bg-white/5 disabled:text-gray-400 dark:disabled:text-white/30"
                                         >
-                                            <option value="">Не выбрано</option>
-                                            <option value="cash">Наличные</option>
-                                            <option value="card">Карта</option>
-                                            <option value="transfer">Перевод</option>
+                                            <option value="" className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Не выбрано</option>
+                                            <option value="cash" className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Наличные</option>
+                                            <option value="card" className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Карта</option>
+                                            <option value="transfer" className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Перевод</option>
                                         </select>
+
+
+
                                     </div>
                                 </div>
                             </div>
