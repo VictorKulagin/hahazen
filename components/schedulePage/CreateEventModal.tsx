@@ -481,6 +481,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 <div className="flex gap-3 w-full">
                                     <div className="flex-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Время начала</label>
+                                        <div className="relative">
                                         <input
                                             type="time"
                                             value={timeStart}
@@ -488,6 +489,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white"
                                             required
                                         />
+                                            <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
                                         <div className="flex justify-between mt-2">
                                             <button
                                                 type="button"
@@ -508,6 +511,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                                     <div className="flex-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Время окончания</label>
+                                        <div className="relative">
                                         <input
                                             type="time"
                                             value={timeEnd}
@@ -515,6 +519,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white"
                                             required
                                         />
+                                            <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
                                         <div className="flex justify-between mt-2">
                                             <button
                                                 type="button"

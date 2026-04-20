@@ -303,8 +303,15 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                 <div className="flex gap-3 w-full">
                                     <div className="flex-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Время начала</label>
-                                    <input type="time" value={timeStart} onChange={(e) => setTimeStart(e.target.value)}
-                                           className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"/>
+                                        <div className="relative">
+                                            <input
+                                                type="time"
+                                                value={timeStart} onChange={(e) => setTimeStart(e.target.value)}
+                                                className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white"
+                                            />
+                                            <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
+
                                     <div className="flex justify-between mt-2">
                                         <button type="button" onClick={() => adjustTime("start", -15)}
                                                 className="px-2 py-1 text-xs bg-gray-200 dark:bg-white/10 text-black dark:text-white rounded hover:bg-gray-300 dark:hover:bg-white/20">−15 мин
@@ -316,8 +323,17 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                 </div>
                                     <div className="flex-1">
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Время окончания</label>
-                                    <input type="time" value={timeEnd} onChange={(e) => setTimeEnd(e.target.value)}
-                                           className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"/>
+                                        <div className="relative">
+                                            <input
+                                            type="time"
+                                            value={timeEnd}
+                                            onChange={(e) => setTimeEnd(e.target.value)}
+
+                                            className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white"
+                                        />
+                                            <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
+
                                     <div className="flex justify-between mt-2">
                                         <button type="button" onClick={() => adjustTime("end", -15)}
                                                 className="px-2 py-1 text-xs bg-gray-200 dark:bg-white/10 text-black dark:text-white rounded hover:bg-gray-300 dark:hover:bg-white/20">−15 мин
