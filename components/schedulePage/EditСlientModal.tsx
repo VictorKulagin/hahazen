@@ -198,14 +198,15 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                 <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white space-y-4 bg-gray-50 dark:bg-[rgb(var(--background))]">
                     <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Имя *</label>
-                        <input
-                            className={inputClass}
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="Имя"
-                        />
-
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Имя *</label>
+                            <input
+                                className={inputClass}
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="Имя"
+                            />
+                       </div>
 
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Фамилия</label>
@@ -230,14 +231,15 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
 
                     <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
-                        <input
-                            className={inputClass}
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
-                            placeholder="Телефон"
-                        />
-
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
+                            <input
+                                className={inputClass}
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="Телефон"
+                            />
+                        </div>
 
                     <div className="mb-4">
                         <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -336,7 +338,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                     <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Комментарий</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
                         <textarea
                             className={`${inputClass} bg-white dark:bg-[rgb(var(--card))]`}
                             rows={3}
