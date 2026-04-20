@@ -7,7 +7,6 @@ import {useCreateService, useServices, useSyncEmployeeServices} from "@/hooks/us
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
 import { EmployeeCreatePayload, EmployeeRole } from "@/services/employeeApi";
 import {useQueryClient} from "@tanstack/react-query";
-import {Clock} from "lucide-react";
 
 
 type Props = {
@@ -576,33 +575,27 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             ))}
                                         </select>
 
-                                        <div className="relative">
-                                            <input
-                                                type="time"
-                                                value={p.start}
-                                                onChange={(e) =>
-                                                    setPeriods((prev) =>
-                                                        prev.map((x, idx) => (idx === i ? { ...x, start: e.target.value } : x))
-                                                    )
-                                                }
-                                                className={`${inputClass} pr-10`}
-                                            />
-                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                        </div>
+                                        <input
+                                            type="time"
+                                            value={p.start}
+                                            onChange={(e) =>
+                                                setPeriods((prev) =>
+                                                    prev.map((x, idx) => (idx === i ? { ...x, start: e.target.value } : x))
+                                                )
+                                            }
+                                            className={`${inputClass} max-w-[7rem]`}
+                                        />
 
-                                        <div className="relative">
-                                            <input
-                                                type="time"
-                                                value={p.end}
-                                                onChange={(e) =>
-                                                    setPeriods((prev) =>
-                                                        prev.map((x, idx) => (idx === i ? { ...x, end: e.target.value } : x))
-                                                    )
-                                                }
-                                                className={`${inputClass} pr-10`}
-                                            />
-                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
-                                        </div>
+                                        <input
+                                            type="time"
+                                            value={p.end}
+                                            onChange={(e) =>
+                                                setPeriods((prev) =>
+                                                    prev.map((x, idx) => (idx === i ? { ...x, end: e.target.value } : x))
+                                                )
+                                            }
+                                            className={`${inputClass} max-w-[7rem]`}
+                                        />
 
                                         <button
                                             type="button"
