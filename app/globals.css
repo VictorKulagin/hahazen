@@ -405,6 +405,11 @@
   font-size: 12px;
 }
 
+input[type="time"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
+}
+
 /* ================= THEME ================= */
 :root {
   --primary-green: #4CAF50;
