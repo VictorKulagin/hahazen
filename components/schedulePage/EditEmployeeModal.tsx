@@ -7,6 +7,7 @@ import { useServices, useEmployeeServices, useSyncEmployeeServices } from "@/hoo
 //import { EmployeeService } from "@/services/servicesApi";
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
 import {useDeleteEmployee} from "@/hooks/useEmployees";
+import {Clock} from "lucide-react";
 
 type Props = {
     isOpen: boolean;
@@ -684,6 +685,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             </select>
 
                                             {/* Время начала / конца */}
+                                            <div className="relative flex-1">
                                             <input
                                                 type="time"
                                                 value={p.start}
@@ -694,8 +696,15 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                         )
                                                     )
                                                 }
-                                                className={`${inputClass} max-w-[7rem]`}
+                                                /*className={`${inputClass} max-w-[7rem]`}*/
+                                                className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white"
+                                                required
                                             />
+
+                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
+                                            </div>
+
+                                            <div className="relative flex-1">
                                             <input
                                                 type="time"
                                                 value={p.end}
@@ -706,8 +715,13 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                         )
                                                     )
                                                 }
-                                                className={`${inputClass} max-w-[7rem]`}
+                                                /*className={`${inputClass} max-w-[7rem]`}*/
+                                                className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white"
+                                                required
                                             />
+
+                                                <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
+                                            </div>
 
                                             {/* Удаление */}
                                             <button

@@ -7,6 +7,7 @@ import {useCreateService, useServices, useSyncEmployeeServices} from "@/hooks/us
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
 import { EmployeeCreatePayload, EmployeeRole } from "@/services/employeeApi";
 import {useQueryClient} from "@tanstack/react-query";
+import { Clock } from "lucide-react";
 
 
 type Props = {
@@ -575,6 +576,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             ))}
                                         </select>
 
+                                        <div className="relative flex-1">
                                         <input
                                             type="time"
                                             value={p.start}
@@ -583,9 +585,14 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                     prev.map((x, idx) => (idx === i ? { ...x, start: e.target.value } : x))
                                                 )
                                             }
-                                            className={`${inputClass} max-w-[7rem]`}
+                                            /*className={`${inputClass} pr-10`}*/
+                                            className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white"
+                                            required
                                         />
+                                            <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                                        </div>
 
+                                        <div className="relative flex-1">
                                         <input
                                             type="time"
                                             value={p.end}
@@ -594,8 +601,13 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                     prev.map((x, idx) => (idx === i ? { ...x, end: e.target.value } : x))
                                                 )
                                             }
-                                            className={`${inputClass} max-w-[7rem]`}
+                                            /*className={`${inputClass} pr-10`}*/
+                                            className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white"
+                                            required
                                         />
+
+                                            <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
+                                        </div>
 
                                         <button
                                             type="button"
