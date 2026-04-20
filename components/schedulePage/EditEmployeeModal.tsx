@@ -7,7 +7,7 @@ import { useServices, useEmployeeServices, useSyncEmployeeServices } from "@/hoo
 //import { EmployeeService } from "@/services/servicesApi";
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
 import {useDeleteEmployee} from "@/hooks/useEmployees";
-import {Clock} from "lucide-react";
+import {CalendarDays, Clock} from "lucide-react";
 
 type Props = {
     isOpen: boolean;
@@ -566,12 +566,15 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Дата найма</label>
+                                    <div className="relative">
                                     <input
                                         type="date"
                                         value={hireDate}
                                         onChange={(e) => setHireDate(e.target.value)}
                                         className={inputClass}
                                     />
+                                        <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -597,21 +600,27 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Дата начала</label>
+                                    <div className="relative">
                                     <input
                                         type="date"
                                         value={localStartDate}
                                         onChange={(e) => setLocalStartDate(e.target.value)}
                                         className={`${inputClass} bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white`}
                                     />
+                                        <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Дата окончания</label>
+                                    <div className="relative">
                                     <input
                                         type="date"
                                         value={localEndDate}
                                         onChange={(e) => setLocalEndDate(e.target.value)}
                                         className={`${inputClass} bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white`}
                                     />
+                                        <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
+                                    </div>
                                 </div>
                             </div>
 

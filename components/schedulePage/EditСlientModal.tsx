@@ -4,6 +4,7 @@
 import React, { useEffect, useState } from "react";
 import type { Client } from "@/services/clientApi";
 import { useUpdateClient, useDeleteClient } from "@/hooks/useClient";
+import {CalendarDays} from "lucide-react";
 
 type Props = {
     isOpen: boolean;
@@ -291,6 +292,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Дата рождения</label>
+                            <div className="relative">
                             <input
                                 type="date"
                                 className={inputClass}
@@ -298,6 +300,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 onChange={(e) => setBirthDate(e.target.value)}
                                 placeholder="Дата рождения"
                             />
+                                <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
+                            </div>
                         </div>
                     </div>
                     </div>
