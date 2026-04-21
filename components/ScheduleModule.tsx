@@ -125,7 +125,9 @@ export default function ScheduleModule({
 
     const [events, setEvents] = useState<ScheduleEvent[]>(appointments);
     const [colRects, setColRects] = useState<{ left: number; width: number }[]>([]);
+    const [gridTopOffset, setGridTopOffset] = useState(56);
     const scheduleRef = useRef<HTMLDivElement | null>(null);
+    const gridContentRef = useRef<HTMLDivElement | null>(null);
     const headerRowRef = useRef<HTMLDivElement | null>(null);
     const [viewMode, setViewMode] = useState<"grid" | "list">("list");
     const [selectedMaster, setSelectedMaster] = useState<number | "all">("all");
@@ -237,12 +239,24 @@ export default function ScheduleModule({
 
 
     const recalcColRects = () => {
-        if (!headerRowRef.current || !scheduleRef.current) return;
-        const scheduleBox = scheduleRef.current.getBoundingClientRect();
-        const cols = Array.from(headerRowRef.current.querySelectorAll<HTMLDivElement>(".col-master"));
+        if (!scheduleRef.current || !gridContentRef.current) return;
+
+        const contentBox = gridContentRef.current.getBoundingClientRect();
+        const firstGridRow = gridContentRef.current.querySelector<HTMLDivElement>('[data-grid-row="0"]');
+        const cols = firstGridRow
+            ? Array.from(firstGridRow.querySelectorAll<HTMLDivElement>(".grid-master-cell"))
+            : headerRowRef.current
+                ? Array.from(headerRowRef.current.querySelectorAll<HTMLDivElement>(".col-master"))
+                : [];
+
+        if (firstGridRow) {
+            const rowRect = firstGridRow.getBoundingClientRect();
+            setGridTopOffset(rowRect.top - contentBox.top);
+        }
+
         setColRects(cols.map((c) => {
             const r = c.getBoundingClientRect();
-            return { left: r.left - scheduleBox.left, width: r.width };
+            return { left: r.left - contentBox.left, width: r.width };
         }));
     };
 
@@ -255,17 +269,46 @@ export default function ScheduleModule({
     useEffect(() => {
         if (viewMode !== "grid") return;
 
-        const id = requestAnimationFrame(() => {
+        const frameId = requestAnimationFrame(() => {
             recalcColRects();
         });
+        const timerId = window.setTimeout(() => {
+            recalcColRects();
+        }, 120);
 
-        return () => cancelAnimationFrame(id);
+        return () => {
+            cancelAnimationFrame(frameId);
+            window.clearTimeout(timerId);
+        };
     }, [viewMode, employees.length, appointments.length]);
 
     useEffect(() => {
         window.addEventListener("resize", recalcColRects);
         return () => window.removeEventListener("resize", recalcColRects);
     }, []);
+
+    useEffect(() => {
+        if (viewMode !== "grid" || !scheduleRef.current) return;
+
+        const node = scheduleRef.current;
+        node.addEventListener("scroll", recalcColRects, { passive: true });
+
+        return () => node.removeEventListener("scroll", recalcColRects);
+    }, [viewMode]);
+
+    useEffect(() => {
+        if (viewMode !== "grid" || !scheduleRef.current) return;
+
+        const observer = new ResizeObserver(() => {
+            recalcColRects();
+        });
+
+        observer.observe(scheduleRef.current);
+        if (gridContentRef.current) observer.observe(gridContentRef.current);
+        if (headerRowRef.current) observer.observe(headerRowRef.current);
+
+        return () => observer.disconnect();
+    }, [viewMode, employees.length]);
 
     useEffect(() => {
         const now = new Date();
@@ -372,7 +415,7 @@ export default function ScheduleModule({
                 for (const item of group) {
                     const duration = Math.max(0, item.end - item.start);
                     const top =
-                        ((item.start - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx + 2;
+                        gridTopOffset + ((item.start - minMinutes) / slotStepMin) * rowHeightPx + 2;
                     const height = (duration / slotStepMin) * rowHeightPx;
 
                     result.push({
@@ -419,7 +462,7 @@ export default function ScheduleModule({
         }
 
         return result;
-    }, [events, colRects, minMinutes, rowHeightPx, slotStepMin]);
+    }, [events, colRects, gridTopOffset, minMinutes, rowHeightPx, slotStepMin]);
 
 
 
@@ -722,7 +765,7 @@ export default function ScheduleModule({
                     ref={scheduleRef}
                     className="hidden md:block overflow-x-auto overflow-y-auto relative max-h-[75vh] animate-fadeInSoft"
                 >
-            <div  className="relative border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] rounded bg-[rgba(255,255,255,0.02)] min-w-max">
+            <div ref={gridContentRef} className="relative border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] rounded bg-[rgba(255,255,255,0.02)] min-w-max">
                 {/* Заголовок */}
                 <div ref={headerRowRef} className="flex sticky top-0 z-20 h-14 border-b border-[rgb(var(--border))] bg-[rgb(var(--card))] backdrop-blur-sm">
                     <div className="
@@ -816,7 +859,7 @@ export default function ScheduleModule({
                 {/* Сетка */}
                 <div className="relative">
                     {slots.map((min, rowIdx) => (
-                        <div className="flex" key={rowIdx}>
+                        <div className="flex" key={rowIdx} data-grid-row={rowIdx}>
                             <div className="
   flex-none w-[70px] sm:w-[80px] md:w-[90px] h-[40px]
   border-t border-[rgba(255,255,255,0.08)]
@@ -837,7 +880,7 @@ export default function ScheduleModule({
                                 return (
                                     <div
                                         key={masterIdx}
-                                        className={`col-master flex-1 min-w-[180px] h-[40px] border-t border-l ${
+                                        className={`col-master grid-master-cell flex-1 min-w-[220px] h-[40px] border-t border-l ${
                                             masterIdx % 2 === 0 ? "border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)]" : "border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)]"
                                         } ${
                                             working
@@ -871,7 +914,7 @@ export default function ScheduleModule({
                     if (currentMinutes < minMinutes || currentMinutes > maxMinutes) return null;
 
                     const top =
-                        ((currentMinutes - minMinutes) / slotStepMin) * rowHeightPx + rowHeightPx + 2;
+                        gridTopOffset + ((currentMinutes - minMinutes) / slotStepMin) * rowHeightPx + 2;
 
                     const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
 
