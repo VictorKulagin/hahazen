@@ -110,15 +110,15 @@ const ClientAutocomplete: React.FC<ClientAutocompleteProps> = ({ onSelect }) => 
                             ) : (
                                 <p className="p-2 text-gray-500">Не найдено</p>
                             )}
-                            <div className="border-t bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 sticky bottom-0">
-                            <button
-                                type="button"
-                                className="w-full px-3 py-2 text-blue-600 font-medium hover:bg-gray-100 flex items-center justify-center"
-                                onClick={() => setIsAdding(true)}
-                            >
-                                ➕ <span className="ml-2">Добавить нового клиента</span>
-                            </button>
-                        </div>
+                            <div className="sticky bottom-0 border-t border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] z-10">
+                                <button
+                                    type="button"
+                                    className="w-full px-3 py-2 text-blue-600 dark:text-blue-400 font-medium hover:bg-gray-100 dark:hover:bg-white/10 flex items-center justify-center"
+                                    onClick={() => setIsAdding(true)}
+                                >
+                                    ➕ <span className="ml-2">Добавить нового клиента</span>
+                                </button>
+                            </div>
                         </div>
                     )}
                 </>
