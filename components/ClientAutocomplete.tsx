@@ -110,7 +110,7 @@ const ClientAutocomplete: React.FC<ClientAutocompleteProps> = ({ onSelect }) => 
                             ) : (
                                 <p className="p-2 text-gray-500">Не найдено</p>
                             )}
-                            <div className="border-t bg-gray-50 sticky bottom-0">
+                            <div className="border-t bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 sticky bottom-0">
                             <button
                                 type="button"
                                 className="w-full px-3 py-2 text-blue-600 font-medium hover:bg-gray-100 flex items-center justify-center"

@@ -8,6 +8,13 @@ import type {Client} from "@/services/clientApi";
 import {useUpdateClient} from "@/hooks/useClient";
 import {XMarkIcon} from "@heroicons/react/24/outline";
 import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
+//import {getPhoneDigitsCount, MIN_PHONE_DIGITS, normalizePhoneInput} from "@/components/utils/phone";
+import {
+    normalizePhoneInput,
+    isValidPhone,
+    getPhoneDigitsCount,
+    MIN_PHONE_DIGITS,
+} from "@/components/utils/phone";
 
 type EmployeeServiceEither =
     | (Services & {
@@ -31,6 +38,9 @@ type EmployeeServiceEither =
 function isNested(item: any): item is { service: Services } {
     return item && typeof item === "object" && "service" in item;
 }
+
+const secondaryButtonClass =
+    "px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white transition";
 
 function unwrapService(
     item: EmployeeServiceEither
@@ -103,6 +113,10 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+    const [touched, setTouched] = useState(false);
+
+    const phoneIsValid = isValidPhone(phone);
+    const showError = touched && phone.length > 0 && !phoneIsValid;
 
 
     const {data: services = [], isLoading} = useEmployeeServices(
@@ -360,7 +374,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                     {/*<form onSubmit={handleSubmit} className="max-h-screen overflow-y-auto flex flex-col">*/}
                     <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 bg-[rgb(var(--background))]">
-                        <div className="flex-1 overflow-y-auto p-4 text-black space-y-4">
+                        <div className="flex-1 overflow-y-auto p-4 text-[rgb(var(--foreground))] space-y-4">
 
                             {/* 1. Поиск клиента */}
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
@@ -429,42 +443,62 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                             )}
 
                             {showClientFields && isEditingClient && (
-                                <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
+                                <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-3">
+
                                     <input
                                         type="text"
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         className={inputClass}
                                     />
+
                                     <input
                                         type="text"
                                         value={lastName}
                                         onChange={(e) => setLastName(e.target.value)}
                                         className={inputClass}
                                     />
+                                    <div>
                                     <input
                                         type="tel"
                                         value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
+                                        //onChange={(e) => setPhone(e.target.value)}
+                                        onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
                                         className={inputClass}
+                                        onBlur={() => setTouched(true)}
+                                        placeholder="+..."
+                                        inputMode="numeric"
+                                        autoComplete="tel"
                                     />
+                                        {showError && (
+                                            <p className="mt-1 text-xs text-red-500">
+                                                Введите корректный номер: от {MIN_PHONE_DIGITS} цифр, только цифры и “+” в начале.
+                                            </p>
+                                        )}
 
-                                    <div className="flex justify-end gap-6 pt-3 border-t border-gray-200">
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                            Цифр: {getPhoneDigitsCount(phone)}
+                                        </p>
+                                    </div>
+                                    <div className="flex justify-end gap-2 pt-3 border-t border-gray-200 dark:border-white/10">
+
                                         <button
                                             type="button"
                                             onClick={() => setIsEditingClient(false)}
-                                            className="text-gray-500 hover:underline"
+                                            className="px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 dark:bg-white/10 dark:hover:bg-white/20 dark:text-white transition"
                                         >
                                             Отмена
                                         </button>
+
                                         <button
                                             type="button"
                                             onClick={handleUpdateClient}
                                             disabled={updating}
-                                            className="text-blue-600 hover:underline"
+                                            className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50"
                                         >
-                                            💾 {updating ? "Сохранение..." : "Сохранить"}
+                                            {updating ? "Сохранение..." : "Сохранить"}
                                         </button>
+
                                     </div>
                                 </div>
                             )}
@@ -576,7 +610,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                             key={selected.id}
                                                             className="flex items-center gap-2 rounded-full bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 px-3 py-1.5 text-gray-800 dark:text-white"
                                                         >
-                                <span className="text-sm font-medium text-gray-800">
+                                <span className="text-sm font-medium text-gray-800 dark:text-white">
                                     {service.name}
                                 </span>
 
@@ -588,7 +622,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateQty(selected.id, selected.qty - 1)}
-                                                                    className=" w-7 h-7 flex items-center justify-center rounded-full dbg-gray-200  ark:bg-white/10 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-white text-sm font-medium transition-all duration-150 hover:bg-gray-300 dark:hover:bg-white/20 active:scale-90"
+                                                                    className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-200 dark:bg-white/10 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-white text-sm font-medium transition-all duration-150 hover:bg-gray-300 dark:hover:bg-white/20 active:scale-90"
                                                                 >
                                                                     −
                                                                 </button>
@@ -679,7 +713,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                                         {isServiceDropdownOpen && filteredServices.length === 0 && serviceSearch.trim() !== "" && (
                                             <div
-                                                className="absolute left-2 right-2 top-full mt-2 z-20 rounded-lg border bg-white shadow-lg px-3 py-2 text-sm text-gray-500">
+                                                className="absolute left-2 right-2 top-full mt-2 z-20 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-lg px-3 py-2 text-sm text-gray-500 dark:text-white/60">
                                                 Ничего не найдено
                                             </div>
                                         )}
