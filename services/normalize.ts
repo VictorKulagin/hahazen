@@ -24,10 +24,11 @@ export const normalizeListPayload = <T>(payload: unknown): NormalizedListPayload
             : Array.isArray(envelope.items)
                 ? envelope.items
                 : [];
+        const meta = envelope._meta ?? envelope.meta ?? null;
 
         return {
             rows,
-            meta: envelope._meta ?? envelope.meta ?? null,
+            meta: meta && typeof meta === "object" ? meta : null,
         };
     }
 
