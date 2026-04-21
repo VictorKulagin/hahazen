@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { signinApi } from "@/services/signinApi";
 import { authStorage } from "@/services/authStorage";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { ensureApiContext } from "@/services/apiContext";
 
 export default function Page() {
     const [email, setEmail] = useState('');
@@ -19,6 +20,12 @@ export default function Page() {
         try {
             const newSignin = await signinApi({ email, password });
             authStorage.setAuth(newSignin);
+            const context = await ensureApiContext();
+            authStorage.setContext(context);
+            if (!context) {
+                router.push("/context/select");
+                return;
+            }
             router.push("/cabinet");
         } catch (error) {
             console.log(error);

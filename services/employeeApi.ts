@@ -1,5 +1,6 @@
 // services/employeeApi.ts
 import apiClient from "./api";
+import { normalizeListPayload } from "./normalize";
 
 // Интерфейс для сотрудника
 export type EmployeeRole = "gd" | "admin" | "master";
@@ -41,11 +42,11 @@ export const fetchEmployees = async (branchId?: number): Promise<Employee[]> => 
     return response.data;*/
     try {
         console.log('Fetching employees for branch:', branchId);
-        const response = await apiClient.get<Employee[]>("/employees", {
+        const response = await apiClient.get<unknown>("/employees", {
             params: { branch_id: branchId }
         });
         console.log('API Response:', response.data);
-        return response.data;
+        return normalizeListPayload<Employee>(response.data).rows;
     } catch (error) {
         console.error('Error in fetchEmployees:', error);
         throw error;

@@ -1,5 +1,6 @@
 // services/employeeScheduleApi.ts
 import apiClient from "./api";
+import { normalizeListPayload } from "./normalize";
 
 
 // Интерфейс для графика сотрудника
@@ -43,12 +44,12 @@ export const fetchEmployeeSchedules = async (
         if (startDate) params.start_date = startDate;
         if (endDate) params.end_date = endDate;
 
-        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedule", {
+        const response = await apiClient.get<unknown>("/employee-schedule", {
             params,
         });
 
         console.log('Employee schedules fetched:', response.data);
-        return response.data;
+        return normalizeListPayload<EmployeeSchedule>(response.data).rows;
     } catch (error) {
         console.error('Error fetching employee schedules:', error);
         throw error;
@@ -58,10 +59,10 @@ export const fetchEmployeeSchedules = async (
 // Получение графиков сотрудника за период
 export const fetchEmployeeScheduleByPeriod = async (employeeId: number, startDate: string, endDate: string): Promise<EmployeeSchedule[]> => {
     try {
-        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedule", {
+        const response = await apiClient.get<unknown>("/employee-schedule", {
             params: { employee_id: employeeId, start_date: startDate, end_date: endDate }
         });
-        return response.data;
+        return normalizeListPayload<EmployeeSchedule>(response.data).rows;
     } catch (error) {
         console.error('Error in fetchEmployeeScheduleByPeriod:', error);
         throw error;
@@ -71,10 +72,10 @@ export const fetchEmployeeScheduleByPeriod = async (employeeId: number, startDat
 // Получение графиков по филиалу за период
 export const fetchEmployeeScheduleByBranchAndPeriod = async (branchId: number, startDate: string, endDate: string): Promise<EmployeeSchedule[]> => {
     try {
-        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedule", {
+        const response = await apiClient.get<unknown>("/employee-schedule", {
             params: { branch_id: branchId, start_date: startDate, end_date: endDate }
         });
-        return response.data;
+        return normalizeListPayload<EmployeeSchedule>(response.data).rows;
     } catch (error) {
         console.error('Error in fetchEmployeeScheduleByBranchAndPeriod:', error);
         throw error;

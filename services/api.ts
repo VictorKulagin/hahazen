@@ -6,6 +6,7 @@ import { authStorage } from "@/services/authStorage";
 const apiClient: AxiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
     headers: { "Content-Type": "application/json" },
+    withCredentials: true,
 });
 
 apiClient.interceptors.request.use((config) => {
@@ -35,7 +36,7 @@ export const createSSEConnection = (path: string): EventSourcePolyfill => {
 
     return new EventSourcePolyfill(`${apiClient.defaults.baseURL}${path}`, {
         headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        withCredentials: false,
+        withCredentials: true,
         heartbeatTimeout: 120000,
         // @ts-ignore
         connectionTimeout: 20000,

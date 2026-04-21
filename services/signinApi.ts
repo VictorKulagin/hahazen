@@ -25,8 +25,13 @@ export interface SigninResponse {
         id: number;
         branch_id: number;
     } | null;
-    roles: Record<string, any>;
-    permissions: string[];
+    roles?: Record<string, any>;
+    permissions?: string[];
+    deprecated?: {
+        roles_permissions?: boolean;
+        login_roles_permissions?: boolean;
+        message?: string;
+    };
 }
 
 // Функция для регистрации пользователя

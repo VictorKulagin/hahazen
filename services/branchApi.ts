@@ -1,5 +1,6 @@
 // services/branchApi.ts
 import apiClient from "./api";
+import { normalizeListPayload } from "./normalize";
 
 export interface Branch {
     id: number;
@@ -46,8 +47,8 @@ export interface AppointmentData {
 
 export const fetchBranches = async (): Promise<Branch[]> => {
     try {
-        const response = await apiClient.get<Branch[]>("/booking/branches");
-        return response.data;
+        const response = await apiClient.get<unknown>("/booking/branches");
+        return normalizeListPayload<Branch>(response.data).rows;
     } catch (error) {
         console.error("Error fetching branches:", error);
         throw error;
@@ -56,10 +57,10 @@ export const fetchBranches = async (): Promise<Branch[]> => {
 
 export const fetchServices = async (branchId: number): Promise<Service[]> => {
     try {
-        const response = await apiClient.get<Service[]>(
+        const response = await apiClient.get<unknown>(
             `/booking/branches/${branchId}/services`
         );
-        return response.data;
+        return normalizeListPayload<Service>(response.data).rows;
     } catch (error) {
         console.error(`Error fetching services for branch ${branchId}:`, error);
         throw error;
@@ -99,7 +100,7 @@ export const fetchAvailableEmployees = async (
     serviceIds: number[]
 ): Promise<Employee[]> => {
     try {
-        const response = await apiClient.get<Employee[]>(
+        const response = await apiClient.get<unknown>(
             `/booking/branches/${branchId}/availability/${date}/employees`,
             {
                 params: {
@@ -108,7 +109,7 @@ export const fetchAvailableEmployees = async (
                 }
             }
         );
-        return response.data;
+        return normalizeListPayload<Employee>(response.data).rows;
     } catch (error) {
         console.error('Error fetching available employees:', error);
         throw error;

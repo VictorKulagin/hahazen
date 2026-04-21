@@ -21,6 +21,7 @@ import Loader from "@/components/Loader";
 import {ThemeToggle} from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
+import { logoutApi } from "@/services/logoutApi";
 
 const Page: React.FC = () => {
     // ✅ ВСЕ STATE ПЕРЕМЕННЫЕ
@@ -43,7 +44,8 @@ const Page: React.FC = () => {
         setIsModalFilOpen((prev) => !prev);
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logoutApi();
         localStorage.removeItem("access_token");
         router.push("/signin");
     };

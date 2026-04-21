@@ -42,6 +42,7 @@ import {fetchEmployees} from "@/services/employeeApi";
 import {EditClientModal} from "@/components/schedulePage/EditСlientModal";
 import {CreateClientModal} from "@/components/schedulePage/CreateСlientModal";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
+import { logoutApi } from "@/services/logoutApi";
 
 
 
@@ -160,7 +161,8 @@ const Page: React.FC = () => {
     //const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logoutApi();
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
     };

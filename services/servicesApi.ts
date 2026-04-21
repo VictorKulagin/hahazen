@@ -1,5 +1,6 @@
 // services/servicesApi.ts
 import apiClient from "./api";
+import { normalizeListPayload } from "./normalize";
 
 // Интерфейс для сотрудника
 export interface Services {
@@ -44,8 +45,8 @@ export interface EmployeeServiceResponse {
 
 export const fetchServices = async (): Promise<Services[]> => {
     try {
-        const response = await apiClient.get<Services[]>("/services");
-        return response.data;
+        const response = await apiClient.get<unknown>("/services");
+        return normalizeListPayload<Services>(response.data).rows;
     } catch (error) {
         console.error("Ошибка при загрузке услуг:", error);
         throw new Error("Не удалось загрузить услуги");
@@ -76,11 +77,11 @@ export const syncEmployeeServices = async (
     services: EmployeeService[]
 ): Promise<EmployeeServiceResponse[]> => {
     try {
-        const response = await apiClient.post<EmployeeServiceResponse[]>(
+        const response = await apiClient.post<unknown>(
             `/employees/${employeeId}/services`,
             { services }
         );
-        return response.data;
+        return normalizeListPayload<EmployeeServiceResponse>(response.data).rows;
     } catch (error) {
         console.error("Ошибка синхронизации услуг:", error);
         throw new Error("Не удалось обновить услуги мастера");
@@ -92,10 +93,10 @@ export const fetchEmployeeServices = async (
     employeeId: number
 ): Promise<EmployeeServiceResponse[]> => {
     try {
-        const response = await apiClient.get<EmployeeServiceResponse[]>(
+        const response = await apiClient.get<unknown>(
             `/employees/${employeeId}/services`
         );
-        return response.data;
+        return normalizeListPayload<EmployeeServiceResponse>(response.data).rows;
     } catch (error) {
         console.error("Ошибка загрузки услуг мастера:", error);
         throw new Error("Не удалось получить услуги мастера");

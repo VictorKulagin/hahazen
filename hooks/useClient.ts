@@ -38,8 +38,8 @@ export const useClients = (
             return {
                 clients: response.data,
                 pagination: {
-                    currentPage: pagination.page,
-                    totalPages: getPageFromUrl(response._links?.last?.href) || 1,
+                    currentPage: Number(response._meta?.currentPage ?? response.meta?.currentPage ?? pagination.page),
+                    totalPages: Number(response._meta?.pageCount ?? response.meta?.pageCount ?? getPageFromUrl(response._links?.last?.href) ?? 1),
                     hasNextPage: !!response._links?.next,
                     hasPrevPage: !!response._links?.prev,
                     nextPage: getPageFromUrl(response._links?.next?.href),

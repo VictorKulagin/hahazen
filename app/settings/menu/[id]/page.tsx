@@ -23,6 +23,7 @@ import { useParams } from 'next/navigation';
 import {Employee, fetchEmployees} from "@/services/employeeApi";
 //import { useEmployees } from '@/contexts/EmployeesContext_';
 import EmployeesList from "@/components/EmployeesList";
+import { logoutApi } from "@/services/logoutApi";
 
 
 const Page: React.FC = () => {
@@ -49,7 +50,8 @@ const Page: React.FC = () => {
     const toggleFilModal = () => {
         setIsModalFilOpen((prev) => !prev);
     };
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logoutApi();
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
     };

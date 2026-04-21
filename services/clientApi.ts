@@ -1,13 +1,5 @@
-// services/clientApi.ts
 import apiClient from "./api";
-// Тип одной записи клиента
-/*export interface Client {
-    id: number;
-    name: string;
-    phone: string;
-    email?: string;
-    registration_date?: string;
-}*/
+import { ListMeta, normalizeListPayload } from "./normalize";
 
 export interface Client {
     id?: number;
@@ -28,36 +20,39 @@ export interface Client {
     photo?: string | null;
 }
 
-// Тип ответа API
-// Тип ответа API - ДОБАВЬТЕ export ЗДЕСЬ:
-export interface ClientsApiResponse { // ← Добавлено export
+export interface ClientsApiResponse {
     _links?: {
         next?: { href: string };
         prev?: { href: string };
         first?: { href: string };
         last?: { href: string };
     };
+    _meta?: ListMeta;
+    meta?: ListMeta;
     data: Client[];
 }
 
-// Добавляем функцию получения клиентов
-// Функция запроса клиентов
 export const fetchClients = async (params?: {
     search?: string;
     page?: number;
     per_page?: number;
-}): Promise<ClientsApiResponse> => { // ← Изменено с Client[] на ClientsApiResponse
+}): Promise<ClientsApiResponse> => {
     try {
-        const response = await apiClient.get<ClientsApiResponse>("/clients", {
+        const response = await apiClient.get<ClientsApiResponse | Client[]>("/clients", {
             params,
         });
-        return response.data; // ← Возвращаем полный объект (не только response.data.data)
+        const normalized = normalizeListPayload<Client>(response.data);
+
+        return {
+            ...(Array.isArray(response.data) ? {} : response.data),
+            data: normalized.rows,
+            _meta: normalized.meta,
+        };
     } catch (error) {
         console.error("Error fetching clients:", error);
         throw error;
     }
 };
-
 
 export const fetchClientById = (id: number): Promise<Client> => {
     return apiClient
@@ -65,16 +60,10 @@ export const fetchClientById = (id: number): Promise<Client> => {
         .then((response) => response.data as Client);
 };
 
-
 export const createClient = async (data: Client): Promise<Client> => {
     const response = await apiClient.post<Client>("/clients", data);
     return response.data;
 };
-
-/*export const createClient = async (data: Client): Promise<Client> => {
-    const response = await apiClient.post<Client>("/clients", data);
-    return response.data;
-};*/
 
 export const updateClient = async (
     id: number,
@@ -84,7 +73,6 @@ export const updateClient = async (
     return response.data;
 };
 
-
 export const deleteClient = async (id: number): Promise<void> => {
     try {
         await apiClient.delete(`/clients/${id}`);
@@ -93,7 +81,3 @@ export const deleteClient = async (id: number): Promise<void> => {
         throw error;
     }
 };
-
-/*export const deleteClient = async (id: number): Promise<void> => {
-    await apiClient.delete(`/clients/${id}`);
-};*/

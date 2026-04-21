@@ -8,7 +8,20 @@ export type AuthUser = {
 
 export type AuthEmployee = {
     id: number;
+    company_id?: number;
     branch_id: number;
+    role?: string;
+} | null;
+
+export type AuthContext = {
+    company_id: number;
+    branch_id?: number | null;
+    company_name?: string | null;
+    branch_name?: string | null;
+    role?: string | null;
+    set_at?: number | null;
+    permissions?: string[];
+    label?: string;
 } | null;
 
 export type AuthPayload = {
@@ -16,6 +29,7 @@ export type AuthPayload = {
     token_type?: "Bearer";
     user?: AuthUser;
     employee?: AuthEmployee;
+    context?: AuthContext;
     roles?: Record<string, any>;
     permissions?: string[];
 };
@@ -24,6 +38,7 @@ const KEYS = {
     token: "access_token",
     user: "user",
     employee: "employee",
+    context: "api_context",
     roles: "roles",
     permissions: "permissions",
 } as const;
@@ -41,8 +56,14 @@ export const authStorage = {
 
         if (payload.user) localStorage.setItem(KEYS.user, JSON.stringify(payload.user));
         if (payload.employee !== undefined) localStorage.setItem(KEYS.employee, JSON.stringify(payload.employee));
+        if (payload.context !== undefined) localStorage.setItem(KEYS.context, JSON.stringify(payload.context));
         if (payload.roles) localStorage.setItem(KEYS.roles, JSON.stringify(payload.roles));
         if (payload.permissions) localStorage.setItem(KEYS.permissions, JSON.stringify(payload.permissions));
+    },
+
+    setContext(context: AuthContext) {
+        if (typeof window === "undefined") return;
+        localStorage.setItem(KEYS.context, JSON.stringify(context));
     },
 
     clear() {
@@ -65,8 +86,15 @@ export const authStorage = {
         return safeJsonParse<AuthEmployee>(localStorage.getItem(KEYS.employee)) ?? null;
     },
 
+    getContext(): AuthContext {
+        if (typeof window === "undefined") return null;
+        return safeJsonParse<AuthContext>(localStorage.getItem(KEYS.context)) ?? null;
+    },
+
     getPermissions(): string[] {
         if (typeof window === "undefined") return [];
+        const context = this.getContext();
+        if (context?.permissions) return context.permissions;
         return safeJsonParse<string[]>(localStorage.getItem(KEYS.permissions)) ?? [];
     },
 

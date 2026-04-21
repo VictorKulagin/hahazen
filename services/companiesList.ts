@@ -1,5 +1,6 @@
 // services/userApi.ts
 import apiClient from "./api";
+import { normalizeListPayload } from "./normalize";
 
 
 // Интерфейс для ответа от сервера (список филиалов)
@@ -11,7 +12,7 @@ interface companiesL {
     companyId: number;
 }
 
-export const companiesList = async (): Promise<companiesL> => {
-    const response = await apiClient.get<companiesL>(`/companies`);
-    return response.data;
+export const companiesList = async (): Promise<companiesL[]> => {
+    const response = await apiClient.get<unknown>(`/companies`);
+    return normalizeListPayload<companiesL>(response.data).rows;
 };

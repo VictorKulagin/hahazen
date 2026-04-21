@@ -92,6 +92,7 @@ export const fetchAppointmentsByBranchAndDate = (
 // services/appointmentsApi.ts
 import apiClient from "./api";
 import { AppointmentRequest, AppointmentResponse } from "@/types/appointments";
+import { normalizeListPayload } from "./normalize";
 export interface PeriodStatsResponse {
     date_start: string;
     date_end: string;
@@ -133,8 +134,8 @@ export const fetchAppointments = (
     };
 
     return apiClient
-        .get("/appointments", { params })
-        .then((response) => response.data as AppointmentResponse[]);
+        .get<unknown>("/appointments", { params })
+        .then((response) => normalizeListPayload<AppointmentResponse>(response.data).rows);
 };
 
 export const createAppointment = async (
@@ -187,14 +188,14 @@ export const fetchAppointmentsByBranchAndDate = (
     const { branchId, startDate, endDate } = params;
 
     return apiClient
-        .get("/appointments", {
+        .get<unknown>("/appointments", {
             params: {
                 branch_id: branchId,
                 date_start: startDate,
                 date_end: endDate,
             },
         })
-        .then((response) => response.data as AppointmentResponse[]);
+        .then((response) => normalizeListPayload<AppointmentResponse>(response.data).rows);
 };
 
 export const fetchPeriodStats = (

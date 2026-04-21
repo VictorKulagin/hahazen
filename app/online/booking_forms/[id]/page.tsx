@@ -24,6 +24,7 @@ import {
     ArrowTopRightOnSquareIcon
 } from "@heroicons/react/24/outline";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
+import { logoutApi } from "@/services/logoutApi";
 interface ApiError extends Error {
     data?: {
         message?: string;
@@ -60,7 +61,8 @@ const Page: React.FC = () => {
 
 
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logoutApi();
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
     };

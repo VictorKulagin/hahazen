@@ -33,6 +33,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
+import { logoutApi } from "@/services/logoutApi";
 
 const Page: React.FC = ( ) => {
 
@@ -78,7 +79,8 @@ const Page: React.FC = ( ) => {
     const toggleFilModal = () => {
         setIsModalFilOpen((prev) => !prev);
     };
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logoutApi();
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
     };

@@ -16,6 +16,7 @@ import {branchesList} from "@/services/branchesList";
 import EmployeesList from "@/components/EmployeesList";
 import {companiesList} from "@/services/companiesList";
 import {useParams, useRouter} from "next/navigation";
+import { logoutApi } from "@/services/logoutApi";
 
 const Page: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,7 +44,8 @@ const Page: React.FC = () => {
 
     const router = useRouter();
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logoutApi();
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
     };
