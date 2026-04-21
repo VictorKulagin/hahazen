@@ -8,6 +8,12 @@ import { useServices, useEmployeeServices, useSyncEmployeeServices } from "@/hoo
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
 import {useDeleteEmployee} from "@/hooks/useEmployees";
 import {CalendarDays, Clock} from "lucide-react";
+import {
+    normalizePhoneInput,
+    isValidPhone,
+    getPhoneDigitsCount,
+    MIN_PHONE_DIGITS,
+} from "@/components/utils/phone";
 
 type Props = {
     isOpen: boolean;
@@ -105,6 +111,13 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
 
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+    const [touched, setTouched] = useState(false);
+
+    const phoneIsValid = isValidPhone(phone);
+    const showError = touched && phone.length > 0 && !phoneIsValid;
+
+
+
 
     const inputClass = "w-full px-4 py-3 rounded-xl \
 border border-gray-200 dark:border-white/10 \
@@ -560,8 +573,20 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                         value={phone}
                                         onChange={(e) => setPhone(e.target.value)}
                                         className={inputClass}
-                                        placeholder="+7..."
+                                        placeholder="+..."
+                                        inputMode="numeric"
+                                        autoComplete="tel"
                                     />
+
+                                    {showError && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            Введите корректный номер: от {MIN_PHONE_DIGITS} цифр, только цифры и “+” в начале.
+                                        </p>
+                                    )}
+
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                        Цифр: {getPhoneDigitsCount(phone)}
+                                    </p>
                                 </div>
 
                                 <div>

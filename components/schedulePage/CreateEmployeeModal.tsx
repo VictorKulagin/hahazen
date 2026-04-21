@@ -8,6 +8,12 @@ import { EmployeeService as EmployeeServicePayload } from "@/services/servicesAp
 import { EmployeeCreatePayload, EmployeeRole } from "@/services/employeeApi";
 import {useQueryClient} from "@tanstack/react-query";
 import { Clock, CalendarDays } from "lucide-react";
+import {
+    normalizePhoneInput,
+    isValidPhone,
+    getPhoneDigitsCount,
+    MIN_PHONE_DIGITS,
+} from "@/components/utils/phone";
 
 
 type Props = {
@@ -75,7 +81,7 @@ const ROLE_OPTIONS: { value: EmployeeRole; label: string }[] = [
 export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose, onSave }) => {
     const [name, setName] = useState("");
     const [lastName, setLastName] = useState("");
-    const [phone, setPhone] = useState("");
+    //const [phone, setPhone] = useState("");
     const [specialty, setSpecialty] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [hireDate, setHireDate] = useState<string>("");
@@ -107,6 +113,15 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
 
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
+
+    const [phone, setPhone] = useState("");
+    const [touched, setTouched] = useState(false);
+
+    /*const inputClass =
+        "w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-black outline-none transition focus:border-gray-400 dark:border-white/10 dark:bg-white/5 dark:text-white";*/
+
+    const phoneIsValid = isValidPhone(phone);
+    const showError = touched && phone.length > 0 && !phoneIsValid;
 
     const queryClient = useQueryClient();
 
@@ -506,10 +521,24 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     <input
                                         type="tel"
                                         value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
+                                        onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
+                                        onBlur={() => setTouched(true)}
                                         className={inputClass}
-                                        placeholder="+7..."
+                                        placeholder="+..."
+                                        inputMode="numeric"
+                                        autoComplete="tel"
                                     />
+
+                                    {showError && (
+                                        <p className="mt-1 text-xs text-red-500">
+                                            Введите корректный номер: от {MIN_PHONE_DIGITS} цифр, только цифры и “+” в начале.
+                                        </p>
+                                    )}
+
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                        Цифр: {getPhoneDigitsCount(phone)}
+                                    </p>
+
                                 </div>
 
                                 <div>
