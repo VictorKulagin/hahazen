@@ -36,6 +36,11 @@ export type ScheduleModuleProps = {
     schedules?: EmployeeSchedule[];
     onMasterClick?: (employee: Employee) => void;
     onAddEntity?: () => void; // 👈 новый пропс
+    selectedMasterFilter?: number | "all";
+    onSelectedMasterFilterChange?: (value: number | "all") => void;
+    masterSearch?: string;
+    onMasterSearchChange?: (value: string) => void;
+    showMasterSearch?: boolean;
 };
 
 export function toMins(t: string): number {
@@ -117,8 +122,12 @@ export default function ScheduleModule({
                                            schedules = [],
                                            onMasterClick,
                                            onAddEntity, // 👈 новый пропс
+                                           selectedMasterFilter,
+                                           onSelectedMasterFilterChange,
+                                           masterSearch: controlledMasterSearch,
+                                           onMasterSearchChange,
+                                           showMasterSearch = true,
                                        }: ScheduleModuleProps) {
-    const masters = employees.map((e) => e.name);
     const minMinutes = startHour * 60;
     const maxMinutes = endHour * 60;
     const slots = useMemo(() => rangeSlots(minMinutes, maxMinutes, slotStepMin), [minMinutes, maxMinutes, slotStepMin]);
@@ -130,12 +139,36 @@ export default function ScheduleModule({
     const gridContentRef = useRef<HTMLDivElement | null>(null);
     const headerRowRef = useRef<HTMLDivElement | null>(null);
     const [viewMode, setViewMode] = useState<"grid" | "list">("list");
-    const [selectedMaster, setSelectedMaster] = useState<number | "all">("all");
+    const [internalSelectedMaster, setInternalSelectedMaster] = useState<number | "all">("all");
+    const [internalMasterSearch, setInternalMasterSearch] = useState("");
+    const selectedMaster = selectedMasterFilter ?? internalSelectedMaster;
+    const masterSearch = controlledMasterSearch ?? internalMasterSearch;
+    const setSelectedMaster = onSelectedMasterFilterChange ?? setInternalSelectedMaster;
+    const setMasterSearch = onMasterSearchChange ?? setInternalMasterSearch;
 
-    const filteredEmployees =
-        selectedMaster === "all"
+    const filteredEmployees = useMemo(
+        () => selectedMaster === "all"
             ? employees
-            : employees.filter((_, idx) => idx === selectedMaster);
+            : employees.filter((_, idx) => idx === selectedMaster),
+        [employees, selectedMaster]
+    );
+    const gridEmployees = useMemo(
+        () => filteredEmployees.map((employee) => ({
+            employee,
+            masterIdx: employees.findIndex((item) => item.id === employee.id),
+        })),
+        [employees, filteredEmployees]
+    );
+    const visibleFilterEmployees = useMemo(() => {
+        const query = masterSearch.trim().toLowerCase();
+        if (!query) return employees;
+
+        return employees.filter((employee) =>
+            [employee.name, employee.specialty, employee.role]
+                .filter(Boolean)
+                .some((value) => String(value).toLowerCase().includes(query))
+        );
+    }, [employees, masterSearch]);
 
     useEffect(() => setEvents(appointments), [appointments]);
 
@@ -264,7 +297,7 @@ export default function ScheduleModule({
         if (viewMode === "grid") {
             recalcColRects();
         }
-    }, [masters.length, viewMode]);
+    }, [gridEmployees.length, viewMode]);
 
     useEffect(() => {
         if (viewMode !== "grid") return;
@@ -280,7 +313,7 @@ export default function ScheduleModule({
             cancelAnimationFrame(frameId);
             window.clearTimeout(timerId);
         };
-    }, [viewMode, employees.length, appointments.length]);
+    }, [viewMode, gridEmployees.length, appointments.length]);
 
     useEffect(() => {
         window.addEventListener("resize", recalcColRects);
@@ -308,7 +341,7 @@ export default function ScheduleModule({
         if (headerRowRef.current) observer.observe(headerRowRef.current);
 
         return () => observer.disconnect();
-    }, [viewMode, employees.length]);
+    }, [viewMode, gridEmployees.length]);
 
     useEffect(() => {
         const now = new Date();
@@ -382,7 +415,8 @@ export default function ScheduleModule({
         }
 
         for (const [masterIdx, masterEvents] of eventsByMaster.entries()) {
-            const col = colRects[masterIdx];
+            const colIdx = gridEmployees.findIndex((item) => item.masterIdx === masterIdx);
+            const col = colRects[colIdx];
 
             if (!col) continue;
 
@@ -462,7 +496,7 @@ export default function ScheduleModule({
         }
 
         return result;
-    }, [events, colRects, gridTopOffset, minMinutes, rowHeightPx, slotStepMin]);
+    }, [events, colRects, gridEmployees, gridTopOffset, minMinutes, rowHeightPx, slotStepMin]);
 
 
 
@@ -506,28 +540,37 @@ export default function ScheduleModule({
             </div>
 
 
-            {/* 📱 МОБИЛЬНЫЙ РЕЖИМ */}
-            {viewMode === "list" && (
-                <div
-                    key={`list-${selectedMaster}`}
-                    className="block md:block space-y-3 animate-fadeInSoft"
-                >
+            <div className="mb-3 space-y-2">
+                {showMasterSearch && (
+                    <div className="relative">
+                        <input
+                            type="search"
+                            value={masterSearch}
+                            onChange={(event) => setMasterSearch(event.target.value)}
+                            placeholder="Поиск мастера"
+                            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-[#1f2937] dark:text-white dark:placeholder:text-white/40"
+                        />
+                    </div>
+                )}
 
-                    <div className="overflow-x-auto pb-1">
-                        <div className="flex gap-2 min-w-max">
-                            <button
-                                type="button"
-                                onClick={() => setSelectedMaster("all")}
-                                className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition-all duration-300 ease-out ${
-                                    selectedMaster === "all"
-                                        ? "bg-green-500 text-white shadow-sm"
-                                        : "bg-white text-gray-700 border border-gray-200 dark:bg-[#1f2937] dark:text-white/80 dark:border-white/10"
-                                }`}
-                            >
-                                Все
-                            </button>
+                <div className="overflow-x-auto pb-1">
+                    <div className="flex gap-2 min-w-max">
+                        <button
+                            type="button"
+                            onClick={() => setSelectedMaster("all")}
+                            className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition-all duration-300 ease-out ${
+                                selectedMaster === "all"
+                                    ? "bg-green-500 text-white shadow-sm"
+                                    : "bg-white text-gray-700 border border-gray-200 dark:bg-[#1f2937] dark:text-white/80 dark:border-white/10"
+                            }`}
+                        >
+                            Все
+                        </button>
 
-                            {employees.map((employee, idx) => (
+                        {visibleFilterEmployees.map((employee) => {
+                            const idx = employees.findIndex((item) => item.id === employee.id);
+
+                            return (
                                 <button
                                     key={employee.id}
                                     type="button"
@@ -540,9 +583,25 @@ export default function ScheduleModule({
                                 >
                                     {employee.name}
                                 </button>
-                            ))}
-                        </div>
+                            );
+                        })}
+
+                        {visibleFilterEmployees.length === 0 && (
+                            <div className="shrink-0 rounded-2xl border border-dashed border-gray-200 px-4 py-2 text-sm text-gray-500 dark:border-white/10 dark:text-white/50">
+                                Ничего не найдено
+                            </div>
+                        )}
                     </div>
+                </div>
+            </div>
+
+
+            {/* 📱 МОБИЛЬНЫЙ РЕЖИМ */}
+            {viewMode === "list" && (
+                <div
+                    key={`list-${selectedMaster}`}
+                    className="block md:block space-y-3 animate-fadeInSoft"
+                >
 
                     {filteredEmployees.map((employee) => {
                         const masterIdx = employees.findIndex((e) => e.id === employee.id);
@@ -779,7 +838,7 @@ export default function ScheduleModule({
                             Время
                         </div>
                     </div>
-                    {employees.map((employee, i) => (
+                    {gridEmployees.map(({ employee }) => (
                         <button
                             key={employee.id}
                             type="button"
@@ -871,8 +930,7 @@ export default function ScheduleModule({
 ">
                                 {toTime(min)}
                             </div>
-                            {masters.map((_, masterIdx) => {
-                                const employee = employees[masterIdx];
+                            {gridEmployees.map(({ employee, masterIdx }) => {
                                 const working = employee
                                     ? isWorkingSlot(employee.id, toTime(min), selectedDate, schedules)
                                     : true;

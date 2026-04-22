@@ -108,6 +108,8 @@ const Page: React.FC = () => {
     const [isCreateMenuOpen, setIsCreateMenuOpen] = useState(false);
     const [isCreateServiceOpen, setIsCreateServiceOpen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [scheduleMasterSearch, setScheduleMasterSearch] = useState("");
+    const [scheduleSelectedMaster, setScheduleSelectedMaster] = useState<number | "all">("all");
 
     const globalLoading =
         isLoading ||
@@ -700,7 +702,7 @@ const Page: React.FC = () => {
 
                 {/* Заголовок */}
                 <div
-                    className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                    className="mb-6 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
@@ -713,7 +715,14 @@ const Page: React.FC = () => {
                         </p>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:max-w-3xl">
+                        <input
+                            type="search"
+                            value={scheduleMasterSearch}
+                            onChange={(event) => setScheduleMasterSearch(event.target.value)}
+                            placeholder="Поиск мастера"
+                            className="min-w-0 flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-[#1f2937] dark:text-white dark:placeholder:text-white/40"
+                        />
                         <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
                             Тема: {theme}
                         </span>
@@ -756,6 +765,11 @@ const Page: React.FC = () => {
                                 onEventClick={handleEventClick}
                                 onMasterClick={handleMasterClick} // 👈 добавили
                                 onAddEntity={() => setIsCreateMenuOpen(true)} // 👈 открывает меню выбора
+                                selectedMasterFilter={scheduleSelectedMaster}
+                                onSelectedMasterFilterChange={setScheduleSelectedMaster}
+                                masterSearch={scheduleMasterSearch}
+                                onMasterSearchChange={setScheduleMasterSearch}
+                                showMasterSearch={false}
                             />
 
 
