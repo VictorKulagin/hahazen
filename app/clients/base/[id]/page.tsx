@@ -93,10 +93,6 @@ const Page: React.FC = () => {
 
     const { theme } = useTheme();
 
-    //const totalClients = (clientsData?.pagination?.totalPages ?? 0) * 20; /*Грубо, нужно заменить*/
-
-    const totalClients = (clientsData?.pagination?.totalPages ?? 0) * 20; /*Грубо, нужно заменить*/
-
     const totalClientsExact = clientsData?.pagination?.totalCount ?? 0;
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
