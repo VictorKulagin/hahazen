@@ -8,6 +8,7 @@ export interface PaginatedClients {
     pagination: {
         currentPage: number;
         totalPages: number;
+        totalCount: number;
         hasNextPage: boolean;
         hasPrevPage: boolean;
         nextPage?: number | null; // ← Изменено с `number | undefined` на `number | null`
@@ -40,6 +41,11 @@ export const useClients = (
                 pagination: {
                     currentPage: Number(response._meta?.currentPage ?? response.meta?.currentPage ?? pagination.page),
                     totalPages: Number(response._meta?.pageCount ?? response.meta?.pageCount ?? getPageFromUrl(response._links?.last?.href) ?? 1),
+                    totalCount: Number(
+                        response._meta?.totalCount ??
+                        response.meta?.totalCount ??
+                        response.data.length
+                    ),
                     hasNextPage: !!response._links?.next,
                     hasPrevPage: !!response._links?.prev,
                     nextPage: getPageFromUrl(response._links?.next?.href),

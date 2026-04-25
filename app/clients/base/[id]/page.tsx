@@ -93,8 +93,11 @@ const Page: React.FC = () => {
 
     const { theme } = useTheme();
 
+    //const totalClients = (clientsData?.pagination?.totalPages ?? 0) * 20; /*Грубо, нужно заменить*/
+
     const totalClients = (clientsData?.pagination?.totalPages ?? 0) * 20; /*Грубо, нужно заменить*/
 
+    const totalClientsExact = clientsData?.pagination?.totalCount ?? 0;
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
     const handleCancelEdit = () => {
@@ -526,7 +529,7 @@ const Page: React.FC = () => {
                                 </h1>
 
                                 <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-500 dark:bg-white/10 dark:text-gray-400">
-                    {totalClients ?? 0}
+                    {totalClientsExact}
                 </span>
                             </div>
 
@@ -720,7 +723,7 @@ const Page: React.FC = () => {
                                             </h2>
 
                                             <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gray-100 px-2 text-xs font-medium text-gray-600 dark:bg-white/10 dark:text-gray-300">
-                                                {totalClients ?? 0}
+                                                {totalClientsExact}
                                             </span>
                                         </div>
 
