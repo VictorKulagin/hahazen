@@ -698,8 +698,8 @@ const Page: React.FC = () => {
                                                             className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-green-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                                         >
                                                             <option value="">Пол</option>
-                                                            <option value="male">Мужской</option>
-                                                            <option value="female">Женский</option>
+                                                            <option value="male" className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Мужской</option>
+                                                            <option value="female" className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">Женский</option>
                                                         </select>
 
                                                         <button
