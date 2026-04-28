@@ -1,4 +1,4 @@
-//app\schedule\[id]\page
+﻿//app\schedule\[id]\page
 "use client";
 import React, { useState } from "react";
 import { useEffect } from 'react';
@@ -56,7 +56,7 @@ export interface ScheduleEvent {
     text: string;
     master: number;
     client?: any;      // ✅ добавим, чтобы можно было прокидывать клиента
-    services?: any[];  // ✅ добавим, чтобы прокидывать услуги
+    services?: any[];   // ✅ добавим, чтобы прокидывать услуги
 }
 
 const Page: React.FC = () => {
@@ -169,7 +169,7 @@ const Page: React.FC = () => {
         const token = localStorage.getItem("access_token"); // Или брать из cookie
 
         if (!token) {
-            setError("Токен не найден.");
+            setError("Неизвестная ошибка");
             setIsLoading(false);
             return;
         }
@@ -178,12 +178,12 @@ const Page: React.FC = () => {
             try {
                 const data = await companiesList();
                 console.log("response.data companiesList", data);
-                setCompaniesData(data); // Сохраняем данные пользователя
+                setCompaniesData(data); // РЎРѕС…СЂР°РЅСЏРµРј РґР°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
             } catch (err: unknown) {
                 if (err instanceof Error) {
-                    setError(`Ошибка: ${err.message}`);
+                    setError(`РћС€РёР±РєР°: ${err.message}`);
                 } else {
-                    setError("Неизвестная ошибка");
+                    setError("РќРµРёР·РІРµСЃС‚РЅР°СЏ РѕС€РёР±РєР°");
                 }
             }finally {
                 setIsLoading(false);
@@ -209,7 +209,7 @@ const Page: React.FC = () => {
                     console.log("Данные пользователя:", data);
                     setUserData(data);
                 } catch (err: any) {
-                    console.error("Ошибка API:", err);
+                    console.error("РћС€РёР±РєР° API:", err);
                     setError(err.response?.data?.message || "Ошибка при загрузке данных.");
                 } finally {
                     setIsLoading(false);
@@ -234,7 +234,6 @@ const Page: React.FC = () => {
     if (params && 'id' in params) {
         idFromUrl = params.id as string;
     }
-
 
 
     console.log("ID из данных филиала:", id);
@@ -280,7 +279,7 @@ const Page: React.FC = () => {
 
     const [editingEvent, setEditingEvent] = useState<{
         id: number;
-        date: string;                              // ⬅ добавили
+        date: string;                             // ⬅ добавили
         timeStart: string;
         timeEnd: string;
         employeeId: number;
@@ -326,7 +325,7 @@ const Page: React.FC = () => {
 
         // 3. Преобразуем услуги в формат { id, qty }
         const initialSelected = (src?.services ?? []).map(s => ({
-            id: (s as any).service_id ?? (s as any).id, // ✅ поддержка и service_id, и id на всякий случай
+            id: (s as any).service_id ?? (s as any).id, // вњ… РїРѕРґРґРµСЂР¶РєР° Рё service_id, Рё id РЅР° РІСЃСЏРєРёР№ СЃР»СѓС‡Р°Р№
             qty: (s as any).qty ?? 1,
         }));
         console.log("🎯 Преобразованные услуги (initialSelected):", initialSelected);
@@ -340,7 +339,7 @@ const Page: React.FC = () => {
         // 4. Устанавливаем состояние для UpdateEventModal
         const eventPayload = {
             id: Number(ev.id),
-            date: dateFromSrc,               // ⬅ вот она, корректная дата записи
+            date: dateFromSrc,              // ⬅ вот она, корректная дата записи
             timeStart: ev.start,
             timeEnd: ev.end,
             employeeId: emp.id,
@@ -413,7 +412,6 @@ const Page: React.FC = () => {
     const handleSaveEmployee = async (updatedEmployee: any) => {
         try {
             await updateEmployeeMutate(updatedEmployee);
-            setSelectedEmployee(null); // закрываем модалку после успешного сохранения
         } catch (err) {
             console.error("Ошибка при сохранении сотрудника:", err);
             alert("Не удалось обновить данные сотрудника");
@@ -438,7 +436,7 @@ const Page: React.FC = () => {
 
     useEffect(() => {
         // Изменяем заголовок страницы
-        document.title = isNotFound ? "404 - Страница не найдена" : "Название вашей страницы";
+        document.title = isNotFound ?  "404 - Страница не найдена" : "Название вашей страницы";
     }, [isNotFound]);
 
     if (isNotFound) {
@@ -479,7 +477,7 @@ const Page: React.FC = () => {
 
     // Пример клиентов
     const clients = [
-        { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
+        { id: 1, name: "РљР»РёРµРЅС‚СЃРєР°СЏ Р±Р°Р·Р°", url: `/clients/base/${id}` },
     ];
 
 
@@ -507,7 +505,7 @@ const Page: React.FC = () => {
         setSelectedDate(date);
     };
 
-    if (isLoading) return <p>Загрузка сотрудников...</p>;
+    if (isLoading) return <p>Р—Р°РіСЂСѓР·РєР° СЃРѕС‚СЂСѓРґРЅРёРєРѕРІ...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
@@ -566,14 +564,14 @@ const Page: React.FC = () => {
                         >
                             <Image
                                 src="/logo.png"
-                                alt="Логотип"
+                                alt="Р›РѕРіРѕС‚РёРї"
                                 width={32}
                                 height={32}
                                 className="mr-2"
                             />
                             {!collapsed && (
                                 <span className="text-sm font-medium truncate">
-                        {companiesData?.[0]?.name || "Компания не найдена"}
+                        {companiesData?.[0]?.name || "РљРѕРјРїР°РЅРёСЏ РЅРµ РЅР°Р№РґРµРЅР°"}
                     </span>
                             )}
                         </button>
@@ -758,12 +756,12 @@ const Page: React.FC = () => {
                                 <ScheduleModule
                                 employees={employees}
                                 appointments={normalizedAppointments}
-                                schedules={schedules} // ✅ вот так
+                                schedules={schedules}
                                 selectedDate={selectedDate}
                                 onDateSelect={setSelectedDate}
                                 onCellClick={handleOpenCreateModal}
                                 onEventClick={handleEventClick}
-                                onMasterClick={handleMasterClick} // 👈 добавили
+                                onMasterClick={handleMasterClick}
                                 onAddEntity={() => setIsCreateMenuOpen(true)} // 👈 открывает меню выбора
                                 selectedMasterFilter={scheduleSelectedMaster}
                                 onSelectedMasterFilterChange={setScheduleSelectedMaster}
@@ -812,10 +810,9 @@ const Page: React.FC = () => {
                             />
                         )}
 
-                        {/* Модалки */}
-                        <EditEmployeeModal isOpen={!!selectedEmployee} employee={selectedEmployee} onClose={() => setSelectedEmployee(null)} onSave={updateEmployeeMutate} />
 
-                        {/* Создание услуги + список */}
+
+                      {/* Создание услуги + список */}
                         {isCreateServiceOpen && (
                             <ServiceManager branchId={id} onClose={() => setIsCreateServiceOpen(false)} />
                         )}
@@ -854,3 +851,4 @@ const Page: React.FC = () => {
     );
 };
 export default withAuth(Page);
+

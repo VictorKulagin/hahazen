@@ -1,0 +1,80 @@
+export const LEVEL_OPTIONS = [
+    {
+        value: "1",
+        number: "1",
+        label: "Стартовый",
+        color: "amber",
+    },
+    {
+        value: "2",
+        number: "2",
+        label: "Базовый",
+        color: "blue",
+    },
+    {
+        value: "3",
+        number: "3",
+        label: "Продвинутый",
+        color: "violet",
+    },
+    {
+        value: "4",
+        number: "4",
+        label: "Эксперт",
+        color: "emerald",
+    },
+    {
+        value: "",
+        number: "—",
+        label: "Без уровня",
+        color: "zinc",
+    },
+] as const;
+
+export const LEVEL_COLOR_STYLES = {
+    amber: {
+        dot: "bg-amber-500",
+        text: "text-amber-300",
+        idle: "border-amber-200 bg-white text-slate-800 hover:border-amber-300 hover:bg-amber-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/90 dark:hover:border-amber-400/30 dark:hover:bg-amber-400/10",
+        active: "border-amber-400 bg-amber-50 text-slate-950 shadow-[0_0_0_1px_rgba(251,191,36,0.25)] ring-2 ring-amber-300/70 dark:border-amber-300/80 dark:bg-amber-400/14 dark:text-white dark:shadow-[0_0_0_1px_rgba(252,211,77,0.18)] dark:ring-amber-300/35",
+        number: "bg-amber-500 text-white",
+        chip: "bg-amber-500/12 text-amber-700 dark:bg-amber-400/12 dark:text-amber-200",
+        check: "bg-amber-500 text-white shadow-sm shadow-amber-500/30",
+    },
+    blue: {
+        dot: "bg-blue-500",
+        text: "text-blue-300",
+        idle: "border-blue-200 bg-white text-slate-800 hover:border-blue-300 hover:bg-blue-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/90 dark:hover:border-blue-400/30 dark:hover:bg-blue-400/10",
+        active: "border-blue-400 bg-blue-50 text-slate-950 shadow-[0_0_0_1px_rgba(59,130,246,0.2)] ring-2 ring-blue-300/70 dark:border-blue-300/80 dark:bg-blue-400/14 dark:text-white dark:shadow-[0_0_0_1px_rgba(96,165,250,0.18)] dark:ring-blue-300/35",
+        number: "bg-blue-500 text-white",
+        chip: "bg-blue-500/12 text-blue-700 dark:bg-blue-400/12 dark:text-blue-200",
+        check: "bg-blue-500 text-white shadow-sm shadow-blue-500/30",
+    },
+    violet: {
+        dot: "bg-violet-500",
+        text: "text-violet-300",
+        idle: "border-violet-200 bg-white text-slate-800 hover:border-violet-300 hover:bg-violet-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/90 dark:hover:border-violet-400/30 dark:hover:bg-violet-400/10",
+        active: "border-violet-400 bg-violet-50 text-slate-950 shadow-[0_0_0_1px_rgba(139,92,246,0.2)] ring-2 ring-violet-300/70 dark:border-violet-300/80 dark:bg-violet-400/14 dark:text-white dark:shadow-[0_0_0_1px_rgba(167,139,250,0.18)] dark:ring-violet-300/35",
+        number: "bg-violet-500 text-white",
+        chip: "bg-violet-500/12 text-violet-700 dark:bg-violet-400/12 dark:text-violet-200",
+        check: "bg-violet-500 text-white shadow-sm shadow-violet-500/30",
+    },
+    emerald: {
+        dot: "bg-emerald-500",
+        text: "text-emerald-300",
+        idle: "border-emerald-200 bg-white text-slate-800 hover:border-emerald-300 hover:bg-emerald-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/90 dark:hover:border-emerald-400/30 dark:hover:bg-emerald-400/10",
+        active: "border-emerald-400 bg-emerald-50 text-slate-950 shadow-[0_0_0_1px_rgba(16,185,129,0.2)] ring-2 ring-emerald-300/70 dark:border-emerald-300/80 dark:bg-emerald-400/14 dark:text-white dark:shadow-[0_0_0_1px_rgba(52,211,153,0.18)] dark:ring-emerald-300/35",
+        number: "bg-emerald-500 text-white",
+        chip: "bg-emerald-500/12 text-emerald-700 dark:bg-emerald-400/12 dark:text-emerald-200",
+        check: "bg-emerald-500 text-white shadow-sm shadow-emerald-500/30",
+    },
+    zinc: {
+        dot: "bg-zinc-400 dark:bg-zinc-500",
+        text: "text-zinc-300",
+        idle: "border-zinc-200 bg-white text-slate-700 hover:border-zinc-300 hover:bg-zinc-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-white/80 dark:hover:border-zinc-400/30 dark:hover:bg-white/[0.07]",
+        active: "border-zinc-400 bg-zinc-50 text-slate-950 shadow-[0_0_0_1px_rgba(113,113,122,0.18)] ring-2 ring-zinc-300/60 dark:border-zinc-300/80 dark:bg-white/[0.08] dark:text-white dark:shadow-[0_0_0_1px_rgba(212,212,216,0.12)] dark:ring-zinc-300/25",
+        number: "bg-zinc-500 text-white",
+        chip: "bg-zinc-500/12 text-zinc-700 dark:bg-zinc-400/12 dark:text-zinc-200",
+        check: "bg-zinc-500 text-white shadow-sm shadow-zinc-500/20",
+    },
+} as const;

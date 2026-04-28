@@ -9,6 +9,7 @@ export interface Employee {
     id: number;
     name: string;
     specialty: string;
+    lvl: string | null;
     hire_date: string;
     branch_id: number;
     online_booking: number;
@@ -27,6 +28,7 @@ export interface EmployeeCreatePayload {
     branch_id: number;
     name: string;
     specialty: string;
+    lvl?: string | null;
     hire_date: string;
     online_booking: 0 | 1;
     role: string;          // <<< ДОЛЖЕН БЫТЬ NUMBER

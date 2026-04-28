@@ -7,6 +7,7 @@ import { cabinetDashboard } from "@/services/cabinetDashboard";
 import { companiesList } from "@/services/companiesList";
 import { useClients, useClient, useDeleteClient } from '@/hooks/useClient';
 import Pagination from '@/components/Pagination';
+import ClientDetailsPanel from "@/components/clients/details/ClientDetailsPanel";
 import SidebarMenu from "@/components/SidebarMenu";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
@@ -743,7 +744,19 @@ const Page: React.FC = () => {
                                                 ) : clientError ? (
                                                     <p className="text-red-600">Ошибка загрузки клиента: {clientError.message}</p>
                                                 ) : (
-                                                    <div className="space-y-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none md:p-6">
+                                                    <>
+                                                        <ClientDetailsPanel
+                                                            client={selectedClient}
+                                                            canEdit={authStorage.has("master:create")}
+                                                            onBack={() => setSelectedClientId(null)}
+                                                            onEdit={() => {
+                                                                setEditingClientId(selectedClient.id ?? null);
+                                                                setIsEditModalOpen(true);
+                                                            }}
+                                                            getAvatarColor={getAvatarColor}
+                                                        />
+                                                        {false && (
+                                                    <div data-old-client-details className="space-y-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none md:p-6">
                                                         {/* Назад */}
                                                         <button
                                                             onClick={() => setSelectedClientId(null)}
@@ -759,18 +772,18 @@ const Page: React.FC = () => {
 
                                                             {/* Аватар в карточке*/}
                                                             <div
-                                                                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${getAvatarColor(selectedClient.name)}`}
+                                                                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white ${getAvatarColor(selectedClient!.name)}`}
                                                             >
-                                                                {`${selectedClient.name?.[0] ?? ""}${selectedClient.last_name?.[0] ?? ""}`.toUpperCase() || "?"}
+                                                                {`${selectedClient!.name?.[0] ?? ""}${selectedClient!.last_name?.[0] ?? ""}`.toUpperCase() || "?"}
 
                                                             </div>
 
                                                             <div className="min-w-0">
                                                                 <h1 className="text-2xl font-semibold text-gray-900 leading-tight truncate dark:text-white">
-                                                                    {selectedClient.name}
+                                                                    {selectedClient!.name}
                                                                 </h1>
                                                                 <p className="text-base text-gray-500 truncate dark:text-gray-400">
-                                                                    {selectedClient.last_name ?? "-"}
+                                                                    {selectedClient!.last_name ?? "-"}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -792,7 +805,7 @@ const Page: React.FC = () => {
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
-                                                                    setEditingClientId(selectedClient.id ?? null);
+                                                                    setEditingClientId(selectedClient!.id ?? null);
                                                                     setIsEditModalOpen(true);
                                                                 }}
                                                                 className="mt-4 w-full px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition flex items-center justify-center space-x-2"
@@ -803,6 +816,8 @@ const Page: React.FC = () => {
                                                         )}
 
                                                     </div>
+                                                        )}
+                                                    </>
                                                 )
                                             ) : (
                                                 <>
