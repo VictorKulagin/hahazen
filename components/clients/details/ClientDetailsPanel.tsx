@@ -9,6 +9,8 @@ import ClientDetailsTabs, {
 import ClientOverviewTab from "@/components/clients/details/tabs/ClientOverviewTab";
 import ClientProCardTab from "@/components/clients/details/tabs/ClientProCardTab";
 import ClientTabPlaceholder from "@/components/clients/details/ClientTabPlaceholder";
+import ClientVisitsTab from "@/components/clients/details/tabs/ClientVisitsTab";
+
 
 type ClientDetailsPanelProps = {
     client: Client;
@@ -32,12 +34,7 @@ export default function ClientDetailsPanel({
             case "overview":
                 return <ClientOverviewTab client={client} canEdit={canEdit} onEdit={onEdit} />;
             case "visits":
-                return (
-                    <ClientTabPlaceholder
-                        title="Визиты в разработке"
-                        description="Скоро здесь появится история посещений клиента, статусы и связанная информация по приемам."
-                    />
-                );
+                return <ClientVisitsTab client={client} />;
             case "proCard":
                 return <ClientProCardTab client={client} canEdit={canEdit} />;
             case "notes":

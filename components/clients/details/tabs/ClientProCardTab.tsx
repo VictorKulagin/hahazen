@@ -25,6 +25,7 @@ import {
     useUpdateClientProCard,
     useUpdateClientProCardMark,
 } from "@/hooks/useClientProCard";
+import { useClientAppointments } from "@/hooks/useClientAppointments";
 
 type ClientProCardTabProps = {
     client: Client;
@@ -33,6 +34,8 @@ type ClientProCardTabProps = {
 
 type MarkFormState = {
     id?: number;
+    appointment_id?: number | null;
+    service_id?: number | null;
     map_key: string;
     mark_type: string;
     x: number;
@@ -61,6 +64,8 @@ const proCardTypes: Array<{ value: ClientProCardType; label: string }> = [
 ];
 
 const emptyMarkForm = (mapKey: string, x = 50, y = 50): MarkFormState => ({
+    appointment_id: null,
+    service_id: null,
     map_key: mapKey,
     mark_type: "note",
     x,
@@ -100,6 +105,8 @@ export default function ClientProCardTab({
     const createMark = useCreateClientProCardMark(clientId ?? 0);
     const updateMark = useUpdateClientProCardMark(clientId ?? 0);
     const deleteMark = useDeleteClientProCardMark(clientId ?? 0);
+
+    const { data: appointments = [] } = useClientAppointments(clientId);
 
     useEffect(() => {
         if (!proCard || !clientId || syncedClientId === clientId) return;
@@ -162,6 +169,8 @@ export default function ClientProCardTab({
     const startEditMark = (mark: ClientProCardMark) => {
         setMarkForm({
             id: mark.id,
+            appointment_id: mark.appointment_id ?? null,
+            service_id: mark.service_id ?? null,
             map_key: mark.map_key ?? activeMapKey,
             mark_type: mark.mark_type ?? "note",
             x: Number(mark.x ?? 50),
@@ -435,6 +444,29 @@ export default function ClientProCardTab({
                                 </div>
 
                                 <div className="space-y-3">
+                                    <select
+                                        value={markForm.appointment_id ?? ""}
+                                        onChange={(event) => {
+                                            const appointmentId = event.target.value ? Number(event.target.value) : null;
+                                            const appointment = appointments.find((item) => item.id === appointmentId);
+                                            const serviceId = appointment?.services?.[0]?.service_id ?? null;
+
+                                            setMarkForm({
+                                                ...markForm,
+                                                appointment_id: appointmentId,
+                                                service_id: serviceId,
+                                            });
+                                        }}
+                                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-green-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                    >
+                                        <option value="">Без привязки к визиту</option>
+
+                                        {appointments.map((appointment) => (
+                                            <option key={appointment.id} value={appointment.id}>
+                                                {appointment.appointment_datetime} · {appointment.total_duration} мин
+                                            </option>
+                                        ))}
+                                    </select>
                                     <input
                                         value={markForm.title}
                                         onChange={(event) =>

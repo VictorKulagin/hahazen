@@ -6,6 +6,7 @@ import {
     updateAppointment,
     deleteAppointment,
     fetchAppointmentsByBranchAndDate,
+    fetchClientAppointments,
     // @ts-ignore
     Appointment, fetchPeriodStats
 } from "@/services/appointmentsApi";
@@ -243,6 +244,16 @@ export const usePeriodStats = (
         queryKey: ["periodStats", dateStart, dateEnd, branchId],
         queryFn: () => fetchPeriodStats(dateStart, dateEnd, branchId),
         enabled: !!dateStart && !!dateEnd,
+        staleTime: 5 * 60 * 1000,
+        refetchOnWindowFocus: false,
+    });
+};
+
+export const useClientAppointments = (clientId?: number) => {
+    return useQuery<AppointmentResponse[], Error>({
+        queryKey: ["client-appointments", clientId],
+        queryFn: () => fetchClientAppointments(clientId!),
+        enabled: !!clientId,
         staleTime: 5 * 60 * 1000,
         refetchOnWindowFocus: false,
     });

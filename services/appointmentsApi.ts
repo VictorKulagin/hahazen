@@ -211,3 +211,12 @@ export const fetchPeriodStats = (
         },
     }).then(res => res.data);
 };
+
+
+export const fetchClientAppointments = async (clientId: number) => {
+    const response = await apiClient.get("/appointments", {
+        params: { client_id: clientId },
+    });
+
+    return response.data.data ?? [];
+};
