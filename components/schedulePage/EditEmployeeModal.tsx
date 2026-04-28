@@ -1,6 +1,6 @@
-// components\schedulePage\EditEmployeeModal.tsx
+﻿// components\schedulePage\EditEmployeeModal.tsx
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Employee, EmployeeRole } from "@/services/employeeApi";
 import { useEmployeeSchedules, useCreateEmployeeSchedule, useUpdateEmployeeSchedule } from "@/hooks/useEmployeeSchedules";
 import { useServices, useEmployeeServices, useSyncEmployeeServices } from "@/hooks/useServices";
@@ -14,6 +14,8 @@ import {
     getPhoneDigitsCount,
     MIN_PHONE_DIGITS,
 } from "@/components/utils/phone";
+import SpecialtyAutocomplete from '@/components/schedulePage/SpecialtyAutocomplete';
+import QualificationSelect from "@/components/schedulePage/QualificationSelect";
 
 type Props = {
     isOpen: boolean;
@@ -24,7 +26,7 @@ type Props = {
 
 
 type WeeklyPeriod = {
-    day: WeekDay;  // "mon" | "tue" | ... — можно уточнить тип позже
+    day: WeekDay;  // "mon" | "tue" | ... вЂ” РјРѕР¶РЅРѕ СѓС‚РѕС‡РЅРёС‚СЊ С‚РёРї РїРѕР·Р¶Рµ
     start: string; // "HH:mm"
     end: string; // "HH:mm"
 };
@@ -74,18 +76,19 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const [lastName, setLastName] = useState("");
     const [phone, setPhone] = useState("");
     const [specialty, setSpecialty] = useState<string>("");
+    const [lvl, setLvl] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [hireDate, setHireDate] = useState<string>("");
     const [activeTab, setActiveTab] = useState<"info" | "schedule" | "services">("info");
     const [role, setRole] = useState<EmployeeRole>("master");
 
-    // --- Состояния для графика ---
+    // --- РЎРѕСЃС‚РѕСЏРЅРёСЏ РґР»СЏ РіСЂР°С„РёРєР° ---
     const [startDate, setStartDate] = useState<string>("");
     const [endDate, setEndDate] = useState<string>("");
     const [periods, setPeriods] = useState<WeeklyPeriod[]>([]);
     const [scheduleId, setScheduleId] = useState<number | null>(null);
 
-    // API-хуки
+    // API-С…СѓРєРё
     const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
     const { mutateAsync: updateSchedule } = useUpdateEmployeeSchedule();
 
@@ -97,17 +100,18 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const [selectedServices, setSelectedServices] = useState<EmployeeService[]>([]);
 
 
-    // --- состояния для загрузки графика ---
+    // --- СЃРѕСЃС‚РѕСЏРЅРёСЏ РґР»СЏ Р·Р°РіСЂСѓР·РєРё РіСЂР°С„РёРєР° ---
     const [scheduleStartDate, setScheduleStartDate] = useState<string>("");
     const [scheduleEndDate, setScheduleEndDate] = useState<string>("");
 
-// --- состояния для редактирования в форме ---
+// --- СЃРѕСЃС‚РѕСЏРЅРёСЏ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ РІ С„РѕСЂРјРµ ---
     const [localStartDate, setLocalStartDate] = useState<string>("");
     const [localEndDate, setLocalEndDate] = useState<string>("");
 
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
+    const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
@@ -134,11 +138,12 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             setLastName(employee.last_name ?? "");
             setPhone(employee.phone ?? "");
             setSpecialty(employee.specialty ?? "");
+            setLvl(employee.lvl ?? "");
             setEmail(employee.email ?? "");
             setHireDate(employee.hire_date ?? "");
             setRole((employee.role ?? "master") as EmployeeRole);
 
-            // Загружаем график
+            // Р—Р°РіСЂСѓР¶Р°РµРј РіСЂР°С„РёРє
             const today = new Date();
             const defaultStart = today.toISOString().split("T")[0];
             const defaultEnd = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
@@ -148,21 +153,21 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             /*setStartDate(start);
             setEndDate(end);*/
 
-            // Только если пустые — подставляем дефолты
+            // РўРѕР»СЊРєРѕ РµСЃР»Рё РїСѓСЃС‚С‹Рµ вЂ” РїРѕРґСЃС‚Р°РІР»СЏРµРј РґРµС„РѕР»С‚С‹
             setStartDate((prev) => prev || defaultStart);
             setEndDate((prev) => prev || defaultEnd);
         }
     }, [employee, isOpen]);
 
-    // Подгружаем расписания из API
+    // РџРѕРґРіСЂСѓР¶Р°РµРј СЂР°СЃРїРёСЃР°РЅРёСЏ РёР· API
     /*const { data: schedules } = useEmployeeSchedules(
-        branchId,          // ✅ используем branchId,
+        branchId,          // вњ… РёСЃРїРѕР»СЊР·СѓРµРј branchId,
         employee?.id,
         startDate,
         endDate
     );*/
 
-    // загружаем график (API)
+    // Р·Р°РіСЂСѓР¶Р°РµРј РіСЂР°С„РёРє (API)
     const { data: schedules } = useEmployeeSchedules(
         employee?.branch_id,
         employee?.id,
@@ -170,8 +175,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         scheduleEndDate
     );
 
-    // Если пришли данные из API
-// при открытии модалки
+    // Р•СЃР»Рё РїСЂРёС€Р»Рё РґР°РЅРЅС‹Рµ РёР· API
+// РїСЂРё РѕС‚РєСЂС‹С‚РёРё РјРѕРґР°Р»РєРё
     useEffect(() => {
         if (employee && isOpen) {
             const today = new Date();
@@ -180,10 +185,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 .toISOString()
                 .split("T")[0];
 
-            setScheduleStartDate(defaultStart); // только для загрузки API
+            setScheduleStartDate(defaultStart); // С‚РѕР»СЊРєРѕ РґР»СЏ Р·Р°РіСЂСѓР·РєРё API
             setScheduleEndDate(defaultEnd);
 
-            setLocalStartDate(defaultStart); // для формы
+            setLocalStartDate(defaultStart); // РґР»СЏ С„РѕСЂРјС‹
             setLocalEndDate(defaultEnd);
         }
     }, [employee, isOpen]);
@@ -196,7 +201,22 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         }
     }, [isOpen]);
 
-// когда пришли данные из API
+    useEffect(() => {
+        if (!isOpen && closeTimeoutRef.current) {
+            clearTimeout(closeTimeoutRef.current);
+            closeTimeoutRef.current = null;
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        return () => {
+            if (closeTimeoutRef.current) {
+                clearTimeout(closeTimeoutRef.current);
+            }
+        };
+    }, []);
+
+// РєРѕРіРґР° РїСЂРёС€Р»Рё РґР°РЅРЅС‹Рµ РёР· API
     useEffect(() => {
         if (schedules && schedules.length > 0) {
             const s = schedules[0];
@@ -224,11 +244,11 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     }, [isOpen]);
 
 
-    // Загружаем выбранные услуги при открытии
+    // Р—Р°РіСЂСѓР¶Р°РµРј РІС‹Р±СЂР°РЅРЅС‹Рµ СѓСЃР»СѓРіРё РїСЂРё РѕС‚РєСЂС‹С‚РёРё
     useEffect(() => {
         if (!isOpen || !employee?.id) return;
 
-        console.log("🔧 Открыта модалка для сотрудника:", employee?.name ?? "—");
+        console.log("рџ”§ РћС‚РєСЂС‹С‚Р° РјРѕРґР°Р»РєР° РґР»СЏ СЃРѕС‚СЂСѓРґРЅРёРєР°:", employee?.name ?? "вЂ”");
 
         const newServices = (employeeServices ?? []).map((s) => ({
             service_id: s.service_id,
@@ -236,7 +256,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             duration_minutes: s.duration_minutes,
         }));
 
-        // Сравнение, чтобы не вызывать setState если данные не поменялись
+        // РЎСЂР°РІРЅРµРЅРёРµ, С‡С‚РѕР±С‹ РЅРµ РІС‹Р·С‹РІР°С‚СЊ setState РµСЃР»Рё РґР°РЅРЅС‹Рµ РЅРµ РїРѕРјРµРЅСЏР»РёСЃСЊ
         setSelectedServices((prev) => {
             const isEqual =
                 prev.length === newServices.length &&
@@ -367,13 +387,13 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             err?.response?.data?.error ||
             err?.message;
 
-        if (!msg) return "Не удалось сохранить изменения. Попробуйте ещё раз.";
+        if (!msg) return "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.";
 
         return String(msg)
-            .replace(/^(Не удалось создать учётную запись:\s*)+/i, "Не удалось создать учётную запись: ")
-            .replace(/^(Не удалось обновить учётную запись:\s*)+/i, "Не удалось обновить учётную запись: ");
+            .replace(/^(РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ:\s*)+/i, "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ: ")
+            .replace(/^(РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ:\s*)+/i, "РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ: ");
     };
-// Сохранение данных
+// РЎРѕС…СЂР°РЅРµРЅРёРµ РґР°РЅРЅС‹С…
     const handleSave = async () => {
         if (!employee) return;
 
@@ -387,15 +407,16 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 last_name: lastName,
                 phone,
                 specialty,
+                lvl: lvl || null,
                 email,
                 hire_date: hireDate,
                 role,
             };
 
-            // 1. Сохраняем сотрудника
+            // 1. РЎРѕС…СЂР°РЅСЏРµРј СЃРѕС‚СЂСѓРґРЅРёРєР°
             await onSave(updatedEmployee);
 
-            // 2. Сохраняем график
+            // 2. РЎРѕС…СЂР°РЅСЏРµРј РіСЂР°С„РёРє
             const payload = {
                 id: scheduleId ?? 0,
                 employee_id: employee.id,
@@ -412,7 +433,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 await createSchedule(payload);
             }
 
-            // 3. Синхронизация услуг
+            // 3. РЎРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ СѓСЃР»СѓРі
             const normalized: EmployeeServicePayload[] = selectedServices.map((s) => ({
                 service_id: s.service_id,
                 individual_price: s.individual_price ?? 0,
@@ -425,13 +446,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             });
 
             setSuccess(true);
-
-            setTimeout(() => {
-                setSuccess(false);
-                onClose();
-            }, 1500);
         } catch (err) {
-            console.error("❌ Ошибка сохранения:", err);
+            console.error("вќЊ РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ:", err);
             setSubmitError(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);
@@ -473,7 +489,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
                 </div>
 
-                {/* Вкладки */}
+                {/* Р’РєР»Р°РґРєРё */}
                 <div className="flex justify-around border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))]">
                     {["info", "schedule", "services"].map((tab) => (
                         <button
@@ -492,7 +508,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     ))}
                 </div>
 
-                {/* Контент */}
+                {/* РљРѕРЅС‚РµРЅС‚ */}
                 <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white">
                     {activeTab === "info" && (
                         <div className="space-y-4">
@@ -522,17 +538,30 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Специализация</label>
-                                    <input
-                                        type="text"
+                                    <SpecialtyAutocomplete
                                         value={specialty}
-                                        onChange={(e) => setSpecialty(e.target.value)}
-                                        className={inputClass}
+                                        onChange={setSpecialty}
+                                        inputClassName={inputClass}
                                         placeholder="Например: массажист"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Роль в системе</label>
+                                    <div className="mb-4">
+                                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Квалификация
+                                        </label>
+                                        <QualificationSelect value={lvl} onChange={setLvl} />
+
+                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                            Уровень сотрудника в компании. Выбранный вариант будет использоваться для цветовой маркировки мастера.
+                                        </p>
+                                    </div>
+
+                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Роль в системе
+                                    </label>
+
                                     <select
                                         value={role}
                                         onChange={(e) => setRole(e.target.value as EmployeeRole)}
@@ -571,7 +600,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     <input
                                         type="tel"
                                         value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
+                                        onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
                                         className={inputClass}
                                         placeholder="+..."
                                         inputMode="numeric"
@@ -580,7 +609,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                                     {showError && (
                                         <p className="mt-1 text-xs text-red-500">
-                                            Введите корректный номер: от {MIN_PHONE_DIGITS} цифр, только цифры и “+” в начале.
+                                            Введите корректный номер: от {MIN_PHONE_DIGITS} цифр, только цифры и "+" в начале.
                                         </p>
                                     )}
 
@@ -608,20 +637,20 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     {activeTab === "schedule" && (
                         <div className="space-y-4">
 
-                            {/* Тип графика */}
+                            {/* РўРёРї РіСЂР°С„РёРєР° */}
                             {/*<div>
-                                <label className="block mb-1 font-semibold">Тип графика</label>
+                                <label className="block mb-1 font-semibold">РўРёРї РіСЂР°С„РёРєР°</label>
                                 <select
                                     value="weekly"
                                     className={inputClass}
                                     disabled
                                 >
-                                    <option value="weekly">Еженедельный — график повторяется по дням недели</option>
+                                    <option value="weekly">Р•Р¶РµРЅРµРґРµР»СЊРЅС‹Р№ вЂ” РіСЂР°С„РёРє РїРѕРІС‚РѕСЂСЏРµС‚СЃСЏ РїРѕ РґРЅСЏРј РЅРµРґРµР»Рё</option>
                                 </select>
                             </div>*/}
 
 
-                            {/* Даты */}
+                            {/* Р”Р°С‚С‹ */}
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Дата начала</label>
@@ -649,17 +678,17 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 </div>
                             </div>
 
-                            {/* Периоды */}
+                            {/* РџРµСЂРёРѕРґС‹ */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Периоды</label>
 
-                                {/* Контейнер с прокруткой */}
+                                {/* РљРѕРЅС‚РµР№РЅРµСЂ СЃ РїСЂРѕРєСЂСѓС‚РєРѕР№ */}
                                 <div className="max-h-96 overflow-y-auto pr-1">
                                     {periods.map((p, i) => (
                                         <div key={i}
                                              className="flex gap-2 items-center rounded-2xl border border-gray-200 dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-2"
                                         >
-                                            {/* Стрелки */}
+                                            {/* РЎС‚СЂРµР»РєРё */}
                                             <div className="flex flex-col items-center">
                                                 <button
                                                     type="button"
@@ -689,7 +718,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                 </button>
                                             </div>
 
-                                            {/* День */}
+                                            {/* Р”РµРЅСЊ */}
                                             <select
                                                 value={p.day}
                                                 onChange={(e) =>
@@ -701,13 +730,13 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                 }
                                                 className={inputClass}
                                             >
-                                                {/*<option value="mon">Пн</option>
-                                                <option value="tue">Вт</option>
-                                                <option value="wed">Ср</option>
-                                                <option value="thu">Чт</option>
-                                                <option value="fri">Пт</option>
-                                                <option value="sat">Сб</option>
-                                                <option value="sun">Вс</option>*/}
+                                                {/*<option value="mon">РџРЅ</option>
+                                                <option value="tue">Р’С‚</option>
+                                                <option value="wed">РЎСЂ</option>
+                                                <option value="thu">Р§С‚</option>
+                                                <option value="fri">РџС‚</option>
+                                                <option value="sat">РЎР±</option>
+                                                <option value="sun">Р’СЃ</option>*/}
 
                                                 {WEEK_DAYS.map((day) => (
                                                     <option key={day.value}
@@ -718,7 +747,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                 ))}
                                             </select>
 
-                                            {/* Время начала / конца */}
+                                            {/* Р’СЂРµРјСЏ РЅР°С‡Р°Р»Р° / РєРѕРЅС†Р° */}
                                             <div className="relative flex-1">
                                             <input
                                                 type="time"
@@ -757,7 +786,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                 <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
                                             </div>
 
-                                            {/* Удаление */}
+                                            {/* РЈРґР°Р»РµРЅРёРµ */}
                                             <button
                                                 type="button"
                                                 onClick={() => setPeriods(prev => prev.filter((_, idx) => idx !== i))}
@@ -769,7 +798,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     ))}
                                 </div>
 
-                                {/* Добавить период */}
+                                {/* Р”РѕР±Р°РІРёС‚СЊ РїРµСЂРёРѕРґ */}
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -796,7 +825,7 @@ text-gray-700 dark:text-white
 hover:bg-gray-100 dark:hover:bg-white/20
 transition"
                                         >
-                                            Скопировать на Пн–Пт
+                                            Скопировать на Пн-Пт
                                         </button>
 
                                         <button
@@ -968,7 +997,7 @@ transition"
                     )}
                 </div>
 
-                {/* Футер */}
+                {/* Р¤СѓС‚РµСЂ */}
                 <div className="sticky bottom-0 z-20 border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md px-4 py-4">
 
                     {(submitError || success) && (
@@ -980,14 +1009,14 @@ transition"
                             )}
                             {success && (
                                 <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-3 py-2 text-sm text-green-300">
-                                    ✅ Сохранено
+                                    Сохранено
                                 </div>
                             )}
                         </div>
                     )}
 
                     <div className="flex justify-between gap-3">
-                        {/* Удалить */}
+                        {/* РЈРґР°Р»РёС‚СЊ */}
                         <button
                             onClick={async () => {
                                 if (!employee?.id) return;
@@ -1010,7 +1039,7 @@ transition"
                         </button>
 
                         <div className="flex gap-3">
-                            {/* Закрыть */}
+                            {/* Р—Р°РєСЂС‹С‚СЊ */}
                             <button
                                 onClick={onClose}
                                 className="
@@ -1028,7 +1057,7 @@ transition"
                                 Закрыть
                             </button>
 
-                            {/* Сохранить */}
+                            {/* РЎРѕС…СЂР°РЅРёС‚СЊ */}
                             <button
                                 onClick={handleSave}
                                 disabled={isSubmitting}
@@ -1050,3 +1079,5 @@ transition"
         </div>
     );
 };
+
+

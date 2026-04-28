@@ -1,4 +1,4 @@
-// components/schedulePage/CreateEmployeeModal.tsx
+﻿// components/schedulePage/CreateEmployeeModal.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import { useCreateEmployee } from "@/hooks/useEmployees";
@@ -14,13 +14,15 @@ import {
     getPhoneDigitsCount,
     MIN_PHONE_DIGITS,
 } from "@/components/utils/phone";
+import SpecialtyAutocomplete from "@/components/schedulePage/SpecialtyAutocomplete";
+import QualificationSelect from "@/components/schedulePage/QualificationSelect";
 
 
 type Props = {
     isOpen: boolean;
     branchId: number | null;
     onClose: () => void;
-    onSave: () => void; // вызываем после успешного создания
+    onSave: () => void; // РІС‹Р·С‹РІР°РµРј РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ СЃРѕР·РґР°РЅРёСЏ
 };
 
 
@@ -83,6 +85,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
     const [lastName, setLastName] = useState("");
     //const [phone, setPhone] = useState("");
     const [specialty, setSpecialty] = useState<string>("");
+    const [lvl, setLvl] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [hireDate, setHireDate] = useState<string>("");
 
@@ -98,10 +101,10 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
     const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
     const { data: allServices = [] } = useServices();
     const { mutateAsync: syncServices } = useSyncEmployeeServices();
-    const { mutateAsync: createService } = useCreateService(); // ✅ создаём услугу
+    const { mutateAsync: createService } = useCreateService(); // вњ… СЃРѕР·РґР°С‘Рј СѓСЃР»СѓРіСѓ
 
 
-    // 🔹 локальный стейт для новой услуги
+    // рџ”№ Р»РѕРєР°Р»СЊРЅС‹Р№ СЃС‚РµР№С‚ РґР»СЏ РЅРѕРІРѕР№ СѓСЃР»СѓРіРё
     const [newServiceName, setNewServiceName] = useState("");
     const [newServicePrice, setNewServicePrice] = useState(0);
     const [newServiceDuration, setNewServiceDuration] = useState(30);
@@ -132,7 +135,7 @@ text-black dark:text-white \
 transition \
 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
-    // дефолтные даты графика
+    // РґРµС„РѕР»С‚РЅС‹Рµ РґР°С‚С‹ РіСЂР°С„РёРєР°
     useEffect(() => {
         if (!isOpen) return;
 
@@ -142,34 +145,35 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             .toISOString()
             .split("T")[0];
 
-        // Основные поля
+        // РћСЃРЅРѕРІРЅС‹Рµ РїРѕР»СЏ
         setName("");
         setLastName("");
         setPhone("");
         setSpecialty("");
+        setLvl("");
         setEmail("");
         setHireDate("");
         setRole("master");
 
-        // Вкладка
+        // Р’РєР»Р°РґРєР°
         setActiveTab("info");
 
-        // График
+        // Р“СЂР°С„РёРє
         setLocalStartDate(defaultStart);
         setLocalEndDate(defaultEnd);
         setPeriods([{ day: "mon" as WeekDay, start: "09:00", end: "18:00" }]);
 
-        // Услуги сотрудника
+        // РЈСЃР»СѓРіРё СЃРѕС‚СЂСѓРґРЅРёРєР°
         setSelectedServices([]);
         setServiceSearch("");
         setIsServiceDropdownOpen(false);
 
-        // Создание новой услуги
+        // РЎРѕР·РґР°РЅРёРµ РЅРѕРІРѕР№ СѓСЃР»СѓРіРё
         setNewServiceName("");
         setNewServicePrice(0);
         setNewServiceDuration(30);
 
-        // Статусы UI
+        // РЎС‚Р°С‚СѓСЃС‹ UI
         setSubmitError(null);
         setIsSubmitting(false);
         setSuccess(false);
@@ -225,7 +229,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     };
 
     const changeSelectedQty = (serviceId: number, delta: number) => {
-        // если qty у тебя тут не нужен для employee services — этот кусок можно убрать
+        // РµСЃР»Рё qty Сѓ С‚РµР±СЏ С‚СѓС‚ РЅРµ РЅСѓР¶РµРЅ РґР»СЏ employee services вЂ” СЌС‚РѕС‚ РєСѓСЃРѕРє РјРѕР¶РЅРѕ СѓР±СЂР°С‚СЊ
     };
 
     const filteredServices = allServices.filter((service) => {
@@ -279,15 +283,15 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             err?.response?.data?.error ||
             err?.message;
 
-        if (!msg) return "Не удалось создать сотрудника. Попробуйте ещё раз.";
+        if (!msg) return "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СЃРѕС‚СЂСѓРґРЅРёРєР°. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.";
 
-        // чуть “причесать” дубли типа "Не удалось создать...: Не удалось создать..."
-        return String(msg).replace(/^(Не удалось создать учётную запись:\s*)+/i, "Не удалось создать учётную запись: ");
+        // С‡СѓС‚СЊ вЂњРїСЂРёС‡РµСЃР°С‚СЊвЂќ РґСѓР±Р»Рё С‚РёРїР° "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ...: РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ..."
+        return String(msg).replace(/^(РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ:\s*)+/i, "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ: ");
     };
 
     const handleSave = async () => {
         if (!branchId) {
-            alert("Филиал не выбран");
+            alert("Р¤РёР»РёР°Р» РЅРµ РІС‹Р±СЂР°РЅ");
             return;
         }
 
@@ -295,23 +299,24 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         setIsSubmitting(true);
 
         try {
-            // ✨ Формируем payload строго по EmployeeCreatePayload
+            // вњЁ Р¤РѕСЂРјРёСЂСѓРµРј payload СЃС‚СЂРѕРіРѕ РїРѕ EmployeeCreatePayload
             const payload: EmployeeCreatePayload = {
                 branch_id: branchId,
                 name,
                 specialty,
+                lvl: lvl || null,
                 hire_date: hireDate,
                 online_booking: 1,
-                role,        // <-- ВСТАВИТЬ СЮДА
+                role,        // <-- Р’РЎРўРђР’РРўР¬ РЎР®Р”Рђ
                 last_name: lastName || null,
                 phone: phone || null,
                 email: email || null,
             };
 
-            // ✨ Вызываем createEmployee и сохраняем результат
+            // вњЁ Р’С‹Р·С‹РІР°РµРј createEmployee Рё СЃРѕС…СЂР°РЅСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚
             const newEmployee = await createEmployee(payload);
 
-            // 2. создаём график
+            // 2. СЃРѕР·РґР°С‘Рј РіСЂР°С„РёРє
             await createSchedule({
                 employee_id: newEmployee.id,
                 schedule_type: "weekly",
@@ -321,7 +326,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 periods: periods.map((p) => [p.day, p.start, p.end]) as [string, string, string][],
             });
 
-            // 3. сохраняем услуги
+            // 3. СЃРѕС…СЂР°РЅСЏРµРј СѓСЃР»СѓРіРё
             const normalized: EmployeeServicePayload[] = selectedServices.map((s) => ({
                 service_id: s.service_id,
                 individual_price: s.individual_price ?? 0,
@@ -335,30 +340,25 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 });
             }
 
-            //console.log("✅ Сотрудник успешно создан:", newEmployee);
+            //console.log("вњ… РЎРѕС‚СЂСѓРґРЅРёРє СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅ:", newEmployee);
 
-            console.log("✅ Сотрудник успешно создан:", newEmployee);
+            console.log("вњ… РЎРѕС‚СЂСѓРґРЅРёРє СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅ:", newEmployee);
 
             setSuccess(true);
+            onSave();
 
-            setTimeout(() => {
-                setSuccess(false);
-                onSave();
-                onClose();
-            }, 2000);
-
-            return; // важно
+            return; // РІР°Р¶РЅРѕ
         } catch (err) {
-            /*console.error("❌ Ошибка при создании сотрудника:", err);
-            alert("Не удалось создать сотрудника");*/
-            console.error("❌ Ошибка при создании сотрудника:", err);
-           setSubmitError(getErrorMessage(err)); // ✅ вот тут
+            /*console.error("вќЊ РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё СЃРѕС‚СЂСѓРґРЅРёРєР°:", err);
+            alert("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СЃРѕС‚СЂСѓРґРЅРёРєР°");*/
+            console.error("вќЊ РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё СЃРѕС‚СЂСѓРґРЅРёРєР°:", err);
+           setSubmitError(getErrorMessage(err)); // вњ… РІРѕС‚ С‚СѓС‚
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // ✅ создание услуги прямо из модалки сотрудника
+    // вњ… СЃРѕР·РґР°РЅРёРµ СѓСЃР»СѓРіРё РїСЂСЏРјРѕ РёР· РјРѕРґР°Р»РєРё СЃРѕС‚СЂСѓРґРЅРёРєР°
     const handleCreateService = async () => {
         if (!newServiceName || !branchId) return;
 
@@ -373,16 +373,16 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 online_booking_description: "",
             });
 
-            // очищаем поля
+            // РѕС‡РёС‰Р°РµРј РїРѕР»СЏ
             setNewServiceName("");
             setNewServicePrice(0);
             setNewServiceDuration(30);
 
-            // обновляем список услуг везде, где используется useServices()
+            // РѕР±РЅРѕРІР»СЏРµРј СЃРїРёСЃРѕРє СѓСЃР»СѓРі РІРµР·РґРµ, РіРґРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ useServices()
             queryClient.invalidateQueries({ queryKey: ["services"] });
         } catch (err) {
-            console.error("❌ Ошибка при создании услуги:", err);
-            alert("Не удалось создать услугу");
+            console.error("вќЊ РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё СѓСЃР»СѓРіРё:", err);
+            alert("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓСЃР»СѓРіСѓ");
         }
     };
 
@@ -423,7 +423,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
                 </div>
 
-                {/* Вкладки */}
+                {/* Р’РєР»Р°РґРєРё */}
                 <div className="flex justify-around border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))]">
                     {["info", "schedule", "services"].map((tab) => (
                         <button
@@ -442,7 +442,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     ))}
                 </div>
 
-                {/* Контент */}
+                {/* РљРѕРЅС‚РµРЅС‚ */}
                 <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white space-y-4 bg-gray-50 dark:bg-[rgb(var(--background))]">
                     {activeTab === "info" && (
                         <div className="space-y-4">
@@ -472,17 +472,30 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Специализация</label>
-                                    <input
-                                        type="text"
+                                    <SpecialtyAutocomplete
                                         value={specialty}
-                                        onChange={(e) => setSpecialty(e.target.value)}
-                                        className={inputClass}
+                                        onChange={setSpecialty}
+                                        inputClassName={inputClass}
                                         placeholder="Например: массажист"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Роль в системе</label>
+                                    <div className="mb-4">
+                                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Квалификация
+                                        </label>
+                                        <QualificationSelect value={lvl} onChange={setLvl} />
+
+                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                            Уровень сотрудника в компании. Выбранный вариант будет использоваться для цветовой маркировки мастера.
+                                        </p>
+                                    </div>
+
+                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Роль в системе
+                                    </label>
+
                                     <select
                                         value={role}
                                         onChange={(e) => setRole(e.target.value as EmployeeRole)}
@@ -531,7 +544,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                                     {showError && (
                                         <p className="mt-1 text-xs text-red-500">
-                                            Введите корректный номер: от {MIN_PHONE_DIGITS} цифр, только цифры и “+” в начале.
+                                            Введите корректный номер: от {MIN_PHONE_DIGITS} цифр, только цифры и "+" в начале.
                                         </p>
                                     )}
 
@@ -682,7 +695,7 @@ text-gray-700 dark:text-white
 hover:bg-gray-100 dark:hover:bg-white/20
 transition"
                                         >
-                                            Скопировать на Пн–Пт
+                                            Скопировать на Пн-Пт
                                         </button>
 
                                         <button
@@ -706,7 +719,7 @@ transition"
 
                     {activeTab === "services" && (
                         <div className="space-y-4">
-                            {/* Новый блок создания услуги */}
+                            {/* РќРѕРІС‹Р№ Р±Р»РѕРє СЃРѕР·РґР°РЅРёСЏ СѓСЃР»СѓРіРё */}
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <h4 className="font-semibold text-black dark:text-white mb-2">Новая услуга</h4>
                                 <input
@@ -739,14 +752,14 @@ transition"
                                 </button>
                             </div>
 
-                            {/* Picker услуг */}
+                            {/* Picker СѓСЃР»СѓРі */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Выберите услуги</label>
                                 </div>
 
                                 <div className="border border-gray-200 dark:border-white/10 rounded-2xl p-3 bg-white dark:bg-white/5 relative">
-                                    {/* Выбранные услуги */}
+                                    {/* Р’С‹Р±СЂР°РЅРЅС‹Рµ СѓСЃР»СѓРіРё */}
                                     {selectedServices.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-3">
                                             {selectedServices.map((selected) => {
@@ -842,7 +855,7 @@ transition"
                                         </div>
                                     )}
 
-                                    {/* Поиск + кнопка */}
+                                    {/* РџРѕРёСЃРє + РєРЅРѕРїРєР° */}
                                     <div className="flex items-center gap-2">
                                         <input
                                             type="text"
@@ -899,7 +912,7 @@ transition"
                     )}
                 </div>
 
-                {/* Футер */}
+                {/* Р¤СѓС‚РµСЂ */}
                 <div className="sticky bottom-0 z-20 border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md px-4 py-4">
 
                     {(submitError || success) && (
@@ -911,7 +924,7 @@ transition"
                             )}
                             {success && (
                                 <div className="rounded-xl border border-green-500/20 bg-green-500/10 px-3 py-2 text-sm text-green-300">
-                                    ✅ Сотрудник создан
+                                    Сотрудник создан
                                 </div>
                             )}
                         </div>
@@ -962,3 +975,5 @@ transition"
         </div>
     );
 };
+
+
