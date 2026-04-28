@@ -213,10 +213,25 @@ export const fetchPeriodStats = (
 };
 
 
-export const fetchClientAppointments = async (clientId: number) => {
+/*export const fetchClientAppointments = async (clientId: number) => {
     const response = await apiClient.get("/appointments", {
         params: { client_id: clientId },
     });
+
+    return response.data.data ?? [];
+};*/
+
+export const fetchClientAppointments = async (clientId: number): Promise<AppointmentResponse[]> => {
+    const response = await apiClient.get<AppointmentResponse[] | { data: AppointmentResponse[] }>(
+        "/appointments",
+        {
+            params: { client_id: clientId },
+        },
+    );
+
+    if (Array.isArray(response.data)) {
+        return response.data;
+    }
 
     return response.data.data ?? [];
 };
