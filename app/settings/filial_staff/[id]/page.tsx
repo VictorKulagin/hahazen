@@ -29,6 +29,8 @@ import { useTheme } from "@/lib/theme/theme.context";
 import { Trash2 } from "lucide-react";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
+import { LEVEL_COLOR_STYLES, LEVEL_OPTIONS } from "@/lib/employee-levels";
+
 
 const Page: React.FC = ( ) => {
 
@@ -584,7 +586,6 @@ const EmployeesTable = ({
         "bg-emerald-500",
         "bg-rose-500",
     ];
-
     function getAvatarColor(name: string = "") {
         let hash = 0;
 
@@ -594,6 +595,14 @@ const EmployeesTable = ({
 
         const index = Math.abs(hash) % avatarColors.length;
         return avatarColors[index];
+    }
+
+    function getLevelOption(lvl?: string | null) {
+        return (
+            LEVEL_OPTIONS.find((option) => option.value === (lvl ?? "")) ??
+            LEVEL_OPTIONS.find((option) => option.value === "") ??
+            LEVEL_OPTIONS[LEVEL_OPTIONS.length - 1]
+        );
     }
 
     return (
@@ -637,8 +646,20 @@ const EmployeesTable = ({
                                                 {employee.name}
                                             </div>
 
-                                            <div className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                                {employee.specialty || "Роль не указана"}
+                                            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                                <span>{employee.specialty || "Роль не указана"}</span>
+
+                                                {(() => {
+                                                    const level = getLevelOption(employee.lvl);
+                                                    const color = LEVEL_COLOR_STYLES[level.color];
+
+                                                    return (
+                                                        <span className="inline-flex items-center gap-1.5">
+                <span className={`h-2 w-2 rounded-full ${color.dot}`} />
+                <span>{level.label}</span>
+            </span>
+                                                    );
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
