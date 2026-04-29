@@ -138,7 +138,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             setLastName(employee.last_name ?? "");
             setPhone(employee.phone ?? "");
             setSpecialty(employee.specialty ?? "");
-            setLvl(employee.lvl ?? "");
+            setLvl(employee.lvl == null ? "" : String(employee.lvl));
             setEmail(employee.email ?? "");
             setHireDate(employee.hire_date ?? "");
             setRole((employee.role ?? "master") as EmployeeRole);

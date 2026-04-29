@@ -13,7 +13,7 @@ import {branchesList} from "@/services/branchesList";
 import {companiesList} from "@/services/companiesList";
 import { Employee, fetchEmployees } from "@/services/employeeApi";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
-import { deleteEmployee } from "@/services/employeeApi";
+import { deleteEmployee, updateEmployee } from "@/services/employeeApi";
 import {AxiosError} from "axios";
 import usePhoneInput from '@/hooks/usePhoneInput';
 import { CreateEmployeeModal } from "@/components/schedulePage/CreateEmployeeModal";
@@ -545,10 +545,12 @@ const Page: React.FC = ( ) => {
                     employee={editingEmployee}
                     onClose={() => setIsEditModalOpen(false)}
                     onSave={async (updated) => {
-                        // локальное обновление списка
+                        const savedEmployee = await updateEmployee(updated.id, updated);
+
                         setEmployees((prev) =>
-                            prev.map((emp) => (emp.id === updated.id ? updated : emp))
+                            prev.map((emp) => (emp.id === savedEmployee.id ? savedEmployee : emp))
                         );
+
                         setIsEditModalOpen(false);
                     }}
                 />
@@ -599,7 +601,7 @@ const EmployeesTable = ({
 
     function getLevelOption(lvl?: string | null) {
         return (
-            LEVEL_OPTIONS.find((option) => option.value === (lvl ?? "")) ??
+            LEVEL_OPTIONS.find((option) => option.value === (lvl == null ? "" : String(lvl))) ??
             LEVEL_OPTIONS.find((option) => option.value === "") ??
             LEVEL_OPTIONS[LEVEL_OPTIONS.length - 1]
         );

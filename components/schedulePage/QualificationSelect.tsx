@@ -12,10 +12,11 @@ type Props = {
 export default function QualificationSelect({ value, onChange }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const rootRef = useRef<HTMLDivElement | null>(null);
+    const normalizedValue = value == null ? "" : String(value);
 
     const selectedLevel = useMemo(
-        () => LEVEL_OPTIONS.find((level) => level.value === value) ?? LEVEL_OPTIONS[LEVEL_OPTIONS.length - 1],
-        [value]
+        () => LEVEL_OPTIONS.find((level) => level.value === normalizedValue) ?? LEVEL_OPTIONS[LEVEL_OPTIONS.length - 1],
+        [normalizedValue]
     );
 
     useEffect(() => {
@@ -54,7 +55,7 @@ export default function QualificationSelect({ value, onChange }: Props) {
                 <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-xl dark:border-white/10 dark:bg-[rgb(var(--card))]">
                     <div className="max-h-72 overflow-y-auto p-2">
                         {LEVEL_OPTIONS.map((level) => {
-                            const isSelected = level.value === value;
+                            const isSelected = level.value === normalizedValue;
 
                             return (
                                 <button
