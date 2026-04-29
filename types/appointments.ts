@@ -40,9 +40,12 @@ export interface AppointmentResponse {
 }*/
 
 export interface AppointmentService {
-    service_id: number;
+    id?: number;
+    service_id?: number;
     qty: number;
     name?: string;
+    individual_price?: number;
+    service_duration_minutes?: number;
 }
 
 export interface AppointmentServiceRequest {
@@ -58,12 +61,13 @@ export interface AppointmentRequest {
     client_id?: number;
     employee_id: number;
     branch_id: number;
-    comment?: string;
+    comment?: string | null;
     date: string;
     time_start: string;
     time_end: string;
 
     cost: number;
+    paid_amount?: number;
     payment_status: PaymentStatus;
     payment_method: PaymentMethod;
     visit_status: VisitStatus;
@@ -77,8 +81,11 @@ export interface AppointmentResponse {
     total_duration: number;
     branch_id: number;
     employee_id: number;
+    datetime_start?: string;
+    datetime_end?: string;
 
     cost?: number;
+    paid_amount?: number;
     payment_status?: PaymentStatus;
     payment_method?: PaymentMethod;
     visit_status?: VisitStatus;

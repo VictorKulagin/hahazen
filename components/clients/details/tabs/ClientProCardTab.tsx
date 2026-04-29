@@ -4,7 +4,6 @@ import React, { FormEvent, MouseEvent, useEffect, useMemo, useState } from "reac
 import {
     Check,
     Edit3,
-    FileText,
     Info,
     Loader2,
     MapPin,
@@ -15,7 +14,6 @@ import {
 import { Client } from "@/services/clientApi";
 import {
     ClientProCardMark,
-    ClientProCardType,
     UpsertClientProCardMarkPayload,
 } from "@/services/clientProCardApi";
 import {
@@ -26,6 +24,7 @@ import {
     useUpdateClientProCardMark,
 } from "@/hooks/useClientProCard";
 import { useClientAppointments } from "@/hooks/useClientAppointments";
+import { AppointmentResponse } from "@/types/appointments";
 
 type ClientProCardTabProps = {
     client: Client;
@@ -58,11 +57,6 @@ const mapOptions = [
     },
 ];
 
-const proCardTypes: Array<{ value: ClientProCardType; label: string }> = [
-    { value: "body", label: "Карта тела" },
-    { value: "text", label: "Текст" },
-];
-
 const emptyMarkForm = (mapKey: string, x = 50, y = 50): MarkFormState => ({
     appointment_id: null,
     service_id: null,
@@ -77,6 +71,29 @@ const emptyMarkForm = (mapKey: string, x = 50, y = 50): MarkFormState => ({
 
 const getMarkLabel = (mark: ClientProCardMark) =>
     mark.title || mark.diagnosis || mark.description || "Без описания";
+
+const getAppointmentServiceId = (appointment?: AppointmentResponse) =>
+    appointment?.services?.[0]?.service_id ?? appointment?.services?.[0]?.id ?? null;
+
+const formatAppointmentLabel = (appointment: AppointmentResponse) => {
+    const date = new Date(appointment.appointment_datetime);
+
+    const formattedDate = Number.isNaN(date.getTime())
+        ? appointment.appointment_datetime
+        : date.toLocaleString("ru-RU", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+
+    const serviceName = appointment.services?.[0]?.name;
+
+    return [formattedDate, serviceName, `${appointment.total_duration} мин`]
+        .filter(Boolean)
+        .join(" · ");
+};
 
 const PRO_CARD_NOTICE_STORAGE_KEY = "hahazen-pro-card-visual-notice-seen";
 
@@ -93,9 +110,7 @@ export default function ClientProCardTab({
 }: ClientProCardTabProps) {
     const clientId = client.id;
     const [activeMapKey, setActiveMapKey] = useState("front");
-    const [typeDraft, setTypeDraft] = useState<ClientProCardType>("body");
     const [titleDraft, setTitleDraft] = useState("");
-    const [textDraft, setTextDraft] = useState("");
     const [markForm, setMarkForm] = useState<MarkFormState | null>(null);
     const [showVisualNotice, setShowVisualNotice] = useState(false);
     const [syncedClientId, setSyncedClientId] = useState<number | null>(null);
@@ -111,9 +126,7 @@ export default function ClientProCardTab({
     useEffect(() => {
         if (!proCard || !clientId || syncedClientId === clientId) return;
 
-        setTypeDraft(proCard.type);
         setTitleDraft(proCard.title ?? "");
-        setTextDraft(proCard.text ?? "");
         setSyncedClientId(clientId);
     }, [clientId, proCard, syncedClientId]);
 
@@ -160,9 +173,9 @@ export default function ClientProCardTab({
 
     const saveCard = () => {
         updateCard.mutate({
-            type: typeDraft,
+            type: "body",
             title: titleDraft || null,
-            text: textDraft || null,
+            text: proCard?.text ?? null,
         });
     };
 
@@ -182,7 +195,7 @@ export default function ClientProCardTab({
     };
 
     const handleMapClick = (event: MouseEvent<HTMLDivElement>) => {
-        if (!canEdit || typeDraft !== "body") return;
+        if (!canEdit) return;
 
         const rect = event.currentTarget.getBoundingClientRect();
         const x = ((event.clientX - rect.left) / rect.width) * 100;
@@ -196,6 +209,8 @@ export default function ClientProCardTab({
         if (!markForm) return;
 
         const payload: UpsertClientProCardMarkPayload = {
+            appointment_id: markForm.appointment_id ?? null,
+            service_id: markForm.service_id ?? null,
             map_key: markForm.map_key,
             mark_type: markForm.mark_type,
             x: markForm.x,
@@ -264,42 +279,22 @@ export default function ClientProCardTab({
                     Используется для визуальных заметок. Не является медицинской документацией.
                 </p>
                 <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-                    <div className="grid gap-3 md:grid-cols-[180px_minmax(0,1fr)]">
-                        <label className="space-y-1 text-sm font-medium text-gray-700 dark:text-gray-200">
-                            <span>Тип профкарты</span>
-                            <select
-                                value={typeDraft}
-                                disabled={!canEdit}
-                                onChange={(event) =>
-                                    setTypeDraft(event.target.value as ClientProCardType)
-                                }
-                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none transition focus:border-green-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                            >
-                                {proCardTypes.map((item) => (
-                                    <option key={item.value} value={item.value} className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">
-                                        {item.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </label>
-
-                        <label className="space-y-1 text-sm font-medium text-gray-700 dark:text-gray-200">
-                            <span>Заголовок</span>
-                            <input
-                                value={titleDraft}
-                                disabled={!canEdit}
-                                onChange={(event) => setTitleDraft(event.target.value)}
-                                placeholder={typeDraft === "body" ? "Карта тела" : "Профкарта"}
-                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                            />
-                        </label>
-                    </div>
+                    <label className="space-y-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+                        <span>Заголовок карты тела</span>
+                        <input
+                            value={titleDraft}
+                            disabled={!canEdit}
+                            onChange={(event) => setTitleDraft(event.target.value)}
+                            placeholder="Карта тела"
+                            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                        />
+                    </label>
 
                     {canEdit && (
                         <button
                             type="button"
                             onClick={saveCard}
-                            disabled={updateCard.isPending}
+                            disabled={isSaving}
                             className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             <Save className="h-4 w-4" />
@@ -307,32 +302,9 @@ export default function ClientProCardTab({
                         </button>
                     )}
                 </div>
-
-                <label className="mt-4 block space-y-1 text-sm font-medium text-gray-700 dark:text-gray-200">
-                    <span>Общий текст</span>
-                    <textarea
-                        value={textDraft}
-                        disabled={!canEdit}
-                        onChange={(event) => setTextDraft(event.target.value)}
-                        placeholder="Общие рекомендации, особенности клиента, противопоказания"
-                        rows={4}
-                        className="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 dark:border-white/10 dark:bg-white/5 dark:text-white"
-                    />
-                </label>
             </div>
 
-            {typeDraft === "text" ? (
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
-                    <div className="mb-3 flex items-center gap-2 text-gray-900 dark:text-white">
-                        <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
-                        <h2 className="text-lg font-semibold">Текстовая профкарта</h2>
-                    </div>
-                    <p className="whitespace-pre-wrap text-sm leading-6 text-gray-600 dark:text-gray-300">
-                        {textDraft || "Пока нет текста профкарты."}
-                    </p>
-                </div>
-            ) : (
-                <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
                     <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
@@ -449,7 +421,7 @@ export default function ClientProCardTab({
                                         onChange={(event) => {
                                             const appointmentId = event.target.value ? Number(event.target.value) : null;
                                             const appointment = appointments.find((item) => item.id === appointmentId);
-                                            const serviceId = appointment?.services?.[0]?.service_id ?? null;
+                                            const serviceId = getAppointmentServiceId(appointment);
 
                                             setMarkForm({
                                                 ...markForm,
@@ -462,8 +434,8 @@ export default function ClientProCardTab({
                                         <option value="">Без привязки к визиту</option>
 
                                         {appointments.map((appointment) => (
-                                            <option key={appointment.id} value={appointment.id}>
-                                                {appointment.appointment_datetime} · {appointment.total_duration} мин
+                                            <option key={appointment.id} value={appointment.id} className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">
+                                                {formatAppointmentLabel(appointment)}
                                             </option>
                                         ))}
                                     </select>
@@ -569,7 +541,6 @@ export default function ClientProCardTab({
                         </div>
                     </div>
                 </div>
-            )}
         </div>
     );
 }

@@ -154,6 +154,83 @@ export const updateAppointment = async (
     return response.data;
 };
 
+const splitDateTime = (value?: string) => {
+    if (!value) return { date: "", time: "" };
+
+    const normalized = value.trim().replace("T", " ");
+    const [date = "", time = ""] = normalized.split(" ");
+
+    return {
+        date: date.slice(0, 10),
+        time: time.slice(0, 5),
+    };
+};
+
+const getAppointmentEndTime = (appointment: AppointmentResponse) => {
+    const explicitEnd = splitDateTime(appointment.datetime_end).time;
+
+    if (explicitEnd) return explicitEnd;
+
+    const start = new Date(appointment.appointment_datetime.replace(" ", "T"));
+
+    if (Number.isNaN(start.getTime())) {
+        return splitDateTime(appointment.datetime_start).time || "00:00";
+    }
+
+    start.setMinutes(start.getMinutes() + appointment.total_duration);
+
+    return `${String(start.getHours()).padStart(2, "0")}:${String(
+        start.getMinutes(),
+    ).padStart(2, "0")}`;
+};
+
+const buildAppointmentCommentPayload = (
+    appointment: AppointmentResponse,
+    comment: string | null,
+): AppointmentRequest => {
+    const startFromDatetime = splitDateTime(appointment.datetime_start);
+    const startFromAppointment = splitDateTime(appointment.appointment_datetime);
+    const date = startFromDatetime.date || startFromAppointment.date;
+    const timeStart = startFromDatetime.time || startFromAppointment.time;
+
+    if (!date || !timeStart) {
+        throw new Error("Не удалось определить дату и время выбранного визита.");
+    }
+
+    return {
+        client_id: appointment.client?.id,
+        employee_id: appointment.employee_id,
+        branch_id: appointment.branch_id,
+        date,
+        time_start: timeStart,
+        time_end: getAppointmentEndTime(appointment),
+        services: (appointment.services ?? [])
+            .map((service) => ({
+                service_id: service.service_id ?? service.id ?? 0,
+                qty: service.qty ?? 1,
+            }))
+            .filter((service) => service.service_id > 0),
+        cost: appointment.cost ?? 0,
+        paid_amount: appointment.paid_amount ?? 0,
+        payment_status: appointment.payment_status ?? "unpaid",
+        payment_method: appointment.payment_method ?? null,
+        visit_status: appointment.visit_status ?? "expected",
+        comment,
+    };
+};
+
+export const updateAppointmentComment = async (
+    appointment: AppointmentResponse,
+    comment: string | null,
+): Promise<AppointmentResponse> => {
+    const response = await apiClient.put<AppointmentResponse>(
+        `/appointments/${appointment.id}`,
+        buildAppointmentCommentPayload(appointment, comment),
+    );
+
+    return response.data;
+};
+
 export const deleteAppointment = async (id: number): Promise<void> => {
     await apiClient.delete(`/appointments/${id}`);
 };
@@ -230,12 +307,25 @@ export const fetchPeriodStats = (
     return response.data.data ?? [];
 };*/
 
+const getAppointmentTimestamp = (appointment: AppointmentResponse) => {
+    const value = appointment.datetime_start ?? appointment.appointment_datetime;
+    const timestamp = new Date(value.replace(" ", "T")).getTime();
+
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+};
+
 export const fetchClientAppointments = async (
     clientId: number
 ): Promise<AppointmentResponse[]> => {
     const response = await apiClient.get<unknown>("/appointments", {
-        params: { client_id: clientId },
+        params: { client_id: clientId, sort: "-id" },
     });
 
-    return normalizeListPayload<AppointmentResponse>(response.data).rows;
+    return normalizeListPayload<AppointmentResponse>(response.data).rows
+        .slice()
+        .sort((a, b) => {
+            const dateDiff = getAppointmentTimestamp(b) - getAppointmentTimestamp(a);
+
+            return dateDiff || b.id - a.id;
+        });
 };
