@@ -18,6 +18,35 @@ export interface Client {
     forbid_online_booking?: 0 | 1;
     comment?: string;
     photo?: string | null;
+    bonus_balance?: number;
+    appointments_arrived_count?: number;
+    lifetime_paid_amount?: number;
+    last_arrived_at?: string | null;
+    activity_status?: "new" | "active" | "inactive" | string;
+}
+
+export type ClientBonusTransactionKind = "top_up" | "spend" | "manual";
+
+export interface ClientBonusTransaction {
+    id: number;
+    delta: number;
+    kind: ClientBonusTransactionKind;
+    balance_after: number;
+    comment?: string | null;
+    created_at: number;
+    created_by?: number | null;
+}
+
+export interface ClientBonusTransactionsApiResponse {
+    _meta?: ListMeta;
+    meta?: ListMeta;
+    data: ClientBonusTransaction[];
+}
+
+export interface CreateClientBonusTransactionPayload {
+    delta: number;
+    kind: ClientBonusTransactionKind;
+    comment?: string | null;
 }
 
 export interface ClientsApiResponse {
@@ -80,4 +109,40 @@ export const deleteClient = async (id: number): Promise<void> => {
         console.error("Error deleting client:", error);
         throw error;
     }
+};
+
+export const fetchClientBonusTransactions = async (
+    clientId: number,
+    params?: {
+        page?: number;
+        perPage?: number;
+    }
+): Promise<ClientBonusTransactionsApiResponse> => {
+    const response = await apiClient.get<
+        ClientBonusTransactionsApiResponse | ClientBonusTransaction[]
+    >(`/clients/${clientId}/bonus-transactions`, {
+        params: {
+            page: params?.page,
+            "per-page": params?.perPage,
+        },
+    });
+    const normalized = normalizeListPayload<ClientBonusTransaction>(response.data);
+
+    return {
+        ...(Array.isArray(response.data) ? {} : response.data),
+        data: normalized.rows,
+        _meta: normalized.meta,
+    };
+};
+
+export const createClientBonusTransaction = async (
+    clientId: number,
+    data: CreateClientBonusTransactionPayload
+): Promise<ClientBonusTransaction> => {
+    const response = await apiClient.post<ClientBonusTransaction>(
+        `/clients/${clientId}/bonus-transactions`,
+        data
+    );
+
+    return response.data;
 };

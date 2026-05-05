@@ -4,12 +4,19 @@ import React from "react";
 import {
     ClipboardPlus,
     FileText,
+    Gift,
     LayoutGrid,
     UserRound,
     Users,
 } from "lucide-react";
 
-export type ClientDetailsTab = "overview" | "visits" | "proCard" | "notes" | "referrals";
+export type ClientDetailsTab =
+    | "overview"
+    | "visits"
+    | "bonuses"
+    | "proCard"
+    | "notes"
+    | "referrals";
 
 type ClientDetailsTabsProps = {
     activeTab: ClientDetailsTab;
@@ -24,8 +31,9 @@ const tabs: Array<{
     { id: "overview", label: "Общее", icon: UserRound },
     { id: "visits", label: "Визиты", icon: ClipboardPlus },
     { id: "proCard", label: "Профкарта", icon: LayoutGrid },
-    { id: "notes", label: "Заметки", icon: FileText },
-    { id: "referrals", label: "Рефералы", icon: Users },
+    { id: "bonuses", label: "Бонусы", icon: Gift },
+    //{ id: "notes", label: "Заметки", icon: FileText },
+    //{ id: "referrals", label: "Рефералы", icon: Users },
 ];
 
 export default function ClientDetailsTabs({

@@ -76,6 +76,7 @@ export default function ClientOverviewTab({
     const extraInfo: InfoItem[] = [
         { icon: StarIcon, label: "VIP", value: client.vip === 1 ? "Да" : "Нет" },
         { icon: GiftIcon, label: "Скидка", value: client.discount },
+        { icon: GiftIcon, label: "Бонусы", value: client.bonus_balance ?? 0 },
         { icon: CreditCardIcon, label: "Номер карты", value: client.card_number },
         { icon: CakeIcon, label: "День рождения", value: client.birth_date },
         {

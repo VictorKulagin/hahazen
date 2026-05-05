@@ -10,6 +10,7 @@ import ClientOverviewTab from "@/components/clients/details/tabs/ClientOverviewT
 import ClientProCardTab from "@/components/clients/details/tabs/ClientProCardTab";
 import ClientTabPlaceholder from "@/components/clients/details/ClientTabPlaceholder";
 import ClientVisitsTab from "@/components/clients/details/tabs/ClientVisitsTab";
+import ClientBonusesTab from "@/components/clients/details/tabs/ClientBonusesTab";
 
 
 type ClientDetailsPanelProps = {
@@ -35,6 +36,8 @@ export default function ClientDetailsPanel({
                 return <ClientOverviewTab client={client} canEdit={canEdit} onEdit={onEdit} />;
             case "visits":
                 return <ClientVisitsTab client={client} />;
+            case "bonuses":
+                return <ClientBonusesTab client={client} canEdit={canEdit} />;
             case "proCard":
                 return <ClientProCardTab client={client} canEdit={canEdit} />;
             case "notes":
