@@ -21,6 +21,8 @@ export interface Employee {
     phone: string | null;
     photo: string | null;
     role: string;
+    invite_token?: string | null;
+    invite_sent_at?: number | null;
 }
 
 
@@ -35,6 +37,13 @@ export interface EmployeeCreatePayload {
     last_name?: string | null;
     phone?: string | null;
     email?: string | null;
+}
+
+export interface EmployeeInviteResponse {
+    ok: boolean;
+    invite_sent_at: number;
+    invite_token: string;
+    existing_user: boolean;
 }
 // Получение списка сотрудников
 export const fetchEmployees = async (branchId?: number): Promise<Employee[]> => {
@@ -74,13 +83,6 @@ export const createEmployee = async (payload: EmployeeCreatePayload): Promise<Em
     }
 };
 
-
-
-// Удаление сотрудника
-/*export const deleteEmployee = async (id: number): Promise<void> => {
-    await apiClient.delete(`/employees/${id}`);
-};*/
-debugger;
 export const deleteEmployee = async (id: number): Promise<void> => {
     debugger;
     console.log("🗑 Отправляем запрос на удаление сотрудника:", id);
@@ -91,6 +93,16 @@ export const deleteEmployee = async (id: number): Promise<void> => {
 // Обновление сотрудника
 export const updateEmployee = async (id: number, updatedData: Partial<Employee>): Promise<Employee> => {
     const response = await apiClient.put<Employee>(`/employees/${id}`, updatedData);
+    return response.data;
+};
+
+export const inviteEmployee = async (
+    id: number
+): Promise<EmployeeInviteResponse> => {
+    const response = await apiClient.post<EmployeeInviteResponse>(
+        `/employees/${id}/invite`
+    );
+
     return response.data;
 };
 

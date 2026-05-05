@@ -11,7 +11,7 @@ import {withAuth} from "@/hoc/withAuth";
 import {useParams, useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
 import {companiesList} from "@/services/companiesList";
-import { Employee, fetchEmployees } from "@/services/employeeApi";
+import { Employee, fetchEmployees, inviteEmployee } from "@/services/employeeApi";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
 import { deleteEmployee, updateEmployee } from "@/services/employeeApi";
 import {AxiosError} from "axios";
@@ -26,7 +26,7 @@ import { authStorage } from "@/services/authStorage";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 
-import { Trash2 } from "lucide-react";
+import { Trash2, Mail, Send } from "lucide-react";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import { LEVEL_COLOR_STYLES, LEVEL_OPTIONS } from "@/lib/employee-levels";
@@ -68,7 +68,8 @@ const Page: React.FC = ( ) => {
     const [error, setError] = useState<string>("");
 
     const [isNotFound, setIsNotFound] = useState(false);
-    //const [collapsed, setCollapsed] = useState(false);
+    const [invitingEmployeeId, setInvitingEmployeeId] = useState<number | null>(null);
+
     const { collapsed, setCollapsed, isReady } = useSidebarCollapsed();
 
     const { theme } = useTheme();
@@ -93,6 +94,44 @@ const Page: React.FC = ( ) => {
         await logoutApi();
         localStorage.removeItem("access_token"); // Удаляем токен
         router.push("/signin"); // Перенаправляем на страницу логина
+    };
+
+    const handleInvite = async (employee: Employee) => {
+        if (!employee.email) {
+            alert("У сотрудника не указан email.");
+            return;
+        }
+
+        setInvitingEmployeeId(employee.id);
+
+        try {
+            const result = await inviteEmployee(employee.id);
+
+            setEmployees((prev) =>
+                prev.map((item) =>
+                    item.id === employee.id
+                        ? {
+                            ...item,
+                            invite_token: result.invite_token,
+                            invite_sent_at: result.invite_sent_at,
+                        }
+                        : item
+                )
+            );
+
+            alert(
+                result.existing_user
+                    ? "Сотрудник добавлен в компанию. Письмо отправлено."
+                    : "Приглашение отправлено на email сотрудника."
+            );
+        } catch (error: any) {
+            alert(
+                error?.response?.data?.message ||
+                "Не удалось отправить приглашение."
+            );
+        } finally {
+            setInvitingEmployeeId(null);
+        }
     };
 
     useEffect(() => {
@@ -515,6 +554,8 @@ const Page: React.FC = ( ) => {
                     employees={employees}
                     handleEdit={handleEdit}
                     handleDelete={handleDelete}
+                    handleInvite={handleInvite}
+                    invitingEmployeeId={invitingEmployeeId}
                 />
 
                 {authStorage.has("master:create") && (
@@ -570,13 +611,18 @@ const EmployeesTable = ({
                             employees,
                             handleEdit,
                             handleDelete,
+                            handleInvite,
+                            invitingEmployeeId,
                         }: {
     loading: boolean;
     error: string;
     employees: Employee[];
     handleEdit: (employee: Employee) => void;
     handleDelete: (id: number) => void;
+    handleInvite: (employee: Employee) => void;
+    invitingEmployeeId: number | null;
 }) => {
+
 
     const avatarColors = [
         "bg-indigo-500",
@@ -653,13 +699,20 @@ const EmployeesTable = ({
 
                                                 {(() => {
                                                     const level = getLevelOption(employee.lvl);
+                                                    const shouldShowLevel =
+                                                        employee.lvl != null &&
+                                                        String(employee.lvl).trim() !== "" &&
+                                                        level.label !== "Без уровня";
+
+                                                    if (!shouldShowLevel) return null;
+
                                                     const color = LEVEL_COLOR_STYLES[level.color];
 
                                                     return (
                                                         <span className="inline-flex items-center gap-1.5">
-                <span className={`h-2 w-2 rounded-full ${color.dot}`} />
-                <span>{level.label}</span>
-            </span>
+            <span className={`h-2 w-2 rounded-full ${color.dot}`} />
+            <span>{level.label}</span>
+        </span>
                                                     );
                                                 })()}
                                             </div>
@@ -687,6 +740,33 @@ const EmployeesTable = ({
                                                 className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                                             >
                                                 <span>Редактировать</span>
+                                            </button>
+                                        )}
+
+                                        {authStorage.has("master:update") && (
+                                            <button
+                                                onClick={() => handleInvite(employee)}
+                                                disabled={!employee.email || invitingEmployeeId === employee.id}
+                                                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-green-900/40 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
+                                                title={
+                                                    employee.email
+                                                        ? "Отправить приглашение"
+                                                        : "У сотрудника не указан email"
+                                                }
+                                            >
+                                                {invitingEmployeeId === employee.id ? (
+                                                    <>
+                                                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent dark:border-green-300 dark:border-t-transparent" />
+                                                        <span className="hidden sm:inline">Отправка...</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Send size={15} />
+                                                        <span className="hidden sm:inline">
+                    {employee.invite_sent_at ? "Повторить" : "Пригласить"}
+                </span>
+                                                    </>
+                                                )}
                                             </button>
                                         )}
 
