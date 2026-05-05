@@ -21,8 +21,42 @@ interface UserResponse {
     updatedAt: string;
 }
 
+export interface AcceptInvitePayload {
+    token: string;
+    password: string;
+}
+
+export interface AcceptInviteResponse {
+    access_token?: string;
+    token_type?: "Bearer";
+    user?: {
+        id: number;
+        username: string;
+        email: string;
+        name: string;
+    };
+    employee?: {
+        id: number;
+        branch_id: number;
+    } | null;
+    roles?: Record<string, any>;
+    permissions?: string[];
+    message?: string;
+}
+
 // Функция для регистрации пользователя
 export const registerUser = async (data: UserPayload): Promise<UserResponse> => {
     const response = await apiClient.post<UserResponse>("/auth/register", data); // Отправляем POST-запрос
     return response.data; // Возвращаем данные из ответа
+};
+
+export const acceptInvite = async (
+    data: AcceptInvitePayload
+): Promise<AcceptInviteResponse> => {
+    const response = await apiClient.post<AcceptInviteResponse>(
+        "/auth/accept-invite",
+        data
+    );
+
+    return response.data;
 };
