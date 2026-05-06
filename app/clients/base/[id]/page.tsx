@@ -9,6 +9,7 @@ import { useClients, useClient, useDeleteClient } from '@/hooks/useClient';
 import Pagination from '@/components/Pagination';
 import ClientDetailsPanel from "@/components/clients/details/ClientDetailsPanel";
 import SidebarMenu from "@/components/SidebarMenu";
+import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 
@@ -495,7 +496,17 @@ const Page: React.FC = () => {
 
                 <div>
                     {/* Модальное окно Филиалы */}
-                    {isModalFilOpen && (
+                    <BranchSwitcherModal
+                        isOpen={isModalFilOpen}
+                        branches={branchesData}
+                        company={companiesData?.[0]}
+                        activeBranchId={id}
+                        redirectPathPrefix="/clients/base"
+                        onClose={toggleFilModal}
+                        onBranchesChange={setBranchesData}
+                    />
+
+                    {false && isModalFilOpen && (
                         <div className="fixed inset-0 flex items-center justify-left bg-black bg-opacity-50 z-50"
                              onClick={toggleFilModal} // Закрытие окна при клике по фону
                         >

@@ -20,6 +20,7 @@ import { CreateEmployeeModal } from "@/components/schedulePage/CreateEmployeeMod
 import { EditEmployeeModal } from "@/components/schedulePage/EditEmployeeModal";
 import {useEmployeeServices, useSyncEmployeeServices} from "@/hooks/useServices";
 import SidebarMenu from "@/components/SidebarMenu";
+import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 import Image from "next/image";
 import Loader from "@/components/Loader";
 import { authStorage } from "@/services/authStorage";
@@ -477,7 +478,17 @@ const Page: React.FC = ( ) => {
 
                 <div>
                     {/* Модальное окно Филиалы */}
-                    {isModalFilOpen && (
+                    <BranchSwitcherModal
+                        isOpen={isModalFilOpen}
+                        branches={branchesData}
+                        company={companiesData?.[0]}
+                        activeBranchId={id}
+                        redirectPathPrefix="/settings/filial_staff"
+                        onClose={toggleFilModal}
+                        onBranchesChange={setBranchesData}
+                    />
+
+                    {false && isModalFilOpen && (
                         <div className="fixed inset-0 flex items-center justify-left bg-black bg-opacity-50 z-50"
                              onClick={toggleFilModal} // Закрытие окна при клике по фону
                         >

@@ -13,6 +13,7 @@ import {useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
 import SidebarMenu from "@/components/SidebarMenu";
+import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 import Loader from "@/components/Loader";
 import {ThemeToggle} from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
@@ -405,8 +406,18 @@ const Page: React.FC = () => {
             >
 
                 <div>
+                    <BranchSwitcherModal
+                        isOpen={isModalFilOpen}
+                        branches={branchesData}
+                        company={companiesData?.[0]}
+                        activeBranchId={id}
+                        redirectPathPrefix="/online/booking_forms"
+                        onClose={toggleFilModal}
+                        onBranchesChange={setBranchesData}
+                    />
+
                     {/* Модальное окно Филиалы */}
-                    {isModalFilOpen && (
+                    {false && isModalFilOpen && (
                         <div className="fixed inset-0 flex items-center justify-left bg-black bg-opacity-50 z-50"
                              onClick={toggleFilModal} // Закрытие окна при клике по фону
                         >

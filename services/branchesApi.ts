@@ -1,26 +1,45 @@
-// services/userApi.ts
 import apiClient from "./api";
 
-// Интерфейс для данных, отправляемых на сервер
-interface UserPayload {
-    company_id: number;
+export interface BranchPayload {
+    company_id?: number;
     name: string;
-    address: string;
-    phone: string;
-    email: string;
+    legal_name?: string | null;
+    city?: string | null;
+    timezone?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    website?: string | null;
+    description?: string | null;
+    working_hours_json?: string | null;
 }
 
-// Интерфейс для ответа от сервера
-interface UserResponse {
-    company_id: number;
+export interface BranchResponse {
+    id: number;
+    company_id?: number;
     name: string;
-    address: string;
-    phone: string;
-    email: string;
+    legal_name?: string | null;
+    city?: string | null;
+    timezone?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    website?: string | null;
+    description?: string | null;
+    working_hours_json?: string | null;
+    created_at?: number;
+    updated_at?: number;
 }
 
-// Функция для регистрации пользователя
-export const Addbranches = async (data: UserPayload): Promise<UserResponse> => {
-    const response = await apiClient.post<UserResponse>("/branches", data); // Отправляем POST-запрос
-    return response.data; // Возвращаем данные из ответа
+type BranchCreateResponse = BranchResponse | { data?: BranchResponse };
+
+export const Addbranches = async (data: BranchPayload): Promise<BranchResponse> => {
+    const response = await apiClient.post<BranchCreateResponse>("/branches", data);
+    const payload = response.data;
+
+    if ("data" in payload && payload.data) {
+        return payload.data;
+    }
+
+    return payload as BranchResponse;
 };

@@ -46,6 +46,10 @@ export interface AcceptInviteResponse {
     message?: string;
 }
 
+export interface InviteInfoResponse {
+    has_account: boolean;
+}
+
 // Функция для регистрации пользователя
 export const registerUser = async (data: UserPayload): Promise<UserResponse> => {
     const response = await apiClient.post<UserResponse>("/auth/register", data); // Отправляем POST-запрос
@@ -58,6 +62,19 @@ export const acceptInvite = async (
     const response = await apiClient.post<AcceptInviteResponse>(
         "/auth/accept-invite",
         data
+    );
+
+    return response.data;
+};
+
+export const fetchInviteInfo = async (
+    token: string
+): Promise<InviteInfoResponse> => {
+    const response = await apiClient.get<InviteInfoResponse>(
+        "/auth/invite-info",
+        {
+            params: { token },
+        }
     );
 
     return response.data;
