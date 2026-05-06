@@ -26,10 +26,16 @@ export const useUpdateClientAppointmentComment = (clientId?: number) => {
             appointment: AppointmentResponse;
             comment: string | null;
         }) => updateAppointmentComment(appointment, comment),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["client-appointments", clientId],
-            });
+        onSuccess: (updatedAppointment) => {
+            queryClient.setQueryData<AppointmentResponse[]>(
+                ["client-appointments", clientId],
+                (appointments) =>
+                    appointments?.map((appointment) =>
+                        appointment.id === updatedAppointment.id
+                            ? { ...appointment, ...updatedAppointment }
+                            : appointment,
+                    ) ?? appointments,
+            );
             queryClient.invalidateQueries({ queryKey: ["appointments"] });
             queryClient.invalidateQueries({ queryKey: ["appointmentsByBranchAndDate"] });
         },

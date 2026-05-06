@@ -89,7 +89,7 @@ export interface AppointmentResponse {
     payment_status?: PaymentStatus;
     payment_method?: PaymentMethod;
     visit_status?: VisitStatus;
-    comment?: string;
+    comment?: string | null;
 
     client: {
         id: number;

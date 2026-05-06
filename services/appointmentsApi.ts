@@ -93,6 +93,8 @@ export const fetchAppointmentsByBranchAndDate = (
 import apiClient from "./api";
 import { AppointmentRequest, AppointmentResponse } from "@/types/appointments";
 import { normalizeListPayload } from "./normalize";
+
+type AppointmentPayload = AppointmentResponse | { data?: AppointmentResponse };
 export interface PeriodStatsResponse {
     date_start: string;
     date_end: string;
@@ -223,12 +225,20 @@ export const updateAppointmentComment = async (
     appointment: AppointmentResponse,
     comment: string | null,
 ): Promise<AppointmentResponse> => {
-    const response = await apiClient.put<AppointmentResponse>(
+    const response = await apiClient.put<AppointmentPayload>(
         `/appointments/${appointment.id}`,
         buildAppointmentCommentPayload(appointment, comment),
     );
 
-    return response.data;
+    const payload = response.data;
+    const updatedAppointment =
+        "data" in payload && payload.data ? payload.data : payload as AppointmentResponse;
+
+    return {
+        ...appointment,
+        ...updatedAppointment,
+        comment,
+    };
 };
 
 export const deleteAppointment = async (id: number): Promise<void> => {
@@ -322,6 +332,10 @@ export const fetchClientAppointments = async (
     });
 
     return normalizeListPayload<AppointmentResponse>(response.data).rows
+        .map((appointment) => ({
+            ...appointment,
+            comment: appointment.comment ?? null,
+        }))
         .slice()
         .sort((a, b) => {
             const dateDiff = getAppointmentTimestamp(b) - getAppointmentTimestamp(a);
