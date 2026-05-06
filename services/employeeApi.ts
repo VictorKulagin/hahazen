@@ -1,5 +1,6 @@
 // services/employeeApi.ts
 import apiClient from "./api";
+import { authStorage } from "@/services/authStorage";
 import { normalizeListPayload } from "./normalize";
 
 // Интерфейс для сотрудника
@@ -51,6 +52,51 @@ export const fetchEmployees = async (branchId?: number): Promise<Employee[]> => 
         params: { branch_id: branchId } // Добавляем параметр запроса
     });
     return response.data;*/
+    const currentEmployee = authStorage.getEmployee();
+    const currentUser = authStorage.getUser();
+    const currentRole = currentEmployee?.role ?? authStorage.getContext()?.role;
+    const hasFullScheduleView =
+        authStorage.has("appointment:view") || authStorage.has("master:view");
+    const hasOwnScheduleView = authStorage.has("appointment:view:own");
+
+    const ownEmployeeFallback = (): Employee[] => {
+        if (
+            currentEmployee?.id &&
+            (!branchId || currentEmployee.branch_id === branchId)
+        ) {
+            return [
+                {
+                    id: currentEmployee.id,
+                    name: currentUser?.name || "Сотрудник",
+                    specialty: currentEmployee.role || "master",
+                    lvl: null,
+                    hire_date: "",
+                    branch_id: currentEmployee.branch_id,
+                    online_booking: 0,
+                    description: null,
+                    email: currentUser?.email ?? null,
+                    gender: null,
+                    last_name: null,
+                    patronymic: null,
+                    phone: null,
+                    photo: null,
+                    role: currentEmployee.role || "master",
+                },
+            ];
+        }
+
+        return [];
+    };
+
+    if (
+        currentEmployee?.id &&
+        currentRole === "master" &&
+        hasOwnScheduleView &&
+        !hasFullScheduleView
+    ) {
+        return ownEmployeeFallback();
+    }
+
     try {
         console.log('Fetching employees for branch:', branchId);
         const response = await apiClient.get<unknown>("/employees", {
@@ -58,8 +104,12 @@ export const fetchEmployees = async (branchId?: number): Promise<Employee[]> => 
         });
         console.log('API Response:', response.data);
         return normalizeListPayload<Employee>(response.data).rows;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error in fetchEmployees:', error);
+        if (error?.response?.status === 403) {
+            const fallback = ownEmployeeFallback();
+            if (fallback.length > 0) return fallback;
+        }
         throw error;
     }
 };

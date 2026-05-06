@@ -23,7 +23,9 @@ export interface SigninResponse {
     };
     employee?: {
         id: number;
+        company_id?: number;
         branch_id: number;
+        role?: string;
     } | null;
     roles?: Record<string, any>;
     permissions?: string[];

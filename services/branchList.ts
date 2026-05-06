@@ -14,6 +14,8 @@ interface Branch {
 
 export const branchList = async (companyId: number): Promise<Branch[]> => {
     //debugger;
-    const response = await apiClient.post<unknown>(`/branches?companyId=${companyId}`);
+    const response = await apiClient.get<unknown>("/branches", {
+        params: { company_id: companyId },
+    });
     return normalizeListPayload<Branch>(response.data).rows;
 };

@@ -49,6 +49,7 @@ import { useTheme } from "@/lib/theme/theme.context";
 
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
+import { authStorage } from "@/services/authStorage";
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -59,22 +60,87 @@ export interface ScheduleEvent {
     services?: any[];   // ✅ добавим, чтобы прокидывать услуги
 }
 
+const getInitialUserData = () => {
+    const user = authStorage.getUser();
+    return user ? { ...user } : null;
+};
+
+const getInitialCompaniesData = () => {
+    const context = authStorage.getContext();
+    if (!context?.company_id) return null;
+
+    return [
+        {
+            id: context.company_id,
+            name: context.company_name || "Компания",
+        },
+    ];
+};
+
+const getInitialBranchesData = () => {
+    const context = authStorage.getContext();
+    if (!context?.branch_id) return null;
+
+    return [
+        {
+            id: context.branch_id,
+            company_id: context.company_id,
+            companyId: context.company_id,
+            name: context.branch_name || "Филиал",
+        },
+    ];
+};
+
+const getInitialEmployeesList = (): Employee[] => {
+    const currentEmployee = authStorage.getEmployee();
+    const currentUser = authStorage.getUser();
+
+    if (!currentEmployee?.id) return [];
+
+    return [
+        {
+            id: currentEmployee.id,
+            name: currentUser?.name || "Сотрудник",
+            specialty: currentEmployee.role || "master",
+            lvl: null,
+            hire_date: "",
+            branch_id: currentEmployee.branch_id,
+            online_booking: 0,
+            description: null,
+            email: currentUser?.email ?? null,
+            gender: null,
+            last_name: null,
+            patronymic: null,
+            phone: null,
+            photo: null,
+            role: currentEmployee.role || "master",
+        },
+    ];
+};
+
+const hasInitialScheduleData = () =>
+    Boolean(
+        authStorage.getToken() &&
+        authStorage.getUser() &&
+        authStorage.getContext()?.branch_id,
+    );
+
 const Page: React.FC = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAccordionOpenEmployees, setIsAccordionOpenEmployees] = useState(false);
     const [isAccordionOpenClients, setIsAccordionOpenClients] = useState(false);
 
-    const [employeesList, setEmployeesList] = useState<Employee[]>([]);
+    const [employeesList, setEmployeesList] = useState<Employee[]>(getInitialEmployeesList);
 
-    const [userData, setUserData] = useState<any>(null);
-    const [branchesData, setBranchesData] = useState<any>(null);
+    const [userData, setUserData] = useState<any>(getInitialUserData);
+    const [branchesData, setBranchesData] = useState<any>(getInitialBranchesData);
 
 
-    const [companiesData, setCompaniesData] = useState<any>(null);
+    const [companiesData, setCompaniesData] = useState<any>(getInitialCompaniesData);
     const [isModalFilOpen, setIsModalFilOpen] = useState(false);
     //const [editingEvent, setEditingEvent] = useState(null);
 
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState(!hasInitialScheduleData());
     const [error, setError] = useState<string>("");
     const [isCreateEmployeeOpen, setIsCreateEmployeeOpen] = useState(false);
     const [isCreateClientOpen, setIsCreateClientOpen] = useState(false);

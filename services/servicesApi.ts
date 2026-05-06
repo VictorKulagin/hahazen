@@ -78,7 +78,7 @@ export const syncEmployeeServices = async (
 ): Promise<EmployeeServiceResponse[]> => {
     try {
         const response = await apiClient.post<unknown>(
-            `/employees/${employeeId}/services`,
+            `/employees/${employeeId}/sync-services`,
             { services }
         );
         return normalizeListPayload<EmployeeServiceResponse>(response.data).rows;

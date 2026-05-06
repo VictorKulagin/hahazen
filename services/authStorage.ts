@@ -4,6 +4,8 @@ export type AuthUser = {
     username: string;
     email: string;
     name: string;
+    last_name?: string | null;
+    phone?: string | null;
 };
 
 export type AuthEmployee = {
@@ -55,10 +57,19 @@ export const authStorage = {
         if (payload.access_token) localStorage.setItem(KEYS.token, payload.access_token);
 
         if (payload.user) localStorage.setItem(KEYS.user, JSON.stringify(payload.user));
+        else localStorage.removeItem(KEYS.user);
+
         if (payload.employee !== undefined) localStorage.setItem(KEYS.employee, JSON.stringify(payload.employee));
+        else localStorage.removeItem(KEYS.employee);
+
         if (payload.context !== undefined) localStorage.setItem(KEYS.context, JSON.stringify(payload.context));
+        else localStorage.removeItem(KEYS.context);
+
         if (payload.roles) localStorage.setItem(KEYS.roles, JSON.stringify(payload.roles));
+        else localStorage.removeItem(KEYS.roles);
+
         if (payload.permissions) localStorage.setItem(KEYS.permissions, JSON.stringify(payload.permissions));
+        else localStorage.removeItem(KEYS.permissions);
     },
 
     setContext(context: AuthContext) {
@@ -94,8 +105,9 @@ export const authStorage = {
     getPermissions(): string[] {
         if (typeof window === "undefined") return [];
         const context = this.getContext();
-        if (context?.permissions) return context.permissions;
-        return safeJsonParse<string[]>(localStorage.getItem(KEYS.permissions)) ?? [];
+        const storedPermissions = safeJsonParse<string[]>(localStorage.getItem(KEYS.permissions)) ?? [];
+        const contextPermissions = context?.permissions ?? [];
+        return Array.from(new Set([...storedPermissions, ...contextPermissions]));
     },
 
     has(permission: string): boolean {

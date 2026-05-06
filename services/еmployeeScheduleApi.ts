@@ -43,7 +43,7 @@ export const fetchEmployeeSchedules = async (
         if (startDate) params.start_date = startDate;
         if (endDate) params.end_date = endDate;
 
-        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedule", {
+        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedules", {
             params,
         });
 
@@ -58,7 +58,7 @@ export const fetchEmployeeSchedules = async (
 // Получение графиков сотрудника за период
 export const fetchEmployeeScheduleByPeriod = async (employeeId: number, startDate: string, endDate: string): Promise<EmployeeSchedule[]> => {
     try {
-        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedule", {
+        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedules", {
             params: { employee_id: employeeId, start_date: startDate, end_date: endDate }
         });
         return response.data;
@@ -71,7 +71,7 @@ export const fetchEmployeeScheduleByPeriod = async (employeeId: number, startDat
 // Получение графиков по филиалу за период
 export const fetchEmployeeScheduleByBranchAndPeriod = async (branchId: number, startDate: string, endDate: string): Promise<EmployeeSchedule[]> => {
     try {
-        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedule", {
+        const response = await apiClient.get<EmployeeSchedule[]>("/employee-schedules", {
             params: { branch_id: branchId, start_date: startDate, end_date: endDate }
         });
         return response.data;
@@ -85,7 +85,7 @@ export const fetchEmployeeScheduleByBranchAndPeriod = async (branchId: number, s
 // Пример исправления пути в fetchEmployeeScheduleById (если нужно):
 export const fetchEmployeeScheduleById = async (scheduleId: number): Promise<EmployeeSchedule> => {
     try {
-        const response = await apiClient.get<EmployeeSchedule>(`/employee-schedule/${scheduleId}`); // Убрано 's' в пути
+        const response = await apiClient.get<EmployeeSchedule>(`/employee-schedules/${scheduleId}`);
         return response.data;
     } catch (error) {
         console.error('Error in fetchEmployeeScheduleById:', error);
@@ -103,7 +103,7 @@ export const createEmployeeSchedule = async (
     }*/
 
     try {
-        const response = await apiClient.post<EmployeeSchedule>("/employee-schedule/create", schedule);
+        const response = await apiClient.post<EmployeeSchedule>("/employee-schedules", schedule);
         return response.data;
     } catch (error) {
         console.error('Error in createEmployeeSchedule:', error);
@@ -134,10 +134,9 @@ export const deleteEmployeeSchedule = async (scheduleId: number): Promise<void> 
 // Получение графика сотрудника на определённую дату
 export const fetchEmployeeScheduleForDate = async (employeeId: number, date: string): Promise<EmployeeSchedule | null> => {
     try {
-        const response = await apiClient.get<EmployeeSchedule>("/employee-schedule/schedule-for-date", {
+        const response = await apiClient.get<EmployeeSchedule>("/employee-schedules/schedule-for-date", {
             params: { employee_id: employeeId, date: date }
         });
-        debugger;
         return response.data;
     } catch (error) {
         console.error('Error in fetchEmployeeScheduleForDate:', error);

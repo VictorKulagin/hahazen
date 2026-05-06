@@ -1,5 +1,5 @@
 // services/branchApi.ts
-import apiClient from "./api";
+import axios from "axios";
 import { normalizeListPayload } from "./normalize";
 
 export interface Branch {
@@ -45,9 +45,15 @@ export interface AppointmentData {
     comment?: string;
 }
 
+const publicApiBaseURL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
+const publicBookingClient = axios.create({
+    baseURL: `${publicApiBaseURL}/public-api/booking`,
+    headers: { "Content-Type": "application/json" },
+});
+
 export const fetchBranches = async (): Promise<Branch[]> => {
     try {
-        const response = await apiClient.get<unknown>("/booking/branches");
+        const response = await publicBookingClient.get<unknown>("/branches");
         return normalizeListPayload<Branch>(response.data).rows;
     } catch (error) {
         console.error("Error fetching branches:", error);
@@ -57,8 +63,8 @@ export const fetchBranches = async (): Promise<Branch[]> => {
 
 export const fetchServices = async (branchId: number): Promise<Service[]> => {
     try {
-        const response = await apiClient.get<unknown>(
-            `/booking/branches/${branchId}/services`
+        const response = await publicBookingClient.get<unknown>(
+            `/branches/${branchId}/services`
         );
         return normalizeListPayload<Service>(response.data).rows;
     } catch (error) {
@@ -72,8 +78,8 @@ export const fetchAvailability = async (
     serviceIds: number[]
 ): Promise<AvailabilitySlot[]> => {
     try {
-        const response = await apiClient.get<AvailabilityResponse>(
-            `/booking/branches/${branchId}/availability`,
+        const response = await publicBookingClient.get<AvailabilityResponse>(
+            `/branches/${branchId}/availability`,
             {
                 params: {
                     services: serviceIds.join(',')
@@ -100,8 +106,8 @@ export const fetchAvailableEmployees = async (
     serviceIds: number[]
 ): Promise<Employee[]> => {
     try {
-        const response = await apiClient.get<unknown>(
-            `/booking/branches/${branchId}/availability/${date}/employees`,
+        const response = await publicBookingClient.get<unknown>(
+            `/branches/${branchId}/availability/${date}/employees`,
             {
                 params: {
                     services: serviceIds.join(','),
@@ -118,7 +124,7 @@ export const fetchAvailableEmployees = async (
 
 export const createAppointment = async (data: AppointmentData): Promise<void> => {
     try {
-        const response = await apiClient.post('/booking/appointments', data);
+        const response = await publicBookingClient.post("/appointments", data);
         return response.data;
     } catch (error) {
         console.error('Error creating appointment:', error);

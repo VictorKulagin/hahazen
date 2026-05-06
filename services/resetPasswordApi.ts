@@ -14,8 +14,8 @@ export const resetPasswordApi = async (
     data: ResetPasswordPayload
 ): Promise<ResetPasswordResponse> => {
     const response = await apiClient.post<ResetPasswordResponse>(
-        `/auth/reset-password?token=${token}`,
-        data
+        "/auth/reset-password",
+        { token, ...data }
     );
 
     return response.data;

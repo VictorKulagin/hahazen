@@ -9,17 +9,26 @@ import {
     deleteEmployee,
     EmployeeCreatePayload
 } from "@/services/employeeApi";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { EventSourcePolyfill } from "event-source-polyfill";
 import { createSSEConnection } from "@/services/api";
+import { authStorage } from "@/services/authStorage";
 
 export const useEmployees = (branchId?: number) => {
     const queryClient = useQueryClient();
     const eventSourceRef = useRef<EventSourcePolyfill | null>(null);
     const [isConnected, setIsConnected] = useState(false);
+    const currentEmployee = authStorage.getEmployee();
+    const currentRole = currentEmployee?.role ?? authStorage.getContext()?.role;
+    const permissionsKey = authStorage.getPermissions().slice().sort().join("|");
+    const authScope = `${currentEmployee?.id ?? "anonymous"}:${currentRole ?? "no-role"}:${permissionsKey}`;
+    const employeesQueryKey = useMemo(
+        () => ["employees", branchId, authScope] as const,
+        [branchId, authScope]
+    );
 
     const query = useQuery<Employee[], Error>({
-        queryKey: ["employees", branchId],
+        queryKey: employeesQueryKey,
         queryFn: () => fetchEmployees(branchId!),
         staleTime: 1000 * 60 * 5,
         enabled: !!branchId,
@@ -40,9 +49,13 @@ export const useEmployees = (branchId?: number) => {
 
     useEffect(() => {
         if (!branchId) return;
+        const hasFullScheduleView =
+            authStorage.has("appointment:view") || authStorage.has("master:view");
+        const hasOwnScheduleView = authStorage.has("appointment:view:own");
+        if (currentRole === "master" && hasOwnScheduleView && !hasFullScheduleView) return;
 
         const newEventSource = createSSEConnection(
-            `/sse/employees/branch/${branchId}`
+            `/sse/employees?branch_id=${branchId}`
         );
 
         const handleSSEMessage = (event: MessageEvent) => {
@@ -54,7 +67,7 @@ export const useEmployees = (branchId?: number) => {
                 const employeesData = eventData.data;
 
                 queryClient.setQueryData<Employee[]>(
-                    ["employees", branchId],
+                    employeesQueryKey,
                     (old) => {
                         if (eventType === 'full-update') {
                             return mergeEmployees([], employeesData);
@@ -100,7 +113,7 @@ export const useEmployees = (branchId?: number) => {
             eventSourceRef.current = null;
             setIsConnected(false);
         };
-    }, [branchId, queryClient]);
+    }, [branchId, currentRole, employeesQueryKey, queryClient]);
 
     /*const scheduleReconnect = () => {
         if (!branchId) return;
@@ -113,7 +126,7 @@ export const useEmployees = (branchId?: number) => {
 
         setTimeout(() => {
             queryClient.invalidateQueries({
-                queryKey: ["employees", branchId],
+                queryKey: employeesQueryKey,
             });
         }, 5000);
     };
