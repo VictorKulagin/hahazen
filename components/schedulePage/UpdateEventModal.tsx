@@ -2,9 +2,11 @@
 import React, { useEffect, useState } from "react";
 import { useEmployeeServices } from "@/hooks/useServices";
 import { useUpdateAppointment, useDeleteAppointment } from "@/hooks/useAppointments";
-import { useUpdateClient } from "@/hooks/useClient";
+import { useClient, useUpdateClient } from "@/hooks/useClient";
+import { useCreateClientBonusTransaction } from "@/hooks/useClientBonusTransactions";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
+import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
 
 interface UpdateEventModalProps {
     isOpen: boolean;
@@ -12,7 +14,7 @@ interface UpdateEventModalProps {
     eventData: {
         id: number;
         date: string;
-        client?: { id: number; name: string; last_name?: string; phone?: string };
+        client?: { id: number; name: string; last_name?: string; phone?: string; bonus_balance?: number };
         services: { id: number; qty: number }[];
         timeStart: string;
         timeEnd: string;
@@ -46,6 +48,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
     const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid" | "partial">("unpaid");
     const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "transfer" | null>(null);
     const [visitStatus, setVisitStatus] = useState<"expected" | "arrived" | "no_show">("expected");
+    const [bonusSpend, setBonusSpend] = useState(0);
 
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
@@ -53,6 +56,10 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
     const { mutateAsync: updateAppointmentMutate, isPending: isUpdating } = useUpdateAppointment();
     const { mutateAsync: updateClientMutate, isPending: updatingClient } = useUpdateClient();
     const { mutateAsync: deleteAppointmentMutate, isPending: isDeleting } = useDeleteAppointment();
+    const { data: clientDetails } = useClient(eventData?.client?.id);
+    const { mutateAsync: createBonusTransaction, isPending: spendingBonuses } =
+        useCreateClientBonusTransaction(eventData?.client?.id);
+    const clientBonusBalance = clientDetails?.bonus_balance ?? eventData?.client?.bonus_balance ?? 0;
 
     // Нормализация при открытии модалки
     useEffect(() => {
@@ -81,6 +88,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
         setIsEditingClient(false);
         setServiceSearch("");
         setIsServiceDropdownOpen(false);
+        setBonusSpend(0);
     }, [eventData, isOpen]);
 
     useEffect(() => {
@@ -88,6 +96,12 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
             setPaymentMethod(null);
         }
     }, [paymentStatus]);
+
+    useEffect(() => {
+        setBonusSpend((current) =>
+            Math.min(current, eventData?.client?.id ? clientBonusBalance : 0, cost)
+        );
+    }, [cost, clientBonusBalance, eventData?.client?.id]);
 
     const calculateServicesCost = () => {
         return selectedServices.reduce((sum, s) => {
@@ -183,6 +197,14 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                 qty: s.qty,
             })),
         });
+
+        if (eventData.client?.id && bonusSpend > 0) {
+            await createBonusTransaction({
+                delta: -bonusSpend,
+                kind: "spend",
+                comment: `Списание бонусов по записи #${eventData.id}`,
+            });
+        }
 
         onClose();
     };
@@ -564,6 +586,14 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     )}
                                 </div>
 
+                                <AppointmentBonusesCard
+                                    clientId={eventData.client?.id}
+                                    balance={clientBonusBalance}
+                                    cost={cost}
+                                    value={bonusSpend}
+                                    onChange={setBonusSpend}
+                                />
+
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">
                                         Статус визита
@@ -730,17 +760,17 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     {/* Сохранить */}
                                     <button
                                         type="submit"
-                                        disabled={isUpdating || updatingClient}
+                                        disabled={isUpdating || updatingClient || spendingBonuses}
                                         className={`
         h-11 px-5 rounded-xl font-medium text-white transition
         ${
-                                            isUpdating || updatingClient
+                                            isUpdating || updatingClient || spendingBonuses
                                                 ? "bg-green-500/70 cursor-not-allowed"
                                                 : "bg-green-600 hover:bg-green-700"
                                         }
       `}
                                     >
-                                        {isUpdating || updatingClient ? "Сохранение..." : "Сохранить"}
+                                        {isUpdating || updatingClient || spendingBonuses ? "Сохранение..." : "Сохранить"}
                                     </button>
                                 </div>
                             </div>

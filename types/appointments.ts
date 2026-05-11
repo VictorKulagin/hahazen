@@ -96,6 +96,7 @@ export interface AppointmentResponse {
         name: string;
         last_name: string;
         phone: string;
+        bonus_balance?: number;
     };
 
     services: AppointmentService[];

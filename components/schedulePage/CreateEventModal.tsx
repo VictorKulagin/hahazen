@@ -6,8 +6,10 @@ import type {Services} from "@/services/servicesApi";
 import ClientAutocomplete from "@/components/ClientAutocomplete";
 import type {Client} from "@/services/clientApi";
 import {useUpdateClient} from "@/hooks/useClient";
+import {useCreateClientBonusTransaction} from "@/hooks/useClientBonusTransactions";
 import {XMarkIcon} from "@heroicons/react/24/outline";
 import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
+import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
 //import {getPhoneDigitsCount, MIN_PHONE_DIGITS, normalizePhoneInput} from "@/components/utils/phone";
 import {
     normalizePhoneInput,
@@ -93,6 +95,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                                isOutsideSchedule = false, // 👈 значение по умолчанию
                                                            }) => {
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+    const [selectedClientBonusBalance, setSelectedClientBonusBalance] = useState(0);
     const [name, setName] = useState("");
     const [lastName, setLastName] = useState("");
     const [phone, setPhone] = useState("");
@@ -110,6 +113,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "transfer" | null>(null);
     const [visitStatus, setVisitStatus] = useState<"expected" | "arrived" | "no_show">("expected");
     const [isManualCost, setIsManualCost] = useState(false);
+    const [bonusSpend, setBonusSpend] = useState(0);
 
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
@@ -125,10 +129,13 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
     const {mutateAsync: updateClientMutate, isPending: updating} =
         useUpdateClient();
+    const {mutateAsync: createBonusTransaction, isPending: spendingBonuses} =
+        useCreateClientBonusTransaction(selectedClientId ?? undefined);
 
     useEffect(() => {
         setSelectedServices([]);
         setSelectedClientId(null);
+        setSelectedClientBonusBalance(0);
         setName("");
         setLastName("");
         setPhone("");
@@ -144,6 +151,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         setServiceSearch("");
         setIsServiceDropdownOpen(false);
         setIsManualCost(false);
+        setBonusSpend(0);
     }, [employeeId, isOpen]);
 
     useEffect(() => {
@@ -151,6 +159,12 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
             setPaymentMethod(null);
         }
     }, [paymentStatus]);
+
+    useEffect(() => {
+        setBonusSpend((current) =>
+            Math.min(current, selectedClientId ? selectedClientBonusBalance : 0, cost)
+        );
+    }, [cost, selectedClientBonusBalance, selectedClientId]);
 
 
     useEffect(() => {
@@ -216,11 +230,13 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
     const resetClient = () => {
         setSelectedClientId(null);
+        setSelectedClientBonusBalance(0);
         setName("");
         setLastName("");
         setPhone("");
         setShowClientFields(false);
         setIsEditingClient(false);
+        setBonusSpend(0);
     };
 
     const handleUpdateClient = async () => {
@@ -290,6 +306,14 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 paymentMethod,
                 visitStatus,
             });
+
+            if (selectedClientId && bonusSpend > 0) {
+                await createBonusTransaction({
+                    delta: -bonusSpend,
+                    kind: "spend",
+                    comment: "Списание бонусов по записи",
+                });
+            }
 
             setSuccess(true);
 
@@ -389,6 +413,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     <ClientAutocomplete
                                         onSelect={(client: Client) => {
                                             setSelectedClientId(client.id ?? null);
+                                            setSelectedClientBonusBalance(client.bonus_balance ?? 0);
                                             setName(client.name ?? "");
                                             setLastName(client.last_name ?? "");
                                             setPhone(client.phone ?? "");
@@ -762,6 +787,14 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                         )}
                                     </div>
 
+                                    <AppointmentBonusesCard
+                                        clientId={selectedClientId}
+                                        balance={selectedClientBonusBalance}
+                                        cost={cost}
+                                        value={bonusSpend}
+                                        onChange={setBonusSpend}
+                                    />
+
                                     <div>
                                         <label className="mb-2 block text-[12px] font-medium text-gray-600 dark:text-white/45">
                                             Статус визита
@@ -907,7 +940,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 <button
                                     type="button"
                                     onClick={onClose}
-                                    disabled={loading}
+                                    disabled={loading || spendingBonuses}
                                     className="
   h-11 px-5 rounded-xl
   border border-gray-300
@@ -925,9 +958,9 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                                 <button
                                     type="submit"
-                                    disabled={loading}
+                                    disabled={loading || spendingBonuses}
                                     className={`h-11 px-5 rounded-xl font-medium text-white transition disabled:opacity-50 ${
-                                        loading
+                                        loading || spendingBonuses
                                             ? "bg-green-500/70 cursor-not-allowed"
                                             : "bg-green-600 hover:bg-green-700"
                                     }`}

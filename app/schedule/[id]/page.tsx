@@ -471,7 +471,7 @@ const Page: React.FC = () => {
         timeEnd: string;
         employeeId: number;
         services: { id: number; qty: number }[];
-        client?: { id: number; name: string; last_name?: string; phone?: string };
+        client?: { id: number; name: string; last_name?: string; phone?: string; bonus_balance?: number };
 
         cost?: number;
         payment_status?: "unpaid" | "paid" | "partial";
@@ -537,6 +537,7 @@ const Page: React.FC = () => {
                     name: src.client.name,
                     last_name: src.client.last_name,
                     phone: src.client.phone,
+                    bonus_balance: src.client.bonus_balance,
                 }
                 : undefined,
 
