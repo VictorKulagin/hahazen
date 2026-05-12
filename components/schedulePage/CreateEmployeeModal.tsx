@@ -7,7 +7,17 @@ import {useCreateService, useServices, useSyncEmployeeServices} from "@/hooks/us
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
 import { EmployeeCreatePayload, EmployeeRole } from "@/services/employeeApi";
 import {useQueryClient} from "@tanstack/react-query";
-import { Clock, CalendarDays } from "lucide-react";
+import {
+    BadgeCheck,
+    BriefcaseBusiness,
+    CalendarDays,
+    Clock,
+    Mail,
+    Phone,
+    ShieldCheck,
+    Sparkles,
+    UserRound,
+} from "lucide-react";
 import {
     normalizePhoneInput,
     isValidPhone,
@@ -68,6 +78,8 @@ type EmployeeService = {
     duration_minutes?: number;
 };
 
+type CreateEmployeeTab = "info" | "schedule" | "services" | "permissions";
+
 const ROLE_MAP = {
     gd: 1,
     admin: 2,
@@ -80,6 +92,17 @@ const ROLE_OPTIONS: { value: EmployeeRole; label: string }[] = [
     { value: "master", label: "Мастер" },
 ];
 
+const CREATE_EMPLOYEE_TABS: Array<{
+    id: CreateEmployeeTab;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+}> = [
+    { id: "info", label: "Информация", icon: UserRound },
+    { id: "schedule", label: "График", icon: CalendarDays },
+    { id: "services", label: "Услуги", icon: BriefcaseBusiness },
+    { id: "permissions", label: "Разрешения", icon: ShieldCheck },
+];
+
 export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose, onSave }) => {
     const [name, setName] = useState("");
     const [lastName, setLastName] = useState("");
@@ -89,7 +112,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
     const [email, setEmail] = useState<string>("");
     const [hireDate, setHireDate] = useState<string>("");
 
-    const [activeTab, setActiveTab] = useState<"info" | "schedule" | "services">("info");
+    const [activeTab, setActiveTab] = useState<CreateEmployeeTab>("info");
 
     const [localStartDate, setLocalStartDate] = useState<string>("");
     const [localEndDate, setLocalEndDate] = useState<string>("");
@@ -180,6 +203,20 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     }, [isOpen]);
 
     if (!isOpen) return null;
+
+    const draftName = [name, lastName].filter(Boolean).join(" ") || "Новый сотрудник";
+    const initials =
+        `${name?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() || "+";
+    const selectedRoleLabel =
+        ROLE_OPTIONS.find((option) => option.value === role)?.label ?? "Мастер";
+    const activeTabHint =
+        activeTab === "info"
+            ? "Основные данные, роль и контакты сотрудника."
+            : activeTab === "schedule"
+                ? "Первичный график создастся вместе с сотрудником."
+                : activeTab === "services"
+                    ? "Назначьте услуги сразу или оставьте этот шаг на потом."
+                    : "Базовые права зависят от роли, индивидуальные настройки доступны после создания.";
 
     /*const toggleService = (serviceId: number) => {
         setSelectedServices((prev) => {
@@ -388,67 +425,103 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
 
     return (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end">
-            <div className="bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-full shadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/50">
+            <div className="flex h-full w-full flex-col overflow-hidden bg-[rgb(var(--background))] text-[rgb(var(--foreground))] shadow-2xl sm:w-[28rem] sm:rounded-l-2xl sm:rounded-tr-2xl sm:border-l sm:border-gray-200 dark:sm:border-white/10">
 
 
-                <div className="sticky top-0 z-20 border-b border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md">
-                    <div className="flex items-start justify-between px-4 py-0">
-                        <div className="flex items-start gap-3 min-w-0">
-                            <span className="mt-[1.3rem] h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
+                <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur-md dark:border-white/10 dark:bg-[rgb(var(--card))]/95">
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                        <div className="flex min-w-0 items-center gap-3">
+                            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
 
-                            <h2 className="text-[17px] leading-[2.75] font-semibold truncate">
-                                Создание сотрудника
-                            </h2>
+                            <div className="min-w-0">
+                                <h2 className="truncate text-[17px] font-semibold">
+                                    Создание сотрудника
+                                </h2>
+                                <p className="truncate text-xs text-gray-500 dark:text-white/50">
+                                    {activeTabHint}
+                                </p>
+                            </div>
                         </div>
 
                         <button
+                            type="button"
                             onClick={onClose}
-                            className="
-        mt-[8px]
-        flex h-9 w-9 items-center justify-center
-        rounded-xl
-        border border-gray-200 dark:border-white/10
-        bg-gray-100 text-gray-500
-        hover:bg-gray-200 hover:text-gray-700
-        dark:bg-white/5 dark:text-white/60
-        dark:hover:bg-white/10 dark:hover:text-white
-        transition
-      "
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 text-gray-500 transition hover:bg-gray-200 hover:text-gray-700 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10 dark:hover:text-white"
+                            aria-label="Закрыть"
                         >
                             ×
                         </button>
                     </div>
 
-                    <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
-                </div>
+                    <div className="px-4 pb-3">
+                        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/[0.04]">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-green-600 text-sm font-semibold text-white">
+                                    {initials}
+                                </div>
 
-                {/* Р’РєР»Р°РґРєРё */}
-                <div className="flex justify-around border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))]">
-                    {["info", "schedule", "services"].map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab as any)}
-                            className={`flex-1 py-3 text-sm capitalize transition ${
-                                activeTab === tab
-                                    ? "border-b-2 border-green-500 font-semibold text-green-600"
-                                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white"
-                            }`}
-                        >
-                            {tab === "info" && "Основное"}
-                            {tab === "schedule" && "График"}
-                            {tab === "services" && "Услуги"}
-                        </button>
-                    ))}
+                                <div className="min-w-0 flex-1">
+                                    <div className="truncate text-sm font-semibold text-gray-900 dark:text-white">
+                                        {draftName}
+                                    </div>
+                                    <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <span>{specialty || "Специализация не указана"}</span>
+                                        <span className="h-1 w-1 rounded-full bg-gray-300 dark:bg-white/30" />
+                                        <span>{selectedRoleLabel}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto px-4 pb-3">
+                        <div className="inline-flex min-w-full gap-2 rounded-2xl border border-gray-200 bg-gray-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
+                            {CREATE_EMPLOYEE_TABS.map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = activeTab === tab.id;
+
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition ${
+                                            isActive
+                                                ? "bg-green-600 text-white shadow-sm"
+                                                : "text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+                                        }`}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        <span>{tab.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
 
                 {/* РљРѕРЅС‚РµРЅС‚ */}
                 <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white space-y-4 bg-gray-50 dark:bg-[rgb(var(--background))]">
                     {activeTab === "info" && (
                         <div className="space-y-4">
-                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
+                            <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-green-600 dark:bg-green-400/10 dark:text-green-300">
+                                        <UserRound className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            Профиль сотрудника
+                                        </h3>
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                            Эти данные будут видны в карточке, графике и записи клиента.
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Имя</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Имя</label>
                                     <input
                                         type="text"
                                         value={name}
@@ -460,7 +533,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Фамилия</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Фамилия</label>
                                     <input
                                         type="text"
                                         value={lastName}
@@ -471,7 +544,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Специализация</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Специализация</label>
                                     <SpecialtyAutocomplete
                                         value={specialty}
                                         onChange={setSpecialty}
@@ -492,9 +565,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                         </p>
                                     </div>
 
-                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Роль в системе
-                                    </label>
+                                    <div className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <BadgeCheck className="h-4 w-4 text-gray-400" />
+                                        <span>Роль в системе</span>
+                                    </div>
 
                                     <select
                                         value={role}
@@ -517,9 +591,26 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 </div>
                             </div>
 
-                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
+                            <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
+                                        <Mail className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            Контакты и работа
+                                        </h3>
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                            Email нужен для приглашения, телефон можно добавить позже.
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                    <label className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <Mail className="h-4 w-4 text-gray-400" />
+                                        <span>Email</span>
+                                    </label>
                                     <input
                                         type="email"
                                         value={email}
@@ -530,7 +621,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
+                                    <label className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <Phone className="h-4 w-4 text-gray-400" />
+                                        <span>Телефон</span>
+                                    </label>
                                     <input
                                         type="tel"
                                         value={phone}
@@ -555,7 +649,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Дата найма</label>
+                                    <label className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <CalendarDays className="h-4 w-4 text-gray-400" />
+                                        <span>Дата найма</span>
+                                    </label>
                                     <div className="relative">
                                     <input
                                         type="date"
@@ -572,9 +669,23 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                     {activeTab === "schedule" && (
                         <div className="space-y-4">
-                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
+                            <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-green-600 dark:bg-green-400/10 dark:text-green-300">
+                                        <CalendarDays className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            Период действия графика
+                                        </h3>
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                            По умолчанию создаётся график на ближайшие 30 дней.
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Дата начала</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Дата начала</label>
                                     <div className="relative">
                                     <input
                                         type="date"
@@ -586,7 +697,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Дата окончания</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Дата окончания</label>
                                     <div className="relative">
                                     <input
                                         type="date"
@@ -598,8 +709,20 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     </div>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Периоды</label>
+                            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="mb-4 flex items-start justify-between gap-3">
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            Рабочие периоды
+                                        </h3>
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                            Можно добавить несколько дней и быстро скопировать первый период.
+                                        </p>
+                                    </div>
+                                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-white/10 dark:text-gray-300">
+                                        {periods.length}
+                                    </span>
+                                </div>
                                 {periods.map((p, i) => (
                                     <div
                                         key={i}
@@ -720,8 +843,21 @@ transition"
                     {activeTab === "services" && (
                         <div className="space-y-4">
                             {/* РќРѕРІС‹Р№ Р±Р»РѕРє СЃРѕР·РґР°РЅРёСЏ СѓСЃР»СѓРіРё */}
-                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
-                                <h4 className="font-semibold text-black dark:text-white mb-2">Новая услуга</h4>
+                            <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                                        <Sparkles className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            Новая услуга
+                                        </h3>
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                            Если услуги ещё нет в базе, создайте её прямо здесь.
+                                        </p>
+                                    </div>
+                                </div>
+
                                 <input
                                     type="text"
                                     value={newServiceName}
@@ -746,19 +882,29 @@ transition"
                                 <button
                                     type="button"
                                     onClick={handleCreateService}
-                                    className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                                    className="inline-flex h-11 items-center justify-center rounded-xl bg-green-600 px-4 text-sm font-semibold text-white transition hover:bg-green-700"
                                 >
                                     Добавить
                                 </button>
                             </div>
 
                             {/* Picker СѓСЃР»СѓРі */}
-                            <div>
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Выберите услуги</label>
+                            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="mb-4 flex items-start justify-between gap-3">
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            Услуги сотрудника
+                                        </h3>
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                            Выбранные услуги сохранятся после создания сотрудника.
+                                        </p>
+                                    </div>
+                                    <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-600 dark:bg-white/10 dark:text-gray-300">
+                                        {selectedServices.length}
+                                    </span>
                                 </div>
 
-                                <div className="border border-gray-200 dark:border-white/10 rounded-2xl p-3 bg-white dark:bg-white/5 relative">
+                                <div className="relative rounded-2xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/[0.04]">
                                     {/* Р’С‹Р±СЂР°РЅРЅС‹Рµ СѓСЃР»СѓРіРё */}
                                     {selectedServices.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-3">
@@ -910,6 +1056,94 @@ transition"
                             </div>
                         </div>
                     )}
+
+                    {activeTab === "permissions" && (
+                        <div className="space-y-4">
+                            <div className="rounded-2xl border border-green-200 bg-green-50/70 p-4 shadow-sm dark:border-green-400/20 dark:bg-green-400/10 dark:shadow-none">
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-green-600 text-white">
+                                        <ShieldCheck className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 dark:text-white">
+                                            Разрешения сотрудника
+                                        </h3>
+                                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                                            При создании сотрудник получает базовые права выбранной роли. Индивидуальные разрешения появятся в карточке сотрудника после сохранения.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div>
+                                    <label className="mb-2 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <BadgeCheck className="h-4 w-4 text-gray-400" />
+                                        <span>Базовая роль</span>
+                                    </label>
+
+                                    <select
+                                        value={role}
+                                        onChange={(e) => setRole(e.target.value as EmployeeRole)}
+                                        className={`${inputClass} bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white`}
+                                    >
+                                        {ROLE_OPTIONS.map((opt) => (
+                                            <option
+                                                key={opt.value}
+                                                value={opt.value}
+                                                className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white"
+                                            >
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                        Роль можно выбрать здесь или на вкладке «Информация» — это одно и то же поле.
+                                    </p>
+                                </div>
+
+                                <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 p-4 dark:border-white/10 dark:bg-white/[0.04]">
+                                    <div className="mb-3 flex items-center justify-between gap-3">
+                                        <div>
+                                            <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                Индивидуальные изменения
+                                            </div>
+                                            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                Будут доступны после создания сотрудника
+                                            </div>
+                                        </div>
+                                        <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-gray-600 shadow-sm dark:bg-white/10 dark:text-gray-300">
+                                            0 изм.
+                                        </span>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        {[
+                                            "Расписание",
+                                            "Клиенты",
+                                            "Записи",
+                                        ].map((label) => (
+                                            <div
+                                                key={label}
+                                                className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm dark:border-white/10 dark:bg-white/[0.03]"
+                                            >
+                                                <span className="font-medium text-gray-800 dark:text-white">
+                                                    {label}
+                                                </span>
+                                                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                                                    Наследуется от роли
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-600 shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-gray-300 dark:shadow-none">
+                                После сохранения откройте карточку сотрудника и перейдите во вкладку «Разрешения», если нужно переопределить отдельные права.
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Р¤СѓС‚РµСЂ */}
@@ -932,33 +1166,22 @@ transition"
 
                     <div className="flex justify-end gap-3">
                         <button
+                            type="button"
                             onClick={onClose}
-                            className="
-        h-11 px-5 rounded-xl
-        border border-gray-300
-        bg-white text-gray-700
-        hover:bg-gray-100
-        dark:border-white/10
-        dark:bg-white/[0.03]
-        dark:text-[rgb(var(--foreground))]
-        dark:hover:bg-white/10
-        transition
-      "
+                            className="h-11 rounded-xl border border-gray-300 bg-white px-5 text-gray-700 transition hover:bg-gray-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-[rgb(var(--foreground))] dark:hover:bg-white/10"
                         >
                             Закрыть
                         </button>
 
                         <button
+                            type="button"
                             onClick={handleSave}
                             disabled={isSubmitting}
-                            className={`
-        h-11 px-5 rounded-xl font-medium text-white transition
-        ${
+                            className={`h-11 rounded-xl px-5 font-medium text-white transition ${
                                 isSubmitting
                                     ? "bg-green-500/70 cursor-not-allowed"
                                     : "bg-green-600 hover:bg-green-700"
-                            }
-      `}
+                            }`}
                         >
                             {isSubmitting ? "Создание..." : "Создать"}
                         </button>

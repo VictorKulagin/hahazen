@@ -1,13 +1,32 @@
 ﻿// components\schedulePage\EditEmployeeModal.tsx
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { Employee, EmployeeRole } from "@/services/employeeApi";
+import {
+    Employee,
+    EmployeePermissionCell,
+    EmployeePermissionMode,
+    EmployeeRole,
+} from "@/services/employeeApi";
 import { useEmployeeSchedules, useCreateEmployeeSchedule, useUpdateEmployeeSchedule } from "@/hooks/useEmployeeSchedules";
 import { useServices, useEmployeeServices, useSyncEmployeeServices } from "@/hooks/useServices";
 //import { EmployeeService } from "@/services/servicesApi";
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
-import {useDeleteEmployee} from "@/hooks/useEmployees";
-import {CalendarDays, Clock} from "lucide-react";
+import {
+    useDeleteEmployee,
+    useEmployeePermissions,
+    useUpdateEmployeePermissions,
+} from "@/hooks/useEmployees";
+import {
+    BadgeCheck,
+    BriefcaseBusiness,
+    CalendarDays,
+    Clock,
+    Mail,
+    Phone,
+    ShieldCheck,
+    Sparkles,
+    UserRound,
+} from "lucide-react";
 import {
     normalizePhoneInput,
     isValidPhone,
@@ -37,12 +56,40 @@ type EmployeeService = {
     duration_minutes?: number;
 };
 
+type EmployeeTab = "info" | "schedule" | "services" | "permissions";
+
 type WeekDay = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
 
 const ROLE_OPTIONS: { value: EmployeeRole; label: string }[] = [
     { value: "gd", label: "ГД (владелец)" },
     { value: "admin", label: "Админ" },
     { value: "master", label: "Мастер" },
+];
+
+const ROLE_LABELS: Record<string, string> = ROLE_OPTIONS.reduce(
+    (acc, roleOption) => ({ ...acc, [roleOption.value]: roleOption.label }),
+    {} as Record<string, string>,
+);
+
+const EMPLOYEE_TABS: Array<{
+    id: EmployeeTab;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+}> = [
+    { id: "info", label: "Информация", icon: UserRound },
+    { id: "schedule", label: "График", icon: CalendarDays },
+    { id: "services", label: "Услуги", icon: Sparkles },
+    { id: "permissions", label: "Разрешения", icon: ShieldCheck },
+];
+
+const PERMISSION_MODE_OPTIONS: Array<{
+    value: EmployeePermissionMode;
+    label: string;
+    description: string;
+}> = [
+    { value: "inherit", label: "Наследовать", description: "Как у роли" },
+    { value: "allow", label: "Разрешить", description: "Всегда да" },
+    { value: "deny", label: "Запретить", description: "Всегда нет" },
 ];
 
 const WEEK_DAYS: { value: WeekDay; label: string }[] = [
@@ -79,7 +126,7 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const [lvl, setLvl] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [hireDate, setHireDate] = useState<string>("");
-    const [activeTab, setActiveTab] = useState<"info" | "schedule" | "services">("info");
+    const [activeTab, setActiveTab] = useState<EmployeeTab>("info");
     const [role, setRole] = useState<EmployeeRole>("master");
 
     // --- РЎРѕСЃС‚РѕСЏРЅРёСЏ РґР»СЏ РіСЂР°С„РёРєР° ---
@@ -96,8 +143,17 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const { data: employeeServices = [] } = useEmployeeServices(employee?.id);
     const { mutateAsync: syncServices } = useSyncEmployeeServices();
     const deleteEmployeeMutation = useDeleteEmployee();
+    const {
+        data: permissionsData,
+        isLoading: isPermissionsLoading,
+        error: permissionsError,
+    } = useEmployeePermissions(employee?.id);
+    const updatePermissionsMutation = useUpdateEmployeePermissions(employee?.id);
 
     const [selectedServices, setSelectedServices] = useState<EmployeeService[]>([]);
+    const [permissionDraft, setPermissionDraft] = useState<
+        Record<string, EmployeePermissionMode>
+    >({});
 
 
     // --- СЃРѕСЃС‚РѕСЏРЅРёСЏ РґР»СЏ Р·Р°РіСЂСѓР·РєРё РіСЂР°С„РёРєР° ---
@@ -241,7 +297,12 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         setIsServiceDropdownOpen(false);
         setSubmitError(null);
         setSuccess(false);
+        setPermissionDraft({});
     }, [isOpen]);
+
+    useEffect(() => {
+        setPermissionDraft({});
+    }, [employee?.id, permissionsData]);
 
 
     // Р—Р°РіСЂСѓР¶Р°РµРј РІС‹Р±СЂР°РЅРЅС‹Рµ СѓСЃР»СѓРіРё РїСЂРё РѕС‚РєСЂС‹С‚РёРё
@@ -380,6 +441,70 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
     if (!isOpen || !employee) return null;
 
+    const fullName = [name, lastName].filter(Boolean).join(" ") || employee.name;
+    const initials =
+        `${name?.[0] ?? ""}${lastName?.[0] ?? ""}`.toUpperCase() ||
+        employee.name?.[0]?.toUpperCase() ||
+        "?";
+    const roleLabel = ROLE_LABELS[role] ?? role;
+    const permissionDraftCount = Object.keys(permissionDraft).length;
+    const isPermissionSaving = updatePermissionsMutation.isPending;
+    const permissionsCanEdit = Boolean(permissionsData?.canEdit);
+    const permissionCellKey = (cell: EmployeePermissionCell) =>
+        cell.permissions.join("|");
+    const getPermissionCellMode = (cell: EmployeePermissionCell) =>
+        permissionDraft[permissionCellKey(cell)] ?? cell.mode;
+
+    const setPermissionCellMode = (
+        cell: EmployeePermissionCell,
+        mode: EmployeePermissionMode,
+    ) => {
+        const key = permissionCellKey(cell);
+
+        setPermissionDraft((prev) => {
+            if (mode === cell.mode) {
+                const next = { ...prev };
+                delete next[key];
+                return next;
+            }
+
+            return { ...prev, [key]: mode };
+        });
+    };
+
+    const handleSavePermissions = async () => {
+        if (!employee?.id || permissionDraftCount === 0) return;
+
+        const updates = Object.entries(permissionDraft).map(([key, mode]) => ({
+            permissions: key.split("|"),
+            mode,
+        }));
+
+        try {
+            await updatePermissionsMutation.mutateAsync({ updates });
+            setPermissionDraft({});
+            setSuccess(true);
+        } catch (err) {
+            console.error("Ошибка сохранения прав сотрудника:", err);
+            setSubmitError(getErrorMessage(err));
+        }
+    };
+
+    const handleResetPermissions = async () => {
+        if (!employee?.id || !confirm("Сбросить индивидуальные разрешения сотрудника?")) {
+            return;
+        }
+
+        try {
+            await updatePermissionsMutation.mutateAsync({ reset: true });
+            setPermissionDraft({});
+            setSuccess(true);
+        } catch (err) {
+            console.error("Ошибка сброса прав сотрудника:", err);
+            setSubmitError(getErrorMessage(err));
+        }
+    };
+
 
     const getErrorMessage = (err: any) => {
         const msg =
@@ -490,144 +615,186 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 </div>
 
                 {/* Р’РєР»Р°РґРєРё */}
-                <div className="flex justify-around border-b border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[rgb(var(--card))]">
-                    {["info", "schedule", "services"].map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab as any)}
-                            className={`flex-1 py-3 text-sm capitalize transition ${
-                                activeTab === tab
-                                    ? "border-b-2 border-green-500 font-semibold text-green-600"
-                                    : "text-gray-500 hover:text-gray-700"
-                            }`}
-                        >
-                            {tab === "info" && "Основное"}
-                            {tab === "schedule" && "График"}
-                            {tab === "services" && "Услуги"}
-                        </button>
-                    ))}
+                <div className="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-[rgb(var(--card))]">
+                    <div className="overflow-x-auto">
+                        <div className="inline-flex min-w-full gap-2 rounded-2xl border border-gray-200 bg-white p-2 dark:border-white/10 dark:bg-white/[0.03]">
+                            {EMPLOYEE_TABS.map((tab) => {
+                                const Icon = tab.icon;
+                                const isActive = activeTab === tab.id;
+
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        type="button"
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`inline-flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition ${
+                                            isActive
+                                                ? "bg-green-600 text-white shadow-sm"
+                                                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white"
+                                        }`}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        <span>{tab.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
 
                 {/* РљРѕРЅС‚РµРЅС‚ */}
                 <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white">
                     {activeTab === "info" && (
                         <div className="space-y-4">
-                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Имя</label>
-                                    <input
-                                        type="text"
-                                        value={name}
-                                        onChange={(e) => setName(e.target.value)}
-                                        className={inputClass}
-                                        placeholder="Имя"
-                                        required
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Фамилия</label>
-                                    <input
-                                        type="text"
-                                        value={lastName}
-                                        onChange={(e) => setLastName(e.target.value)}
-                                        className={inputClass}
-                                        placeholder="Фамилия"
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Специализация</label>
-                                    <SpecialtyAutocomplete
-                                        value={specialty}
-                                        onChange={setSpecialty}
-                                        inputClassName={inputClass}
-                                        placeholder="Например: массажист"
-                                    />
-                                </div>
-
-                                <div>
-                                    <div className="mb-4">
-                                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            Квалификация
-                                        </label>
-                                        <QualificationSelect value={lvl} onChange={setLvl} />
-
-                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                            Уровень сотрудника в компании. Выбранный вариант будет использоваться для цветовой маркировки мастера.
-                                        </p>
+                            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-600 text-sm font-semibold text-white">
+                                        {initials}
                                     </div>
 
-                                    <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        Роль в системе
-                                    </label>
-
-                                    <select
-                                        value={role}
-                                        onChange={(e) => setRole(e.target.value as EmployeeRole)}
-                                        className={`${inputClass} bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white`}
-                                    >
-                                        {ROLE_OPTIONS.map((opt) => (
-                                            <option
-                                                key={opt.value}
-                                                value={opt.value}
-                                                className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white"
-                                            >
-                                                {opt.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <p className="text-xs text-gray-500 mt-1">
-                                        Статус сотрудника: ГД, админ или мастер.
-                                    </p>
+                                    <div className="min-w-0">
+                                        <h3 className="truncate text-xl font-semibold leading-tight text-gray-900 dark:text-white">
+                                            {fullName}
+                                        </h3>
+                                        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                                            <span>{specialty || "Специализация не указана"}</span>
+                                            <span className="h-1 w-1 rounded-full bg-gray-300 dark:bg-white/30" />
+                                            <span>{roleLabel}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                                    <input
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className={inputClass}
-                                        placeholder="email@example.com"
-                                    />
+                            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                                    <UserRound className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                                    <h3 className="text-sm font-semibold">Профиль сотрудника</h3>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Телефон</label>
-                                    <input
-                                        type="tel"
-                                        value={phone}
-                                        onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
-                                        className={inputClass}
-                                        placeholder="+..."
-                                        inputMode="numeric"
-                                        autoComplete="tel"
-                                    />
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Имя</label>
+                                        <input
+                                            type="text"
+                                            value={name}
+                                            onChange={(e) => setName(e.target.value)}
+                                            className={inputClass}
+                                            placeholder="Имя"
+                                            required
+                                        />
+                                    </div>
 
-                                    {showError && (
-                                        <p className="mt-1 text-xs text-red-500">
-                                            Введите корректный номер: от {MIN_PHONE_DIGITS} цифр, только цифры и "+" в начале.
+                                    <div>
+                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Фамилия</label>
+                                        <input
+                                            type="text"
+                                            value={lastName}
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            className={inputClass}
+                                            placeholder="Фамилия"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Специализация</label>
+                                        <SpecialtyAutocomplete
+                                            value={specialty}
+                                            onChange={setSpecialty}
+                                            inputClassName={inputClass}
+                                            placeholder="Например: массажист"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Квалификация</label>
+                                        <QualificationSelect value={lvl} onChange={setLvl} />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Роль в системе</label>
+                                        <select
+                                            value={role}
+                                            onChange={(e) => setRole(e.target.value as EmployeeRole)}
+                                            className={`${inputClass} bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white`}
+                                        >
+                                            {ROLE_OPTIONS.map((opt) => (
+                                                <option
+                                                    key={opt.value}
+                                                    value={opt.value}
+                                                    className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white"
+                                                >
+                                                    {opt.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                            Роль задаёт базовые права. Индивидуальные разрешения можно настроить на отдельной вкладке.
                                         </p>
-                                    )}
+                                    </div>
+                                </div>
+                            </div>
 
-                                    <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
-                                        Цифр: {getPhoneDigitsCount(phone)}
-                                    </p>
+                            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                                    <BadgeCheck className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                                    <h3 className="text-sm font-semibold">Контакты и работа</h3>
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Дата найма</label>
-                                    <div className="relative">
-                                    <input
-                                        type="date"
-                                        value={hireDate}
-                                        onChange={(e) => setHireDate(e.target.value)}
-                                        className={inputClass}
-                                    />
-                                        <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            <Mail className="h-4 w-4 text-gray-400" />
+                                            Email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className={inputClass}
+                                            placeholder="email@example.com"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            <Phone className="h-4 w-4 text-gray-400" />
+                                            Телефон
+                                        </label>
+                                        <input
+                                            type="tel"
+                                            value={phone}
+                                            onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
+                                            className={inputClass}
+                                            placeholder="+..."
+                                            inputMode="numeric"
+                                            autoComplete="tel"
+                                        />
+
+                                        {showError && (
+                                            <p className="mt-1 text-xs text-red-500">
+                                                Введите корректный номер: от {MIN_PHONE_DIGITS} цифр, только цифры и "+" в начале.
+                                            </p>
+                                        )}
+
+                                        <p className="mt-1 text-xs text-gray-500 dark:text-white/50">
+                                            Цифр: {getPhoneDigitsCount(phone)}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <label className="mb-1 flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            <BriefcaseBusiness className="h-4 w-4 text-gray-400" />
+                                            Дата найма
+                                        </label>
+                                        <div className="relative">
+                                            <input
+                                                type="date"
+                                                value={hireDate}
+                                                onChange={(e) => setHireDate(e.target.value)}
+                                                className={inputClass}
+                                            />
+                                            <CalendarDays className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-600 pointer-events-none dark:text-white" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -992,6 +1159,155 @@ transition"
                                 <p className="text-gray-500 dark:text-gray-400 text-sm text-center">
                                     Нет доступных услуг для филиала
                                 </p>
+                            )}
+                        </div>
+                    )}
+
+                    {activeTab === "permissions" && (
+                        <div className="space-y-4">
+                            <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <div className="flex items-center gap-2 text-gray-900 dark:text-white">
+                                            <ShieldCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                            <h3 className="text-sm font-semibold">Индивидуальные разрешения</h3>
+                                        </div>
+                                        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                            Базовая роль: {ROLE_LABELS[permissionsData?.employeeRole ?? role] ?? permissionsData?.employeeRole ?? roleLabel}. Можно оставить наследование или переопределить отдельные права.
+                                        </p>
+                                    </div>
+
+                                    {permissionDraftCount > 0 && (
+                                        <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700 dark:bg-green-500/10 dark:text-green-300">
+                                            {permissionDraftCount} изм.
+                                        </span>
+                                    )}
+                                </div>
+
+                                {!permissionsCanEdit && permissionsData && (
+                                    <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                                        Для этой роли разрешения доступны только для просмотра.
+                                    </div>
+                                )}
+                            </div>
+
+                            {isPermissionsLoading ? (
+                                <div className="rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+                                    Загрузка разрешений...
+                                </div>
+                            ) : permissionsError ? (
+                                <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300">
+                                    Не удалось загрузить матрицу разрешений.
+                                </div>
+                            ) : permissionsData?.matrix ? (
+                                <div className="space-y-3">
+                                    {permissionsData.matrix.rows.map((row) => (
+                                        <div
+                                            key={row.rowKey}
+                                            className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none"
+                                        >
+                                            <div className="mb-3">
+                                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                    {row.moduleLabel}
+                                                </h4>
+                                                {row.hint && (
+                                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                                        {row.hint}
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                {permissionsData.matrix.columns.map((column) => {
+                                                    const cell = row.cells[column.key];
+
+                                                    if (!cell) {
+                                                        return (
+                                                            <div
+                                                                key={column.key}
+                                                                className="flex items-center justify-between rounded-xl border border-dashed border-gray-200 px-3 py-2 text-sm text-gray-400 dark:border-white/10 dark:text-white/35"
+                                                            >
+                                                                <span>{column.label}</span>
+                                                                <span>—</span>
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    const mode = getPermissionCellMode(cell);
+
+                                                    return (
+                                                        <div
+                                                            key={column.key}
+                                                            className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/[0.03]"
+                                                        >
+                                                            <div className="mb-2 flex items-center justify-between gap-3">
+                                                                <div>
+                                                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                                                        {column.label}
+                                                                    </div>
+                                                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                                                        По роли: {cell.inheritedGranted ? "разрешено" : "не разрешено"}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-3 gap-1 rounded-xl border border-gray-200 bg-white p-1 dark:border-white/10 dark:bg-white/[0.04]">
+                                                                {PERMISSION_MODE_OPTIONS.map((option) => (
+                                                                    <button
+                                                                        key={option.value}
+                                                                        type="button"
+                                                                        disabled={!permissionsCanEdit || isPermissionSaving}
+                                                                        onClick={() => setPermissionCellMode(cell, option.value)}
+                                                                        className={`rounded-lg px-2 py-2 text-xs font-semibold transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                                                                            mode === option.value
+                                                                                ? option.value === "allow"
+                                                                                    ? "bg-green-600 text-white"
+                                                                                    : option.value === "deny"
+                                                                                      ? "bg-red-600 text-white"
+                                                                                      : "bg-gray-900 text-white dark:bg-white dark:text-gray-900"
+                                                                                : "text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/10"
+                                                                        }`}
+                                                                        title={option.description}
+                                                                    >
+                                                                        {option.label}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-500 dark:border-white/10 dark:bg-white/5 dark:text-gray-400">
+                                    Матрица разрешений недоступна.
+                                </div>
+                            )}
+
+                            {permissionsData && (
+                                <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+                                    <div className="flex flex-col gap-2 sm:flex-row">
+                                        <button
+                                            type="button"
+                                            onClick={handleSavePermissions}
+                                            disabled={!permissionsCanEdit || permissionDraftCount === 0 || isPermissionSaving}
+                                            className="h-11 flex-1 rounded-xl bg-green-600 px-4 text-sm font-semibold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                        >
+                                            {isPermissionSaving ? "Сохранение..." : "Сохранить разрешения"}
+                                        </button>
+
+                                        <button
+                                            type="button"
+                                            onClick={handleResetPermissions}
+                                            disabled={!permissionsCanEdit || isPermissionSaving}
+                                            className="h-11 rounded-xl border border-gray-200 bg-white px-4 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:hover:bg-white/10"
+                                        >
+                                            Сбросить
+                                        </button>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     )}

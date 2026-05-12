@@ -46,6 +46,47 @@ export interface EmployeeInviteResponse {
     invite_token: string;
     existing_user: boolean;
 }
+
+export type EmployeePermissionMode = "inherit" | "allow" | "deny";
+
+export type EmployeePermissionCell = {
+    mode: EmployeePermissionMode;
+    inheritedGranted: boolean;
+    permissions: string[];
+};
+
+export type EmployeePermissionColumn = {
+    key: string;
+    label: string;
+};
+
+export type EmployeePermissionRow = {
+    rowKey: string;
+    moduleLabel: string;
+    hint?: string;
+    rowGroup?: string;
+    cells: Record<string, EmployeePermissionCell | null>;
+};
+
+export type EmployeePermissionMatrix = {
+    columns: EmployeePermissionColumn[];
+    rows: EmployeePermissionRow[];
+};
+
+export type EmployeePermissionsResponse = {
+    employeeRole: EmployeeRole | string;
+    canEdit: boolean;
+    matrix: EmployeePermissionMatrix;
+};
+
+export type EmployeePermissionsUpdate =
+    | { reset: true }
+    | {
+    updates: Array<{
+        permissions: string[];
+        mode: EmployeePermissionMode;
+    }>;
+};
 // Получение списка сотрудников
 export const fetchEmployees = async (branchId?: number): Promise<Employee[]> => {
     /*const response = await apiClient.get<Employee[]>("/employees", {
@@ -151,6 +192,28 @@ export const inviteEmployee = async (
 ): Promise<EmployeeInviteResponse> => {
     const response = await apiClient.post<EmployeeInviteResponse>(
         `/employees/${id}/invite`
+    );
+
+    return response.data;
+};
+
+export const fetchEmployeePermissions = async (
+    id: number
+): Promise<EmployeePermissionsResponse> => {
+    const response = await apiClient.get<EmployeePermissionsResponse>(
+        `/employees/${id}/permissions`
+    );
+
+    return response.data;
+};
+
+export const updateEmployeePermissions = async (
+    id: number,
+    payload: EmployeePermissionsUpdate
+): Promise<EmployeePermissionsResponse> => {
+    const response = await apiClient.put<EmployeePermissionsResponse>(
+        `/employees/${id}/permissions`,
+        payload
     );
 
     return response.data;

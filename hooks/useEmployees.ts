@@ -7,7 +7,10 @@ import {
     createEmployee,
     updateEmployee,
     deleteEmployee,
-    EmployeeCreatePayload
+    EmployeeCreatePayload,
+    EmployeePermissionsUpdate,
+    fetchEmployeePermissions,
+    updateEmployeePermissions
 } from "@/services/employeeApi";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { EventSourcePolyfill } from "event-source-polyfill";
@@ -196,6 +199,30 @@ export const useDeleteEmployee = (): UseMutationResult<void, unknown, number, un
         },
         onError: (error: any) => {
             console.error("❌ Ошибка удаления:", error.response?.data || error.message);
+        },
+    });
+};
+
+export const useEmployeePermissions = (employeeId?: number) => {
+    return useQuery({
+        queryKey: ["employee-permissions", employeeId],
+        queryFn: () => fetchEmployeePermissions(employeeId!),
+        enabled: !!employeeId,
+        staleTime: 1000 * 60 * 5,
+    });
+};
+
+export const useUpdateEmployeePermissions = (employeeId?: number) => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (payload: EmployeePermissionsUpdate) =>
+            updateEmployeePermissions(employeeId!, payload),
+        onSuccess: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["employee-permissions", employeeId],
+            });
+            queryClient.invalidateQueries({ queryKey: ["employees"] });
         },
     });
 };

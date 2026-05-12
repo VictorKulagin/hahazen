@@ -31,7 +31,29 @@ import { Trash2, Mail, Send } from "lucide-react";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import { LEVEL_COLOR_STYLES, LEVEL_OPTIONS } from "@/lib/employee-levels";
+import EmployeeDetailsPanel from "@/components/employees/details/EmployeeDetailsPanel";
 
+const EMPLOYEE_AVATAR_COLORS = [
+    "bg-indigo-500",
+    "bg-pink-500",
+    "bg-orange-500",
+    "bg-green-500",
+    "bg-blue-500",
+    "bg-purple-500",
+    "bg-emerald-500",
+    "bg-rose-500",
+];
+
+function getEmployeeAvatarColor(name: string = "") {
+    let hash = 0;
+
+    for (let i = 0; i < name.length; i++) {
+        hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+
+    const index = Math.abs(hash) % EMPLOYEE_AVATAR_COLORS.length;
+    return EMPLOYEE_AVATAR_COLORS[index];
+}
 
 const Page: React.FC = ( ) => {
 
@@ -45,6 +67,7 @@ const Page: React.FC = ( ) => {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
+    const [detailsEmployee, setDetailsEmployee] = useState<Employee | null>(null);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -118,6 +141,15 @@ const Page: React.FC = ( ) => {
                         }
                         : item
                 )
+            );
+            setDetailsEmployee((prev) =>
+                prev?.id === employee.id
+                    ? {
+                        ...prev,
+                        invite_token: result.invite_token,
+                        invite_sent_at: result.invite_sent_at,
+                    }
+                    : prev
             );
 
             alert(
@@ -300,6 +332,7 @@ const Page: React.FC = ( ) => {
         try {
             await deleteEmployee(id);
             setEmployees((prev) => prev.filter((employee) => employee.id !== id));
+            setDetailsEmployee((prev) => (prev?.id === id ? null : prev));
         } catch (error) {
             console.error("Ошибка при удалении сотрудника:", error);
         }
@@ -309,6 +342,18 @@ const Page: React.FC = ( ) => {
         setEditingEmployee(employee);
         setIsEditModalOpen(true);
     };
+
+    useEffect(() => {
+        if (!detailsEmployee) return;
+
+        const latestEmployee = employees.find(
+            (employee) => employee.id === detailsEmployee.id
+        );
+
+        if (latestEmployee && latestEmployee !== detailsEmployee) {
+            setDetailsEmployee(latestEmployee);
+        }
+    }, [detailsEmployee, employees]);
 
 
     if (isNotFound) {
@@ -559,15 +604,26 @@ const Page: React.FC = ( ) => {
                     </button>
                 )*/}
                 {/* Таблица сотрудников */}
-                <EmployeesTable
-                    loading={loading}
-                    error={error}
-                    employees={employees}
-                    handleEdit={handleEdit}
-                    handleDelete={handleDelete}
-                    handleInvite={handleInvite}
-                    invitingEmployeeId={invitingEmployeeId}
-                />
+                {detailsEmployee ? (
+                    <EmployeeDetailsPanel
+                        employee={detailsEmployee}
+                        canEdit={authStorage.has("master:update")}
+                        onBack={() => setDetailsEmployee(null)}
+                        onEdit={() => handleEdit(detailsEmployee)}
+                        getAvatarColor={getEmployeeAvatarColor}
+                    />
+                ) : (
+                    <EmployeesTable
+                        loading={loading}
+                        error={error}
+                        employees={employees}
+                        handleOpenDetails={setDetailsEmployee}
+                        handleEdit={handleEdit}
+                        handleDelete={handleDelete}
+                        handleInvite={handleInvite}
+                        invitingEmployeeId={invitingEmployeeId}
+                    />
+                )}
 
                 {authStorage.has("master:create") && (
                     <button
@@ -595,15 +651,22 @@ const Page: React.FC = ( ) => {
                 <EditEmployeeModal
                     isOpen={isEditModalOpen}
                     employee={editingEmployee}
-                    onClose={() => setIsEditModalOpen(false)}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        setEditingEmployee(null);
+                    }}
                     onSave={async (updated) => {
                         const savedEmployee = await updateEmployee(updated.id, updated);
 
                         setEmployees((prev) =>
                             prev.map((emp) => (emp.id === savedEmployee.id ? savedEmployee : emp))
                         );
+                        setDetailsEmployee((prev) =>
+                            prev?.id === savedEmployee.id ? savedEmployee : prev
+                        );
 
                         setIsEditModalOpen(false);
+                        setEditingEmployee(null);
                     }}
                 />
 
@@ -620,6 +683,7 @@ const EmployeesTable = ({
                             loading,
                             error,
                             employees,
+                            handleOpenDetails,
                             handleEdit,
                             handleDelete,
                             handleInvite,
@@ -628,33 +692,13 @@ const EmployeesTable = ({
     loading: boolean;
     error: string;
     employees: Employee[];
+    handleOpenDetails: (employee: Employee) => void;
     handleEdit: (employee: Employee) => void;
     handleDelete: (id: number) => void;
     handleInvite: (employee: Employee) => void;
     invitingEmployeeId: number | null;
 }) => {
 
-
-    const avatarColors = [
-        "bg-indigo-500",
-        "bg-pink-500",
-        "bg-orange-500",
-        "bg-green-500",
-        "bg-blue-500",
-        "bg-purple-500",
-        "bg-emerald-500",
-        "bg-rose-500",
-    ];
-    function getAvatarColor(name: string = "") {
-        let hash = 0;
-
-        for (let i = 0; i < name.length; i++) {
-            hash = name.charCodeAt(i) + ((hash << 5) - hash);
-        }
-
-        const index = Math.abs(hash) % avatarColors.length;
-        return avatarColors[index];
-    }
 
     function getLevelOption(lvl?: string | null) {
         return (
@@ -688,14 +732,23 @@ const EmployeesTable = ({
                         {employees.map((employee) => (
                             <div
                                 key={employee.id}
-                                className="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-5"
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => handleOpenDetails(employee)}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter" || event.key === " ") {
+                                        event.preventDefault();
+                                        handleOpenDetails(employee);
+                                    }
+                                }}
+                                className="cursor-pointer rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors hover:border-green-200 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:border-green-400/30 dark:hover:bg-white/[0.08] md:px-5 md:py-5"
                             >
                                 <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[56px_minmax(180px,1fr)_150px_220px_220px_auto] xl:items-center xl:gap-6">
 
                                     {/* Аватар */}
                                     <div className="flex items-center gap-3 xl:contents">
                                         <div
-                                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white ${getAvatarColor(employee.name)}`}
+                                            className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-base font-semibold text-white ${getEmployeeAvatarColor(employee.name)}`}
                                         >
                                             {employee.name?.[0] || "?"}
                                         </div>
@@ -747,7 +800,10 @@ const EmployeesTable = ({
                                     <div className="flex items-center gap-2 self-start xl:self-center xl:justify-end">
                                         {authStorage.has("master:update") && (
                                             <button
-                                                onClick={() => handleEdit(employee)}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleEdit(employee);
+                                                }}
                                                 className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
                                             >
                                                 <span>Редактировать</span>
@@ -756,7 +812,10 @@ const EmployeesTable = ({
 
                                         {authStorage.has("master:update") && (
                                             <button
-                                                onClick={() => handleInvite(employee)}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleInvite(employee);
+                                                }}
                                                 disabled={!employee.email || invitingEmployeeId === employee.id}
                                                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 px-5 text-sm font-medium text-green-700 transition hover:bg-green-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-green-900/40 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50"
                                                 title={
@@ -783,7 +842,10 @@ const EmployeesTable = ({
 
                                         {authStorage.has("master:delete") && (
                                             <button
-                                                onClick={() => handleDelete(employee.id)}
+                                                onClick={(event) => {
+                                                    event.stopPropagation();
+                                                    handleDelete(employee.id);
+                                                }}
                                                 className="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-5 text-sm font-medium text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60 sm:px-5"
                                             >
             <span className="sm:hidden">
