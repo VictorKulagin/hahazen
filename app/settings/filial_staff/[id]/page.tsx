@@ -23,7 +23,7 @@ import SidebarMenu from "@/components/SidebarMenu";
 import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 import Image from "next/image";
 import Loader from "@/components/Loader";
-import { authStorage } from "@/services/authStorage";
+//import { authStorage } from "@/services/authStorage";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 
@@ -32,6 +32,8 @@ import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import { LEVEL_COLOR_STYLES, LEVEL_OPTIONS } from "@/lib/employee-levels";
 import EmployeeDetailsPanel from "@/components/employees/details/EmployeeDetailsPanel";
+
+import { can } from "@/lib/permissions";
 
 const EMPLOYEE_AVATAR_COLORS = [
     "bg-indigo-500",
@@ -576,7 +578,7 @@ const Page: React.FC = ( ) => {
                         </div>
 
                         <div className="flex items-center gap-2 md:gap-3">
-                            {authStorage.has("master:create") && (
+                            {can.employees.create() && (
                                 <button
                                     onClick={() => setIsAddModalOpen(true)}
                                     className="hidden md:inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600"
@@ -607,7 +609,7 @@ const Page: React.FC = ( ) => {
                 {detailsEmployee ? (
                     <EmployeeDetailsPanel
                         employee={detailsEmployee}
-                        canEdit={authStorage.has("master:update")}
+                        canEdit={can.employees.update()}
                         onBack={() => setDetailsEmployee(null)}
                         onEdit={() => handleEdit(detailsEmployee)}
                         getAvatarColor={getEmployeeAvatarColor}
@@ -625,7 +627,7 @@ const Page: React.FC = ( ) => {
                     />
                 )}
 
-                {authStorage.has("master:create") && (
+                {can.employees.create() && (
                     <button
                         onClick={() => setIsAddModalOpen(true)}
                         className="fixed bottom-5 right-5 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition hover:bg-green-600 md:hidden"
@@ -636,40 +638,42 @@ const Page: React.FC = ( ) => {
                 )}
 
                 {/* ✅ Новое окно — добавление сотрудника */}
-                <CreateEmployeeModal
-                    isOpen={isAddModalOpen}
-                    branchId={id}
-                    onClose={() => setIsAddModalOpen(false)}
-                    onSave={() => {
-                        setIsAddModalOpen(false);
-                        // После создания — обновим список
-                        fetchEmployees().then(setEmployees);
-                    }}
-                />
-
+                {can.employees.create() && (
+                    <CreateEmployeeModal
+                        isOpen={isAddModalOpen}
+                        branchId={id}
+                        onClose={() => setIsAddModalOpen(false)}
+                        onSave={() => {
+                            setIsAddModalOpen(false);
+                            // После создания — обновим список
+                            fetchEmployees().then(setEmployees);
+                        }}
+                    />
+                )}
                 {/* ✅ Новое окно — редактирование сотрудника */}
-                <EditEmployeeModal
-                    isOpen={isEditModalOpen}
-                    employee={editingEmployee}
-                    onClose={() => {
-                        setIsEditModalOpen(false);
-                        setEditingEmployee(null);
-                    }}
-                    onSave={async (updated) => {
-                        const savedEmployee = await updateEmployee(updated.id, updated);
+                {can.employees.update() && (
+                    <EditEmployeeModal
+                        isOpen={isEditModalOpen}
+                        employee={editingEmployee}
+                        onClose={() => {
+                              setIsEditModalOpen(false);
+                              setEditingEmployee(null);
+                        }}
+                        onSave={async (updated) => {
+                            const savedEmployee = await updateEmployee(updated.id, updated);
 
-                        setEmployees((prev) =>
-                            prev.map((emp) => (emp.id === savedEmployee.id ? savedEmployee : emp))
-                        );
-                        setDetailsEmployee((prev) =>
-                            prev?.id === savedEmployee.id ? savedEmployee : prev
-                        );
+                            setEmployees((prev) =>
+                                prev.map((emp) => (emp.id === savedEmployee.id ? savedEmployee : emp))
+                            );
+                            setDetailsEmployee((prev) =>
+                                prev?.id === savedEmployee.id ? savedEmployee : prev
+                            );
 
-                        setIsEditModalOpen(false);
-                        setEditingEmployee(null);
-                    }}
-                />
-
+                            setIsEditModalOpen(false);
+                            setEditingEmployee(null);
+                        }}
+                    />
+                )}
 
             </main>
         </div>
@@ -798,7 +802,7 @@ const EmployeesTable = ({
 
                                     {/* Кнопки (пока без финальной стилизации) */}
                                     <div className="flex items-center gap-2 self-start xl:self-center xl:justify-end">
-                                        {authStorage.has("master:update") && (
+                                        {can.employees.update() && (
                                             <button
                                                 onClick={(event) => {
                                                     event.stopPropagation();
@@ -810,7 +814,7 @@ const EmployeesTable = ({
                                             </button>
                                         )}
 
-                                        {authStorage.has("master:update") && (
+                                        {can.employees.update() && (
                                             <button
                                                 onClick={(event) => {
                                                     event.stopPropagation();
@@ -840,7 +844,7 @@ const EmployeesTable = ({
                                             </button>
                                         )}
 
-                                        {authStorage.has("master:delete") && (
+                                        {can.employees.delete() && (
                                             <button
                                                 onClick={(event) => {
                                                     event.stopPropagation();

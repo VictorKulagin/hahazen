@@ -6,6 +6,7 @@ import {
     UserIcon,
     XMarkIcon,
 } from "@heroicons/react/24/solid";
+import { can } from "@/lib/permissions";
 
 type Props = {
     isOpen: boolean;
@@ -70,12 +71,13 @@ export const CreateMenuModal: React.FC<Props> = ({
 
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[rgb(var(--background))]">
-                    <button
-                        onClick={() => {
-                            onSelect("client");
-                            onClose();
-                        }}
-                        className="
+                    {can.clients.create() && (
+                        <button
+                            onClick={() => {
+                                onSelect("client");
+                                onClose();
+                            }}
+                            className="
                             flex items-center gap-3 w-full p-4
                             border border-gray-200 dark:border-white/10
                             rounded-2xl
@@ -83,21 +85,23 @@ export const CreateMenuModal: React.FC<Props> = ({
                             hover:bg-gray-50 dark:hover:bg-white/10
                             transition
                         "
-                    >
-                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-500/10">
-                            <UserIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
-                        </div>
-                        <span className="text-base font-medium text-gray-900 dark:text-white">
+                        >
+                            <div
+                                className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-500/10">
+                                <UserIcon className="h-6 w-6 text-indigo-600 dark:text-indigo-400"/>
+                            </div>
+                            <span className="text-base font-medium text-gray-900 dark:text-white">
                             Клиента
                         </span>
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            onSelect("employee");
-                            onClose();
-                        }}
-                        className="
+                        </button>
+                    )}
+                    {can.employees.create() && (
+                        <button
+                            onClick={() => {
+                                onSelect("employee");
+                                onClose();
+                            }}
+                            className="
                             flex items-center gap-3 w-full p-4
                             border border-gray-200 dark:border-white/10
                             rounded-2xl
@@ -105,21 +109,23 @@ export const CreateMenuModal: React.FC<Props> = ({
                             hover:bg-gray-50 dark:hover:bg-white/10
                             transition
                         "
-                    >
-                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 dark:bg-green-500/10">
-                            <UserPlusIcon className="h-6 w-6 text-green-600 dark:text-green-400" />
-                        </div>
-                        <span className="text-base font-medium text-gray-900 dark:text-white">
+                        >
+                            <div
+                                className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 dark:bg-green-500/10">
+                                <UserPlusIcon className="h-6 w-6 text-green-600 dark:text-green-400"/>
+                            </div>
+                            <span className="text-base font-medium text-gray-900 dark:text-white">
                             Сотрудника
                         </span>
-                    </button>
-
-                    <button
-                        onClick={() => {
-                            onSelect("service");
-                            onClose();
-                        }}
-                        className="
+                        </button>
+                    )}
+                    {can.services.create() && (
+                        <button
+                            onClick={() => {
+                                onSelect("service");
+                                onClose();
+                            }}
+                            className="
                             flex items-center gap-3 w-full p-4
                             border border-gray-200 dark:border-white/10
                             rounded-2xl
@@ -127,14 +133,16 @@ export const CreateMenuModal: React.FC<Props> = ({
                             hover:bg-gray-50 dark:hover:bg-white/10
                             transition
                         "
-                    >
-                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10">
-                            <WrenchScrewdriverIcon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <span className="text-base font-medium text-gray-900 dark:text-white">
+                        >
+                            <div
+                                className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-500/10">
+                                <WrenchScrewdriverIcon className="h-6 w-6 text-blue-600 dark:text-blue-400"/>
+                            </div>
+                            <span className="text-base font-medium text-gray-900 dark:text-white">
                             Услугу
                         </span>
-                    </button>
+                        </button>
+                    )}
                 </div>
 
                 {/* Footer */}

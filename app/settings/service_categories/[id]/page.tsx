@@ -17,8 +17,6 @@ import {cabinetDashboard} from "@/services/cabinetDashboard";
 import SidebarMenu from "@/components/SidebarMenu";
 import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 
-
-
 import { useServices, useDeleteService } from "@/hooks/useServices";
 
 import { ServiceManager } from "@/components/schedulePage/ServiceManager";
@@ -28,13 +26,13 @@ import { ServiceManagerUpdateOne } from "@/components/schedulePage/ServiceManage
 import {AxiosError} from "axios";
 import Image from "next/image";
 import Loader from "@/components/Loader";
-import {authStorage} from "@/services/authStorage";
 
 import { Pencil, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
+import { can } from "@/lib/permissions";
 
 const Page: React.FC = ( ) => {
 
@@ -76,6 +74,7 @@ const Page: React.FC = ( ) => {
     const { mutateAsync: deleteService } = useDeleteService(); // ✅ Добавлено
 
     const { theme } = useTheme();
+
 
     const toggleFilModal = () => {
         setIsModalFilOpen((prev) => !prev);
@@ -444,7 +443,7 @@ const Page: React.FC = ( ) => {
                         </div>
 
                         <div className="flex items-center gap-2 md:gap-3">
-                            {authStorage.has("master:create") && (
+                            {can.services.create() && (
                                 <button
                                     onClick={() => setIsServiceManagerOpen(true)}
                                     className="hidden md:inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600"
@@ -483,7 +482,7 @@ const Page: React.FC = ( ) => {
                     setSelectedService={setSelectedService}
                 />
 
-                {authStorage.has("master:create") && (
+                {can.services.create() && (
                     <button
                         onClick={() => setIsServiceManagerOpen(true)}
                         className="fixed bottom-5 right-5 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition hover:bg-green-600 md:hidden"
@@ -511,17 +510,19 @@ const Page: React.FC = ( ) => {
                     </div>
                 )}
 
-                {isServiceManagerOpen && (
+                {can.services.create() && isServiceManagerOpen && (
                     <ServiceManager
                         branchId={id}
                         onClose={() => setIsServiceManagerOpen(false)}
                     />
                 )}
 
-                <ServiceManagerUpdateOne
-                    service={selectedService}
-                    onClose={() => setSelectedService(null)}
-                />
+                {can.services.update() && (
+                    <ServiceManagerUpdateOne
+                        service={selectedService}
+                        onClose={() => setSelectedService(null)}
+                    />
+                )}
 
 
             </main>
@@ -605,7 +606,7 @@ const ServicesTable = ({
 
                                         {/* Кнопки */}
                                         <div className="flex items-center gap-2 self-start lg:self-center lg:justify-end">
-                                            {authStorage.has("master:update") && (
+                                            {can.services.update() && (
                                                 <button
                                                     onClick={() => setSelectedService(service)}
                                                     className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
@@ -614,7 +615,7 @@ const ServicesTable = ({
                                                 </button>
                                             )}
 
-                                            {authStorage.has("master:delete") && (
+                                            {can.services.delete() && (
                                                 <button
                                                     onClick={() => handleDelete(service.id)}
                                                     className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60"

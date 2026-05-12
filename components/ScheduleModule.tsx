@@ -5,9 +5,10 @@ import { isWorkingSlot } from "@/components/utils/isWorkingSlot";
 import type { EmployeeSchedule } from "@/services/employeeScheduleApi";
 import { Employee } from "@/services/employeeApi";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
-import {authStorage} from "@/services/authStorage"; // 👈 вместо PlusIcon
+//import {authStorage} from "@/services/authStorage"; // 👈 вместо PlusIcon
 import { Pencil, List, LayoutGrid } from "lucide-react";
 import Image from "next/image";
+import { can } from "@/lib/permissions";
 
 
 export interface ScheduleEvent {
@@ -145,6 +146,11 @@ export default function ScheduleModule({
     const masterSearch = controlledMasterSearch ?? internalMasterSearch;
     const setSelectedMaster = onSelectedMasterFilterChange ?? setInternalSelectedMaster;
     const setMasterSearch = onMasterSearchChange ?? setInternalMasterSearch;
+
+    const canOpenCreateMenu =
+        can.clients.create() ||
+        can.employees.create() ||
+        can.services.create();
 
     const filteredEmployees = useMemo(
         () => selectedMaster === "all"
@@ -644,7 +650,7 @@ export default function ScheduleModule({
                                     className="flex min-w-0 flex-1 items-center gap-3 text-left rounded-xl transition-all duration-150 active:scale-[0.99]
         "
                                     onClick={
-                                        authStorage.has("master:update")
+                                        can.employees.update()
                                             ? () => onMasterClick?.(employee)
                                             : undefined
                                     }
@@ -670,25 +676,26 @@ export default function ScheduleModule({
                                         </div>
                                     </div>
                                 </button>
-
-                                <button
-                                    type="button"
-                                    className="
+                                {can.appointments.create() && (
+                                    <button
+                                        type="button"
+                                        className="
             shrink-0 rounded-xl px-3 py-1.5
             text-sm font-medium text-green-500
             transition-colors duration-150
             hover:bg-green-500/10
             active:scale-[0.98]
         "
-                                    onClick={() =>
-                                        onCellClick?.(
-                                            freeSlots.length > 0 ? toMins(freeSlots[0].start) : 9 * 60,
-                                            masterIdx
-                                        )
-                                    }
-                                >
-                                    + Запись
-                                </button>
+                                        onClick={() =>
+                                            onCellClick?.(
+                                                freeSlots.length > 0 ? toMins(freeSlots[0].start) : 9 * 60,
+                                                masterIdx
+                                            )
+                                        }
+                                    >
+                                        + Запись
+                                    </button>
+                                )}
                             </div>
 
                             <div className="p-3 space-y-2">
@@ -714,7 +721,12 @@ export default function ScheduleModule({
                                         return (
                                             <button
                                                 key={event.id}
-                                                onClick={() => onEventClick?.(event)}
+                                                //onClick={() => onEventClick?.(event)}
+                                                onClick={
+                                                    can.appointments.update()
+                                                        ? () => onEventClick?.(event)
+                                                        : undefined
+                                                }
                                                 className={`w-full text-left rounded-2xl border px-3 py-3 transition-all duration-200 hover:shadow-md ${getEventColors(event)}`}
                                             >
                                                 <div className="flex items-start gap-3">
@@ -782,7 +794,7 @@ export default function ScheduleModule({
                                 )}
 
                                 {/* 🟢 Свободные слоты */}
-                                {freeSlots.length > 0 && (
+                                {can.appointments.create() && freeSlots.length > 0 && (
                                     <div className="flex flex-wrap gap-2 pt-2">
                                         {freeSlots.slice(0, 3).map((slot) => (
                                             <button
@@ -810,14 +822,15 @@ export default function ScheduleModule({
             </div>
             )}
 
-
-            <button
-                onClick={onAddEntity}
-                className="sm:hidden fixed bottom-6 right-6 z-40 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 active:scale-95 transition"
-                title="Добавить"
-            >
-                <UserPlusIcon className="h-6 w-6" />
-            </button>
+            {canOpenCreateMenu && (
+                <button
+                    onClick={onAddEntity}
+                    className="sm:hidden fixed bottom-6 right-6 z-40 bg-green-500 text-white p-4 rounded-full shadow-lg hover:bg-green-600 active:scale-95 transition"
+                    title="Добавить"
+                >
+                    <UserPlusIcon className="h-6 w-6" />
+                </button>
+            )}
 
             {viewMode === "grid" && (
                 <div
@@ -851,7 +864,7 @@ export default function ScheduleModule({
     active:scale-[0.99]
         "
                             onClick={
-                                authStorage.has("master:update")
+                                can.employees.update()
                                     ? () => onMasterClick?.(employee)
                                     : undefined
                             }
@@ -886,7 +899,7 @@ export default function ScheduleModule({
                                 </div>
                             </div>
 
-                            {authStorage.has("master:update") && (
+                            {can.employees.update() && (
                                 <span className="
     ml-3 shrink-0 rounded-lg p-1 opacity-30
     transition-all duration-150
@@ -900,7 +913,7 @@ export default function ScheduleModule({
                         </button>
                     ))}
                     {/* 👉 ОТДЕЛЬНАЯ КОЛОНКА */}
-                    {authStorage.has("master:create") && (
+                    {canOpenCreateMenu && (
                         <div
                             className="hidden sm:flex flex-none min-w-[180px] border-r border-[rgba(255,255,255,0.08)] p-2 justify-center">
                             <button
@@ -947,7 +960,7 @@ export default function ScheduleModule({
                                         }`}
 
                                         onClick={
-                                            authStorage.has("master:create")
+                                            can.appointments.create()
                                             ? () => onCellClick?.(min, masterIdx)
                                             : undefined
                                         }
@@ -955,7 +968,7 @@ export default function ScheduleModule({
                                 );
                             })}
                             {/* 👇 ВАЖНО: добавляем пустую колонку внутри flex */}
-                            {authStorage.has("master:create") && (
+                            {canOpenCreateMenu && (
                                 <div
                                     className="hidden sm:block flex-none min-w-[180px] h-[40px] border-t border-l border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)]"/>
                             )}
@@ -1047,7 +1060,12 @@ export default function ScheduleModule({
                                 width: isNaN(c.width) ? 120 : c.width,
                                 height: isNaN(c.height) ? rowHeightPx : c.height,
                             }}
-                            onClick={() => onEventClick?.(c.ev)}
+                            //onClick={() => onEventClick?.(c.ev)}
+                            onClick={
+                                can.appointments.update()
+                                    ? () => onEventClick?.(c.ev)
+                                    : undefined
+                            }
                         >
                             {overlapEvent && (
                                 <div
@@ -1132,7 +1150,7 @@ export default function ScheduleModule({
             </div>
 
             {/* 👇 FAB для мобильных */}
-            {authStorage.has("master:create") && (
+            {canOpenCreateMenu && (
                 <button
                     onClick={onAddEntity}
                     className="

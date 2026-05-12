@@ -12,6 +12,7 @@ import SidebarMenu from "@/components/SidebarMenu";
 import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
+import { can } from "@/lib/permissions";
 
 import {Pencil, Trash2} from "lucide-react";
 
@@ -39,7 +40,7 @@ import {useQueryClient} from "@tanstack/react-query";
 import {fetchClients} from "@/services/clientApi";
 import ClientCardEditable from "@/components/ClientCardEditable";
 import Loader from "@/components/Loader";
-import {authStorage} from "@/services/authStorage";
+//import {authStorage} from "@/services/authStorage";
 import {fetchEmployees} from "@/services/employeeApi";
 import {EditClientModal} from "@/components/schedulePage/EditСlientModal";
 import {CreateClientModal} from "@/components/schedulePage/CreateСlientModal";
@@ -77,8 +78,33 @@ const Page: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState(""); // Для поиска в будущем
     // ЕДИНСТВЕННЫЙ ВЫЗОВ useClients (с переименованным error):
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
-    const { data: clientsData, isLoading: isClientsLoading, error: clientsError } = useClients(filters, { page, perPage });
+
+    const clientsQueryEnabled =
+        !isLoading &&
+        Boolean(companiesData) &&
+        Boolean(branchesData) &&
+        Boolean(userData) &&
+        can.clients.viewAny();
+
+    const clientsScopeKey = [
+        companiesData?.[0]?.id ?? "no-company",
+        branchesData?.[0]?.id ?? "no-branch",
+        userData?.id ?? "no-user",
+        can.clients.viewAny() ? "can-view" : "no-view",
+        can.clients.viewContacts() ? "can-contacts" : "no-contacts",
+        can.clients.create() ? "can-create" : "no-create",
+        can.clients.update() ? "can-update" : "no-update",
+        can.clients.delete() ? "can-delete" : "no-delete",
+    ].join(":");
+
+    const { data: clientsData, isLoading: isClientsLoading, error: clientsError } =
+        useClients(filters, { page, perPage }, {
+            enabled: clientsQueryEnabled,
+            scopeKey: clientsScopeKey,
+        });
+
     const { data: selectedClient, isLoading: isClientLoading, error: clientError } = useClient(selectedClientId ?? undefined);
+
     const [isEditing, setIsEditing] = useState(false);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
@@ -97,6 +123,7 @@ const Page: React.FC = () => {
 
     const totalClientsExact = clientsData?.pagination?.totalCount ?? 0;
     const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
+
 
     const handleCancelEdit = () => {
         setIsEditing(false);
@@ -547,7 +574,7 @@ const Page: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-2 md:gap-3">
-                            {authStorage.has("master:create") && (
+                            {can.clients.create() && (
                                 <button
                                     onClick={() => setIsAddModalOpen(true)}
                                     className="hidden md:inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600"
@@ -566,53 +593,41 @@ const Page: React.FC = () => {
                 </div>
 
 
-                {/* Кнопка "Добавить сотрудника" */}
-                {/*authStorage.has("master:create") && (
-                    <button
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                    >
-                        + Добавить клиента
-                    </button>
-                )*/}
-
 
                 {/* ✅ Новое окно — добавление сотрудника */}
-                <CreateClientModal
-                    isOpen={isAddModalOpen}
-                    companyId={companyId}
-                    userId={userId ?? 0}
-                    onClose={() => setIsAddModalOpen(false)}
-                    onSave={() => {
-                        setIsAddModalOpen(false);
+                {can.clients.create() && (
+                    <CreateClientModal
+                        isOpen={isAddModalOpen}
+                        companyId={companyId}
+                        userId={userId ?? 0}
+                        onClose={() => setIsAddModalOpen(false)}
+                        onSave={() => {
+                            setIsAddModalOpen(false);
                         // если список клиентов на другой странице — тут можно ничего не делать
                         // если ты всё же держишь клиентов локально — тогда refetch/перезагрузка там
-                    }}
-                />
+                        }}
+                    />
+                )}
 
+                {can.clients.update() && (
+                    <EditClientModal
+                        isOpen={isEditModalOpen}
+                        client={editingClient ?? null}
+                        companyId={companyId}
+                        userId={userId}
 
-                <EditClientModal
-                    isOpen={isEditModalOpen}
-                    //client={selectedClient ?? null}
-                    client={editingClient ?? null}
-                    companyId={companyId}
-                    userId={userId}
-                    /*onClose={() => setIsEditModalOpen(false)}
-                    onSave={(updated) => {
-                        // если ты показываешь карточку — можно обновить selectedClientId/refetch
-                        setIsEditModalOpen(false);
-                    }}*/
-                    onClose={() => {
-                        setIsEditModalOpen(false);
-                        setEditingClientId(null);
-                    }}
-                    onSave={() => {
-                        setIsEditModalOpen(false);
-                        setEditingClientId(null);
-                    }}
-                />
+                        onClose={() => {
+                            setIsEditModalOpen(false);
+                            setEditingClientId(null);
+                        }}
+                        onSave={() => {
+                            setIsEditModalOpen(false);
+                            setEditingClientId(null);
+                        }}
+                    />
+                )}
 
-                {authStorage.has("master:create") && (
+                {can.clients.create() && (
                     <button
                         onClick={() => setIsAddModalOpen(true)}
                         className="fixed bottom-5 right-5 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition hover:bg-green-600 md:hidden"
@@ -691,7 +706,7 @@ const Page: React.FC = () => {
                                                             }
                                                             className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-green-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                                         />
-
+                                                        {can.clients.viewContacts() && (
                                                         <input
                                                             type="text"
                                                             placeholder="Телефон"
@@ -701,6 +716,7 @@ const Page: React.FC = () => {
                                                             }
                                                             className="flex-1 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 outline-none focus:ring-2 focus:ring-green-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
                                                         />
+                                                        )}
 
                                                         <select
                                                             value={filters.gender}
@@ -758,7 +774,7 @@ const Page: React.FC = () => {
                                                     <>
                                                         <ClientDetailsPanel
                                                             client={selectedClient}
-                                                            canEdit={authStorage.has("master:create")}
+                                                            canEdit={can.clients.update()}
                                                             onBack={() => setSelectedClientId(null)}
                                                             onEdit={() => {
                                                                 setEditingClientId(selectedClient.id ?? null);
@@ -812,7 +828,7 @@ const Page: React.FC = () => {
                                                         {/* Редактировать */}
 
 
-                                                        {authStorage.has("master:create") && (
+                                                        {can.clients.update() && (
                                                             <button
                                                                 type="button"
                                                                 onClick={() => {
@@ -857,12 +873,12 @@ const Page: React.FC = () => {
                                                                     <div
                                                                         key={client.id}
                                                                         onClick={
-                                                                            authStorage.has("master:create")
+                                                                            can.clients.viewAny()
                                                                                 ? () => setSelectedClientId(client.id ?? null)
                                                                                 : undefined
                                                                         }
                                                                         className={`rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-5 ${
-                                                                            authStorage.has("master:create")
+                                                                            can.clients.viewAny()
                                                                                 ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-white/10"
                                                                                 : "cursor-default"
                                                                         }`}
@@ -895,59 +911,69 @@ const Page: React.FC = () => {
 
                                                                                     {/* мобила */}
                                                                                     <div className="mt-1 text-sm text-gray-500 dark:text-gray-400 truncate xl:hidden">
-                                                                                        {client.phone || "— не указан —"}
+                                                                                        {can.clients.viewContacts()
+                                                                                            ? client.phone || "— не указан —"
+                                                                                            : "Контакты скрыты"}
                                                                                     </div>
                                                                                 </div>
 
                                                                                 {/* Телефон (только desktop) */}
                                                                                 <div className="hidden text-sm text-gray-500 dark:text-gray-400 xl:block">
-                                                                                    {client.phone || "— не указан —"}
+                                                                                    {can.clients.viewContacts()
+                                                                                        ? client.phone || "— не указан —"
+                                                                                        : "Контакты скрыты"}
                                                                                 </div>
 
                                                                                 {/* Email (только desktop) */}
                                                                                 <div className="hidden truncate text-sm text-gray-500 dark:text-gray-400 xl:block">
-                                                                                    {client.email || "—"}
+                                                                                    {can.clients.viewContacts()
+                                                                                        ? client.email || "—"
+                                                                                        : "Контакты скрыты"}
                                                                                 </div>
 
                                                                             </div>
 
                                                                             <div className="flex items-center gap-2 shrink-0">
-                                                                                {authStorage.has("master:create") && (
+                                                                                {(can.clients.update() || can.clients.delete()) && (
                                                                                     <>
                                                                                         {/* Редактировать */}
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onClick={(e) => {
-                                                                                                e.stopPropagation();
-                                                                                                setEditingClientId(client.id ?? null);
-                                                                                                setIsEditModalOpen(true);
-                                                                                            }}
-                                                                                            className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
-                                                                                        >
-                                                                                            <span>Редактировать</span>
-                                                                                        </button>
+                                                                                        {can.clients.update() && (
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    setEditingClientId(client.id ?? null);
+                                                                                                    setIsEditModalOpen(true);
+                                                                                                }}
+                                                                                                className="inline-flex h-11 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                                                                                            >
+                                                                                                <span>Редактировать</span>
+                                                                                            </button>
+                                                                                        )}
 
                                                                                         {/* Удалить */}
-                                                                                        <button
-                                                                                            type="button"
-                                                                                            onClick={async (e) => {
-                                                                                                e.stopPropagation();
+                                                                                        {can.clients.delete() && (
+                                                                                            <button
+                                                                                                type="button"
+                                                                                                onClick={async (e) => {
+                                                                                                    e.stopPropagation();
 
-                                                                                                if (!confirm("Удалить клиента?")) return;
+                                                                                                    if (!confirm("Удалить клиента?")) return;
 
-                                                                                                try {
-                                                                                                    await deleteClientMutation.mutateAsync(client.id!);
-                                                                                                } catch (error) {
-                                                                                                    console.error("Ошибка удаления:", error);
-                                                                                                }
-                                                                                            }}
-                                                                                            className="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-5 text-sm font-medium text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60"
-                                                                                        >
+                                                                                                    try {
+                                                                                                        await deleteClientMutation.mutateAsync(client.id!);
+                                                                                                    } catch (error) {
+                                                                                                        console.error("Ошибка удаления:", error);
+                                                                                                    }
+                                                                                                }}
+                                                                                                className="inline-flex h-11 items-center justify-center rounded-xl border border-red-200 bg-red-50 px-5 text-sm font-medium text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60"
+                                                                                            >
                 <span className="sm:hidden">
                     <Trash2 size={15} />
                 </span>
-                                                                                            <span className="hidden sm:inline">Удалить</span>
-                                                                                        </button>
+                                                                                                <span className="hidden sm:inline">Удалить</span>
+                                                                                            </button>
+                                                                                        )}
                                                                                     </>
                                                                                 )}
                                                                             </div>

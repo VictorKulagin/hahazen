@@ -17,7 +17,8 @@ export interface PaginatedClients {
 }
 export const useClients = (
     filters: { [key: string]: string },
-    pagination: { page: number; perPage: number } = { page: 1, perPage: 10 }
+    pagination: { page: number; perPage: number } = { page: 1, perPage: 10 },
+    options?: { enabled?: boolean; scopeKey?: string }
 ) => {
     const params = {
         ...filters,
@@ -26,7 +27,7 @@ export const useClients = (
     };
 
     return useQuery<PaginatedClients, Error>({
-        queryKey: ['clients', filters, pagination.page, pagination.perPage],
+        queryKey: ['clients', options?.scopeKey ?? 'default', filters, pagination.page, pagination.perPage],
         queryFn: async () => {
             const response: ClientsApiResponse = await fetchClients(params);
 
@@ -57,7 +58,8 @@ export const useClients = (
         gcTime: 5 * 60 * 1000,
         retry: 2,
         refetchOnWindowFocus: false,
-        placeholderData: (previousData) => previousData,
+        enabled: options?.enabled ?? true,
+        //placeholderData: (previousData) => previousData,
     });
 };
 

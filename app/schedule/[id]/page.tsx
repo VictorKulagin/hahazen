@@ -52,6 +52,7 @@ import { useTheme } from "@/lib/theme/theme.context";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import { authStorage } from "@/services/authStorage";
+import { can } from "@/lib/permissions";
 
 type BranchItem = {
     id: number;
@@ -1086,52 +1087,54 @@ const Page: React.FC = () => {
                                 showMasterSearch={false}
                             />
 
-
+                    {can.employees.update() && (
                         <EditEmployeeModal
                             isOpen={!!selectedEmployee}
                             employee={selectedEmployee}
                             onClose={() => setSelectedEmployee(null)}
                             onSave={handleSaveEmployee}
                         />
+                    )}
 
+                    {can.appointments.update() && (
                         <UpdateEventModal
                             isOpen={!!editingEvent}
                             onClose={() => setEditingEvent(null)}
                             eventData={editingEvent}
                         />
+                    )}
 
 
+                    {can.appointments.create() && isCreateModalOpen && selectedStartMinutes !== null && (
+                        <CreateEventModal
+                            isOpen={isCreateModalOpen}
+                            onClose={() => setIsCreateModalOpen(false)}
+                            onSave={handleSaveAppointment}
+                            loading={false}
+                            employeeId={selectedMasterIndex !== null ? employees[selectedMasterIndex].id : null}
+                            defaultStartTime={formatTimeLocal(selectedStartMinutes)}
+                            defaultEndTime={formatTimeLocal(selectedStartMinutes + 30)} // пока 30 мин шаг
+                            isOutsideSchedule={isOutsideSchedule} // 👈 передаём
+                        />
+                    )}
 
-                        {isCreateModalOpen && selectedStartMinutes !== null && (
-                            <CreateEventModal
-                                isOpen={isCreateModalOpen}
-                                onClose={() => setIsCreateModalOpen(false)}
-                                onSave={handleSaveAppointment}
-                                loading={false}
-                                employeeId={selectedMasterIndex !== null ? employees[selectedMasterIndex].id : null}
-                                defaultStartTime={formatTimeLocal(selectedStartMinutes)}
-                                defaultEndTime={formatTimeLocal(selectedStartMinutes + 30)} // пока 30 мин шаг
-                                isOutsideSchedule={isOutsideSchedule} // 👈 передаём
-                            />
-                        )}
-
-                        {isCreateEmployeeOpen && (
-                            <CreateEmployeeModal
-                                isOpen={isCreateEmployeeOpen}
-                                branchId={id}
-                                onClose={() => setIsCreateEmployeeOpen(false)}
-                                onSave={() => {
-                                    setIsCreateEmployeeOpen(false);
-                                }}
-                            />
-                        )}
+                    {can.employees.create() && isCreateEmployeeOpen && (
+                        <CreateEmployeeModal
+                            isOpen={isCreateEmployeeOpen}
+                            branchId={id}
+                            onClose={() => setIsCreateEmployeeOpen(false)}
+                            onSave={() => {
+                                setIsCreateEmployeeOpen(false);
+                            }}
+                        />
+                    )}
 
 
 
                       {/* Создание услуги + список */}
-                        {isCreateServiceOpen && (
-                            <ServiceManager branchId={id} onClose={() => setIsCreateServiceOpen(false)} />
-                        )}
+                    {can.services.create() && isCreateServiceOpen && (
+                        <ServiceManager branchId={id} onClose={() => setIsCreateServiceOpen(false)}/>
+                    )}
 
                         <CreateMenuModal
                             isOpen={isCreateMenuOpen}
@@ -1150,6 +1153,7 @@ const Page: React.FC = () => {
                             }}
                         />
 
+                    {can.clients.create() && (
                         <CreateClientModal
                             isOpen={isCreateClientOpen}
                             companyId={companiesData?.[0]?.id ?? null}
@@ -1159,7 +1163,7 @@ const Page: React.FC = () => {
                                 setIsCreateClientOpen(false);
                             }}
                         />
-
+                    )}
                     </section>
 
             </main>
