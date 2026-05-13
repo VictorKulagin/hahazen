@@ -92,6 +92,9 @@ const Page: React.FC = () => {
         !userData
 
     const globalError = error || !companiesData || !branchesData ? error : "";
+    const canManageCompanySettings = ["owner", "gd"].includes(
+        String(userData?.type ?? "").toLowerCase()
+    );
 
     // useEffect для получения данных компаний
     useEffect(() => {
@@ -641,6 +644,7 @@ const Page: React.FC = () => {
 
                     <CompanySettingsCard
                         company={companiesData?.[0]}
+                        canManageCompany={canManageCompanySettings}
                         onSaved={handleCompanySaved}
                     />
                 </div>

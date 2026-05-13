@@ -10,7 +10,15 @@ import { can } from "@/lib/permissions";
 
 type CompanySettingsCardProps = {
     company: Company | null | undefined;
+    canManageCompany?: boolean;
     onSaved?: (company: Company) => void;
+};
+
+type CompanyPermissionApi = typeof can & {
+    company?: {
+        updateProfile?: () => boolean;
+        updateSettings?: () => boolean;
+    };
 };
 
 const COUNTRY_OPTIONS = [
@@ -31,10 +39,14 @@ const inputClass =
 
 export default function CompanySettingsCard({
     company,
+    canManageCompany = false,
     onSaved,
 }: CompanySettingsCardProps) {
-    const canUpdateProfile = can.company.updateProfile();
-    const canUpdateSettings = can.company.updateSettings();
+    const permissions = can as CompanyPermissionApi;
+    const canUpdateProfile =
+        canManageCompany || (permissions.company?.updateProfile?.() ?? false);
+    const canUpdateSettings =
+        canManageCompany || (permissions.company?.updateSettings?.() ?? false);
     const canSave = canUpdateProfile || canUpdateSettings;
 
     const [name, setName] = useState("");
@@ -207,7 +219,11 @@ export default function CompanySettingsCard({
                             className={inputClass}
                         >
                             {COUNTRY_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value} className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">
+                                <option
+                                    key={option.value}
+                                    value={option.value}
+                                    className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white"
+                                >
                                     {option.label}
                                 </option>
                             ))}
@@ -225,7 +241,11 @@ export default function CompanySettingsCard({
                             className={inputClass}
                         >
                             {CURRENCY_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value} className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white">
+                                <option
+                                    key={option.value}
+                                    value={option.value}
+                                    className="bg-white text-black dark:bg-[rgb(var(--card))] dark:text-white"
+                                >
                                     {option.label}
                                 </option>
                             ))}

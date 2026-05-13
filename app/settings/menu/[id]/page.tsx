@@ -206,6 +206,10 @@ const Page: React.FC = () => {
         document.title = isNotFound ? "404 - Страница не найдена" : "Название вашей страницы";
     }, [isNotFound]);
 
+    const canManageCompanySettings = ["owner", "gd"].includes(
+        String(userData?.type ?? "").toLowerCase()
+    );
+
     if (isNotFound) {
         return (
             <div className="text-center py-10">
@@ -479,6 +483,7 @@ const Page: React.FC = () => {
                     <div className="md:col-span-2">
                         <CompanySettingsCard
                             company={companiesData?.[0]}
+                            canManageCompany={canManageCompanySettings}
                             onSaved={handleCompanySaved}
                         />
                     </div>
