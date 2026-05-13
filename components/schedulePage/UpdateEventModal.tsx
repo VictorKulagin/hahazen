@@ -27,9 +27,20 @@ interface UpdateEventModalProps {
         visit_status?: "expected" | "arrived" | "no_show";
     } | null;
     currencyCode?: string | null;
+    bonusesEnabled?: boolean;
+    bonusSpendMaxPercent?: number | null;
+    bonusPointsLabel?: string | null;
 }
 
-const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, eventData, currencyCode }) => {
+const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
+    isOpen,
+    onClose,
+    eventData,
+    currencyCode,
+    bonusesEnabled = true,
+    bonusSpendMaxPercent = 50,
+    bonusPointsLabel = "Б",
+}) => {
     const employeeId = eventData?.employeeId ?? undefined;
 
     // Подгружаем ВСЕ услуги сотрудника
@@ -51,6 +62,12 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
     const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "transfer" | null>(null);
     const [visitStatus, setVisitStatus] = useState<"expected" | "arrived" | "no_show">("expected");
     const [bonusSpend, setBonusSpend] = useState(0);
+
+    useEffect(() => {
+        if (!bonusesEnabled) {
+            setBonusSpend(0);
+        }
+    }, [bonusesEnabled]);
 
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
@@ -200,7 +217,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
             })),
         });
 
-        if (eventData.client?.id && bonusSpend > 0) {
+        if (bonusesEnabled && eventData.client?.id && bonusSpend > 0) {
             await createBonusTransaction({
                 delta: -bonusSpend,
                 kind: "spend",
@@ -588,14 +605,18 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     )}
                                 </div>
 
-                                <AppointmentBonusesCard
-                                    clientId={eventData.client?.id}
-                                    balance={clientBonusBalance}
-                                    cost={cost}
-                                    value={bonusSpend}
-                                    onChange={setBonusSpend}
-                                    currencyCode={currencyCode}
-                                />
+                                {bonusesEnabled && (
+                                    <AppointmentBonusesCard
+                                        clientId={eventData.client?.id}
+                                        balance={clientBonusBalance}
+                                        cost={cost}
+                                        value={bonusSpend}
+                                        onChange={setBonusSpend}
+                                        currencyCode={currencyCode}
+                                        maxSpendPercent={bonusSpendMaxPercent}
+                                        pointsLabel={bonusPointsLabel}
+                                    />
+                                )}
 
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">

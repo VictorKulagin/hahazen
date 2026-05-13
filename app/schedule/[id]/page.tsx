@@ -174,7 +174,11 @@ const Page: React.FC = () => {
     const { collapsed, setCollapsed, isReady } = useSidebarCollapsed();
 
     const { theme } = useTheme();
-    const currencyCode = companiesData?.[0]?.currency_code;
+    const companySettings = companiesData?.[0];
+    const currencyCode = companySettings?.currency_code;
+    const bonusesEnabled = companySettings?.bonuses_enabled ?? true;
+    const bonusSpendMaxPercent = companySettings?.bonus_spend_max_percent ?? 50;
+    const bonusPointsLabel = companySettings?.bonus_points_label?.trim() || "Б";
 
     // const { employees } = useEmployees();
 
@@ -1108,6 +1112,9 @@ const Page: React.FC = () => {
                             onClose={() => setEditingEvent(null)}
                             eventData={editingEvent}
                             currencyCode={currencyCode}
+                            bonusesEnabled={bonusesEnabled}
+                            bonusSpendMaxPercent={bonusSpendMaxPercent}
+                            bonusPointsLabel={bonusPointsLabel}
                         />
                     )}
 
@@ -1123,6 +1130,9 @@ const Page: React.FC = () => {
                             defaultEndTime={formatTimeLocal(selectedStartMinutes + 30)} // пока 30 мин шаг
                             isOutsideSchedule={isOutsideSchedule} // 👈 передаём
                             currencyCode={currencyCode}
+                            bonusesEnabled={bonusesEnabled}
+                            bonusSpendMaxPercent={bonusSpendMaxPercent}
+                            bonusPointsLabel={bonusPointsLabel}
                         />
                     )}
 

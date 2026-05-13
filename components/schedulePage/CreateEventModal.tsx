@@ -84,6 +84,9 @@ interface CreateEventModalProps {
     defaultEndTime?: string;
     isOutsideSchedule?: boolean; // 👈 добавляем сюда (необязательный проп)
     currencyCode?: string | null;
+    bonusesEnabled?: boolean;
+    bonusSpendMaxPercent?: number | null;
+    bonusPointsLabel?: string | null;
 }
 
 const CreateEventModal: React.FC<CreateEventModalProps> = ({
@@ -96,6 +99,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                                defaultEndTime,
                                                                isOutsideSchedule = false, // 👈 значение по умолчанию
                                                                currencyCode,
+                                                               bonusesEnabled = true,
+                                                               bonusSpendMaxPercent = 50,
+                                                               bonusPointsLabel = "Б",
                                                            }) => {
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
     const [selectedClientBonusBalance, setSelectedClientBonusBalance] = useState(0);
@@ -117,6 +123,12 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     const [visitStatus, setVisitStatus] = useState<"expected" | "arrived" | "no_show">("expected");
     const [isManualCost, setIsManualCost] = useState(false);
     const [bonusSpend, setBonusSpend] = useState(0);
+
+    useEffect(() => {
+        if (!bonusesEnabled) {
+            setBonusSpend(0);
+        }
+    }, [bonusesEnabled]);
 
     const [serviceSearch, setServiceSearch] = useState("");
     const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
@@ -310,7 +322,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 visitStatus,
             });
 
-            if (selectedClientId && bonusSpend > 0) {
+            if (bonusesEnabled && selectedClientId && bonusSpend > 0) {
                 await createBonusTransaction({
                     delta: -bonusSpend,
                     kind: "spend",
@@ -790,14 +802,18 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                         )}
                                     </div>
 
-                                    <AppointmentBonusesCard
-                                        clientId={selectedClientId}
-                                        balance={selectedClientBonusBalance}
-                                        cost={cost}
-                                        value={bonusSpend}
-                                        onChange={setBonusSpend}
-                                        currencyCode={currencyCode}
-                                    />
+                                    {bonusesEnabled && (
+                                        <AppointmentBonusesCard
+                                            clientId={selectedClientId}
+                                            balance={selectedClientBonusBalance}
+                                            cost={cost}
+                                            value={bonusSpend}
+                                            onChange={setBonusSpend}
+                                            currencyCode={currencyCode}
+                                            maxSpendPercent={bonusSpendMaxPercent}
+                                            pointsLabel={bonusPointsLabel}
+                                        />
+                                    )}
 
                                     <div>
                                         <label className="mb-2 block text-[12px] font-medium text-gray-600 dark:text-white/45">
