@@ -2,13 +2,15 @@
 "use client";
 import React, { useState } from "react";
 import { useCreateService, useServices } from "@/hooks/useServices";
+import { normalizeCurrencyCode } from "@/lib/currency";
 
 type Props = {
     branchId: number;
     onClose: () => void;
+    currencyCode?: string | null;
 };
 
-export const ServiceManager: React.FC<Props> = ({ branchId, onClose }) => {
+export const ServiceManager: React.FC<Props> = ({ branchId, onClose, currencyCode }) => {
     const { refetch } = useServices(); // ✅ используем refetch для обновления списка
     const { mutateAsync: createService, isPending } = useCreateService();
 
@@ -125,7 +127,9 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     </div>
 
                     <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Цена (₽)</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Цена ({normalizeCurrencyCode(currencyCode)})
+                        </label>
                         <input
                             type="number"
                             value={price}

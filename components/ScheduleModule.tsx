@@ -9,6 +9,7 @@ import { UserPlusIcon } from "@heroicons/react/24/solid";
 import { Pencil, List, LayoutGrid } from "lucide-react";
 import Image from "next/image";
 import { can } from "@/lib/permissions";
+import { formatMoney } from "@/lib/currency";
 
 
 export interface ScheduleEvent {
@@ -42,6 +43,7 @@ export type ScheduleModuleProps = {
     masterSearch?: string;
     onMasterSearchChange?: (value: string) => void;
     showMasterSearch?: boolean;
+    currencyCode?: string | null;
 };
 
 export function toMins(t: string): number {
@@ -128,6 +130,7 @@ export default function ScheduleModule({
                                            masterSearch: controlledMasterSearch,
                                            onMasterSearchChange,
                                            showMasterSearch = true,
+                                           currencyCode,
                                        }: ScheduleModuleProps) {
     const minMinutes = startHour * 60;
     const maxMinutes = endHour * 60;
@@ -765,7 +768,7 @@ export default function ScheduleModule({
 
                                                         {typeof event.cost === "number" && (
                                                             <div className="mt-1 text-[12px] text-black/55">
-                                                                {event.cost} сом
+                                                                {formatMoney(event.cost, currencyCode)}
                                                             </div>
                                                         )}
 
@@ -1123,7 +1126,7 @@ export default function ScheduleModule({
 
                                                 {typeof c.ev.cost === "number" && (
                                                     <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium bg-white/60 text-black/70 border border-black/10">
-                {c.ev.cost} сом
+                {formatMoney(c.ev.cost, currencyCode)}
             </span>
                                                 )}
                                             </div>

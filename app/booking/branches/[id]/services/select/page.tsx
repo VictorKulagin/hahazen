@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { useServices, useAvailability, useAvailableEmployees } from "@/hooks/useBranches";
 import { Service, Employee } from "@/services/branchApi";
 import { useCreateAppointment } from "@/hooks/useBranches";
+import { formatMoney } from "@/lib/currency";
 
 
 type ParamsType = {
@@ -180,7 +181,7 @@ const ServiceSelectionPage = () => {
                                         <h3 className="text-lg font-semibold mb-2">{service.name}</h3>
                                         <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
                                             <span>⏳ {service.duration_minutes} min</span>
-                                            <span>💲 {service.base_price} ₽</span>
+                                            <span>💲 {formatMoney(service.base_price)}</span>
                                         </div>
                                     </div>
                                 </div>

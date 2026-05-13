@@ -35,17 +35,19 @@ import {
 } from "@/components/utils/phone";
 import SpecialtyAutocomplete from '@/components/schedulePage/SpecialtyAutocomplete';
 import QualificationSelect from "@/components/schedulePage/QualificationSelect";
+import { formatMoney, normalizeCurrencyCode } from "@/lib/currency";
 
-type Props = {
+export type EditEmployeeModalProps = {
     isOpen: boolean;
     employee: Employee | null;
     onClose: () => void;
     onSave: (updated: Employee) => void;
+    currencyCode?: string | null;
 };
 
 
 type WeeklyPeriod = {
-    day: WeekDay;  // "mon" | "tue" | ... вЂ” РјРѕР¶РЅРѕ СѓС‚РѕС‡РЅРёС‚СЊ С‚РёРї РїРѕР·Р¶Рµ
+    day: WeekDay;
     start: string; // "HH:mm"
     end: string; // "HH:mm"
 };
@@ -118,7 +120,13 @@ const sortPeriodsByWeekDay = (items: WeeklyPeriod[]) => {
     return [...items].sort((a, b) => order[a.day] - order[b.day]);
 };
 
-export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, onSave }) => {
+export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
+    isOpen,
+    employee,
+    onClose,
+    onSave,
+    currencyCode,
+}) => {
     const [name, setName] = useState("");
     const [lastName, setLastName] = useState("");
     const [phone, setPhone] = useState("");
@@ -129,13 +137,13 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     const [activeTab, setActiveTab] = useState<EmployeeTab>("info");
     const [role, setRole] = useState<EmployeeRole>("master");
 
-    // --- РЎРѕСЃС‚РѕСЏРЅРёСЏ РґР»СЏ РіСЂР°С„РёРєР° ---
+    // --- Состояния для графика ---
     const [startDate, setStartDate] = useState<string>("");
     const [endDate, setEndDate] = useState<string>("");
     const [periods, setPeriods] = useState<WeeklyPeriod[]>([]);
     const [scheduleId, setScheduleId] = useState<number | null>(null);
 
-    // API-С…СѓРєРё
+    // API-хуки
     const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
     const { mutateAsync: updateSchedule } = useUpdateEmployeeSchedule();
 
@@ -156,11 +164,11 @@ export const EditEmployeeModal: React.FC<Props> = ({ isOpen, employee, onClose, 
     >({});
 
 
-    // --- СЃРѕСЃС‚РѕСЏРЅРёСЏ РґР»СЏ Р·Р°РіСЂСѓР·РєРё РіСЂР°С„РёРєР° ---
+    // --- Состояния для загрузки графика ---
     const [scheduleStartDate, setScheduleStartDate] = useState<string>("");
     const [scheduleEndDate, setScheduleEndDate] = useState<string>("");
 
-// --- СЃРѕСЃС‚РѕСЏРЅРёСЏ РґР»СЏ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ РІ С„РѕСЂРјРµ ---
+    // --- Состояния для редактирования в форме ---
     const [localStartDate, setLocalStartDate] = useState<string>("");
     const [localEndDate, setLocalEndDate] = useState<string>("");
 
@@ -199,7 +207,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             setHireDate(employee.hire_date ?? "");
             setRole((employee.role ?? "master") as EmployeeRole);
 
-            // Р—Р°РіСЂСѓР¶Р°РµРј РіСЂР°С„РёРє
+            // Загружаем график
             const today = new Date();
             const defaultStart = today.toISOString().split("T")[0];
             const defaultEnd = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000)
@@ -209,21 +217,21 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             /*setStartDate(start);
             setEndDate(end);*/
 
-            // РўРѕР»СЊРєРѕ РµСЃР»Рё РїСѓСЃС‚С‹Рµ вЂ” РїРѕРґСЃС‚Р°РІР»СЏРµРј РґРµС„РѕР»С‚С‹
+            // Только если пустые - подставляем дефолты
             setStartDate((prev) => prev || defaultStart);
             setEndDate((prev) => prev || defaultEnd);
         }
     }, [employee, isOpen]);
 
-    // РџРѕРґРіСЂСѓР¶Р°РµРј СЂР°СЃРїРёСЃР°РЅРёСЏ РёР· API
+    // Подгружаем расписания из API
     /*const { data: schedules } = useEmployeeSchedules(
-        branchId,          // вњ… РёСЃРїРѕР»СЊР·СѓРµРј branchId,
+        branchId,
         employee?.id,
         startDate,
         endDate
     );*/
 
-    // Р·Р°РіСЂСѓР¶Р°РµРј РіСЂР°С„РёРє (API)
+    // Загружаем график (API)
     const { data: schedules } = useEmployeeSchedules(
         employee?.branch_id,
         employee?.id,
@@ -231,8 +239,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         scheduleEndDate
     );
 
-    // Р•СЃР»Рё РїСЂРёС€Р»Рё РґР°РЅРЅС‹Рµ РёР· API
-// РїСЂРё РѕС‚РєСЂС‹С‚РёРё РјРѕРґР°Р»РєРё
+    // Если пришли данные из API при открытии модалки
     useEffect(() => {
         if (employee && isOpen) {
             const today = new Date();
@@ -241,10 +248,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 .toISOString()
                 .split("T")[0];
 
-            setScheduleStartDate(defaultStart); // С‚РѕР»СЊРєРѕ РґР»СЏ Р·Р°РіСЂСѓР·РєРё API
+            setScheduleStartDate(defaultStart); // только для загрузки API
             setScheduleEndDate(defaultEnd);
 
-            setLocalStartDate(defaultStart); // РґР»СЏ С„РѕСЂРјС‹
+            setLocalStartDate(defaultStart); // для формы
             setLocalEndDate(defaultEnd);
         }
     }, [employee, isOpen]);
@@ -272,7 +279,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         };
     }, []);
 
-// РєРѕРіРґР° РїСЂРёС€Р»Рё РґР°РЅРЅС‹Рµ РёР· API
+    // Когда пришли данные из API
     useEffect(() => {
         if (schedules && schedules.length > 0) {
             const s = schedules[0];
@@ -305,11 +312,11 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     }, [employee?.id, permissionsData]);
 
 
-    // Р—Р°РіСЂСѓР¶Р°РµРј РІС‹Р±СЂР°РЅРЅС‹Рµ СѓСЃР»СѓРіРё РїСЂРё РѕС‚РєСЂС‹С‚РёРё
+    // Загружаем выбранные услуги при открытии
     useEffect(() => {
         if (!isOpen || !employee?.id) return;
 
-        console.log("рџ”§ РћС‚РєСЂС‹С‚Р° РјРѕРґР°Р»РєР° РґР»СЏ СЃРѕС‚СЂСѓРґРЅРёРєР°:", employee?.name ?? "вЂ”");
+        console.log("Открыта модалка для сотрудника:", employee?.name ?? "-");
 
         const newServices = (employeeServices ?? []).map((s) => ({
             service_id: s.service_id,
@@ -317,7 +324,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             duration_minutes: s.duration_minutes,
         }));
 
-        // РЎСЂР°РІРЅРµРЅРёРµ, С‡С‚РѕР±С‹ РЅРµ РІС‹Р·С‹РІР°С‚СЊ setState РµСЃР»Рё РґР°РЅРЅС‹Рµ РЅРµ РїРѕРјРµРЅСЏР»РёСЃСЊ
+        // Сравнение, чтобы не вызывать setState, если данные не поменялись
         setSelectedServices((prev) => {
             const isEqual =
                 prev.length === newServices.length &&
@@ -512,13 +519,13 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             err?.response?.data?.error ||
             err?.message;
 
-        if (!msg) return "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕС…СЂР°РЅРёС‚СЊ РёР·РјРµРЅРµРЅРёСЏ. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.";
+        if (!msg) return "Не удалось сохранить изменения. Попробуйте еще раз.";
 
         return String(msg)
-            .replace(/^(РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ:\s*)+/i, "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ: ")
-            .replace(/^(РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ:\s*)+/i, "РќРµ СѓРґР°Р»РѕСЃСЊ РѕР±РЅРѕРІРёС‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ: ");
+            .replace(/^(Не удалось создать учетную запись:\s*)+/i, "Не удалось создать учетную запись: ")
+            .replace(/^(Не удалось обновить учетную запись:\s*)+/i, "Не удалось обновить учетную запись: ");
     };
-// РЎРѕС…СЂР°РЅРµРЅРёРµ РґР°РЅРЅС‹С…
+    // Сохранение данных
     const handleSave = async () => {
         if (!employee) return;
 
@@ -538,10 +545,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 role,
             };
 
-            // 1. РЎРѕС…СЂР°РЅСЏРµРј СЃРѕС‚СЂСѓРґРЅРёРєР°
+            // 1. Сохраняем сотрудника
             await onSave(updatedEmployee);
 
-            // 2. РЎРѕС…СЂР°РЅСЏРµРј РіСЂР°С„РёРє
+            // 2. Сохраняем график
             const payload = {
                 id: scheduleId ?? 0,
                 employee_id: employee.id,
@@ -558,7 +565,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 await createSchedule(payload);
             }
 
-            // 3. РЎРёРЅС…СЂРѕРЅРёР·Р°С†РёСЏ СѓСЃР»СѓРі
+            // 3. Синхронизация услуг
             const normalized: EmployeeServicePayload[] = selectedServices.map((s) => ({
                 service_id: s.service_id,
                 individual_price: s.individual_price ?? 0,
@@ -572,7 +579,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
             setSuccess(true);
         } catch (err) {
-            console.error("вќЊ РћС€РёР±РєР° СЃРѕС…СЂР°РЅРµРЅРёСЏ:", err);
+            console.error("Ошибка сохранения:", err);
             setSubmitError(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);
@@ -614,7 +621,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-white/10 to-transparent" />
                 </div>
 
-                {/* Р’РєР»Р°РґРєРё */}
+                {/* Вкладки */}
                 <div className="border-b border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-[rgb(var(--card))]">
                     <div className="overflow-x-auto">
                         <div className="inline-flex min-w-full gap-2 rounded-2xl border border-gray-200 bg-white p-2 dark:border-white/10 dark:bg-white/[0.03]">
@@ -642,7 +649,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     </div>
                 </div>
 
-                {/* РљРѕРЅС‚РµРЅС‚ */}
+                {/* Контент */}
                 <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white">
                     {activeTab === "info" && (
                         <div className="space-y-4">
@@ -804,20 +811,20 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     {activeTab === "schedule" && (
                         <div className="space-y-4">
 
-                            {/* РўРёРї РіСЂР°С„РёРєР° */}
+                            {/* Тип графика */}
                             {/*<div>
-                                <label className="block mb-1 font-semibold">РўРёРї РіСЂР°С„РёРєР°</label>
+                                <label className="block mb-1 font-semibold">Тип графика</label>
                                 <select
                                     value="weekly"
                                     className={inputClass}
                                     disabled
                                 >
-                                    <option value="weekly">Р•Р¶РµРЅРµРґРµР»СЊРЅС‹Р№ вЂ” РіСЂР°С„РёРє РїРѕРІС‚РѕСЂСЏРµС‚СЃСЏ РїРѕ РґРЅСЏРј РЅРµРґРµР»Рё</option>
+                                    <option value="weekly">Еженедельный - график повторяется по дням недели</option>
                                 </select>
                             </div>*/}
 
 
-                            {/* Р”Р°С‚С‹ */}
+                            {/* Даты */}
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Дата начала</label>
@@ -845,17 +852,17 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 </div>
                             </div>
 
-                            {/* РџРµСЂРёРѕРґС‹ */}
+                            {/* Периоды */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Периоды</label>
 
-                                {/* РљРѕРЅС‚РµР№РЅРµСЂ СЃ РїСЂРѕРєСЂСѓС‚РєРѕР№ */}
+                                {/* Контейнер с прокруткой */}
                                 <div className="max-h-96 overflow-y-auto pr-1">
                                     {periods.map((p, i) => (
                                         <div key={i}
                                              className="flex gap-2 items-center rounded-2xl border border-gray-200 dark:border-white/10 bg-white/40 dark:bg-white/[0.03] p-2"
                                         >
-                                            {/* РЎС‚СЂРµР»РєРё */}
+                                            {/* Стрелки */}
                                             <div className="flex flex-col items-center">
                                                 <button
                                                     type="button"
@@ -885,7 +892,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                 </button>
                                             </div>
 
-                                            {/* Р”РµРЅСЊ */}
+                                            {/* День */}
                                             <select
                                                 value={p.day}
                                                 onChange={(e) =>
@@ -897,14 +904,6 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                 }
                                                 className={inputClass}
                                             >
-                                                {/*<option value="mon">РџРЅ</option>
-                                                <option value="tue">Р’С‚</option>
-                                                <option value="wed">РЎСЂ</option>
-                                                <option value="thu">Р§С‚</option>
-                                                <option value="fri">РџС‚</option>
-                                                <option value="sat">РЎР±</option>
-                                                <option value="sun">Р’СЃ</option>*/}
-
                                                 {WEEK_DAYS.map((day) => (
                                                     <option key={day.value}
                                                             value={day.value}
@@ -914,7 +913,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                 ))}
                                             </select>
 
-                                            {/* Р’СЂРµРјСЏ РЅР°С‡Р°Р»Р° / РєРѕРЅС†Р° */}
+                                            {/* Время начала / конца */}
                                             <div className="relative flex-1">
                                             <input
                                                 type="time"
@@ -953,7 +952,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                 <Clock className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-white pointer-events-none" />
                                             </div>
 
-                                            {/* РЈРґР°Р»РµРЅРёРµ */}
+                                            {/* Удаление */}
                                             <button
                                                 type="button"
                                                 onClick={() => setPeriods(prev => prev.filter((_, idx) => idx !== i))}
@@ -965,7 +964,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     ))}
                                 </div>
 
-                                {/* Р”РѕР±Р°РІРёС‚СЊ РїРµСЂРёРѕРґ */}
+                                {/* Добавить период */}
                                 <button
                                     type="button"
                                     onClick={() =>
@@ -1038,7 +1037,7 @@ transition"
                                                                     {service.name}
                                                                 </div>
                                                                 <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                                    Базовая: {service.base_price}₽ · {service.duration_minutes} мин
+                                                                    Базовая: {formatMoney(service.base_price, currencyCode)} · {service.duration_minutes} мин
                                                                 </div>
                                                             </div>
 
@@ -1054,7 +1053,7 @@ transition"
                                                         <div className="grid grid-cols-2 gap-3 mt-3">
                                                             <div>
                                                                 <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                                                    Инд. цена
+                                                                    Инд. цена ({normalizeCurrencyCode(currencyCode)})
                                                                 </label>
                                                                 <input
                                                                     type="number"
@@ -1139,7 +1138,7 @@ transition"
                                                     className="flex w-full items-center justify-between px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-white/10"
                                                 >
                                                     <span className="text-sm text-gray-800 dark:text-white">{service.name}</span>
-                                                    <span className="text-sm text-gray-500 dark:text-gray-400">{service.base_price}₽</span>
+                                                    <span className="text-sm text-gray-500 dark:text-gray-400">{formatMoney(service.base_price, currencyCode)}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -1313,7 +1312,7 @@ transition"
                     )}
                 </div>
 
-                {/* Р¤СѓС‚РµСЂ */}
+                {/* Футер */}
                 <div className="sticky bottom-0 z-20 border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md px-4 py-4">
 
                     {(submitError || success) && (
@@ -1332,7 +1331,7 @@ transition"
                     )}
 
                     <div className="flex justify-between gap-3">
-                        {/* РЈРґР°Р»РёС‚СЊ */}
+                        {/* Удалить */}
                         <button
                             onClick={async () => {
                                 if (!employee?.id) return;
@@ -1355,7 +1354,7 @@ transition"
                         </button>
 
                         <div className="flex gap-3">
-                            {/* Р—Р°РєСЂС‹С‚СЊ */}
+                            {/* Закрыть */}
                             <button
                                 onClick={onClose}
                                 className="
@@ -1373,7 +1372,7 @@ transition"
                                 Закрыть
                             </button>
 
-                            {/* РЎРѕС…СЂР°РЅРёС‚СЊ */}
+                            {/* Сохранить */}
                             <button
                                 onClick={handleSave}
                                 disabled={isSubmitting}

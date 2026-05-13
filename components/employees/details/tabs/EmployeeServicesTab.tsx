@@ -4,23 +4,20 @@ import React from "react";
 import { BriefcaseBusiness, Clock3, Pencil, ReceiptText } from "lucide-react";
 import { Employee } from "@/services/employeeApi";
 import { useEmployeeServices } from "@/hooks/useServices";
+import { formatMoney } from "@/lib/currency";
 
 type EmployeeServicesTabProps = {
     employee: Employee;
     canEdit: boolean;
     onEdit: () => void;
+    currencyCode?: string | null;
 };
-
-function formatMoney(value?: number | null) {
-    return `${new Intl.NumberFormat("ru-RU", {
-        maximumFractionDigits: 0,
-    }).format(Number(value ?? 0))} ₽`;
-}
 
 export default function EmployeeServicesTab({
     employee,
     canEdit,
     onEdit,
+    currencyCode,
 }: EmployeeServicesTabProps) {
     const {
         data: services = [],
@@ -77,7 +74,7 @@ export default function EmployeeServicesTab({
                                 <div className="grid grid-cols-1 gap-2 text-sm sm:grid-cols-2">
                                     <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                         <ReceiptText className="h-4 w-4" />
-                                        <span>{formatMoney(service.individual_price)}</span>
+                                        <span>{formatMoney(service.individual_price, currencyCode)}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
                                         <Clock3 className="h-4 w-4" />

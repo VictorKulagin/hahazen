@@ -7,6 +7,7 @@ import { useCreateClientBonusTransaction } from "@/hooks/useClientBonusTransacti
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
 import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
+import { formatMoney } from "@/lib/currency";
 
 interface UpdateEventModalProps {
     isOpen: boolean;
@@ -25,9 +26,10 @@ interface UpdateEventModalProps {
         payment_method?: "cash" | "card" | "transfer" | null;
         visit_status?: "expected" | "arrived" | "no_show";
     } | null;
+    currencyCode?: string | null;
 }
 
-const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, eventData }) => {
+const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, eventData, currencyCode }) => {
     const employeeId = eventData?.employeeId ?? undefined;
 
     // Подгружаем ВСЕ услуги сотрудника
@@ -414,7 +416,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
             </span>
 
                                                             <span className="text-sm text-white/55">
-              {price}₽
+              {formatMoney(price, currencyCode)}
             </span>
 
                                                             <div className="flex items-center gap-1 ml-1">
@@ -519,7 +521,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
             </span>
 
                                                             <span className="text-sm text-white/60">
-              {price}₽
+              {formatMoney(price, currencyCode)}
             </span>
                                                         </button>
                                                     );
@@ -592,6 +594,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({ isOpen, onClose, ev
                                     cost={cost}
                                     value={bonusSpend}
                                     onChange={setBonusSpend}
+                                    currencyCode={currencyCode}
                                 />
 
                                 <div>

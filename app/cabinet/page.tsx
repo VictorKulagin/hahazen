@@ -25,6 +25,7 @@ import {ThemeToggle} from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
+import CompanySettingsCard from "@/components/settings/CompanySettingsCard";
 
 type BranchItem = {
     id: number;
@@ -70,6 +71,18 @@ const Page: React.FC = () => {
         await logoutApi();
         localStorage.removeItem("access_token");
         router.push("/signin");
+    };
+
+    const handleCompanySaved = (updatedCompany: any) => {
+        setCompaniesData((current: any) => {
+            if (Array.isArray(current)) {
+                return current.map((company) =>
+                    company.id === updatedCompany.id ? updatedCompany : company
+                );
+            }
+
+            return updatedCompany ? [updatedCompany] : current;
+        });
     };
 
     const globalLoading =
@@ -626,12 +639,10 @@ const Page: React.FC = () => {
                         )}
                     </section>
 
-                    <section className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white p-4 rounded shadow dark:shadow-none">
-                        <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2">Настройки</h2>
-                        </div>
-                        <p>Настройки филиала</p>
-                    </section>
+                    <CompanySettingsCard
+                        company={companiesData?.[0]}
+                        onSaved={handleCompanySaved}
+                    />
                 </div>
             </main>
         </div>

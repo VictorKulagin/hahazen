@@ -123,6 +123,7 @@ const Page: React.FC = () => {
     };
 // Использование:
     const id = getCompanyId(branchesData);
+    const currencyCode = companiesData?.[0]?.currency_code;
 
     const params = useParams();
     //const idFromUrl = params.id as string || null;
@@ -375,6 +376,7 @@ const Page: React.FC = () => {
                                 <Calendar
                                     branchId={id}
                                     //employeeId={employeeId}
+                                    currencyCode={currencyCode}
                                 />
                             )}
                         </div>

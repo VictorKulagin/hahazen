@@ -19,6 +19,7 @@ import { validatePhone, validateName } from '@/components/Validations';
 import Spinner from "@/components/Spinner";
 import { useIsFetching } from '@tanstack/react-query';
 import { useEmployeeId } from "@/hooks/useEmployeeId";
+import { formatMoney } from "@/lib/currency";
 
 // Функции остаются те же
 const convertTimeToMinutes = (time?: string | null): number => {
@@ -51,8 +52,9 @@ const convertTimeToMinutes = (time?: string | null): number => {
 
 interface CalendarProps {
     branchId: number | null;
+    currencyCode?: string | null;
 }
-const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
+const Calendar: React.FC<CalendarProps> = ({ branchId, currencyCode }) => {
 
 
 
@@ -623,6 +625,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                                                     event={event}
                                                     onDelete={handleDeleteAppointment}
                                                     onEdit={() => handleEditEvent(event)}
+                                                    currencyCode={currencyCode}
                                                 />
                                             </div>
                                         );
@@ -660,6 +663,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId }) => {
                     }}
                     onClose={() => setIsEditModalOpen(false)}
                     employeeId={employeeId || null}
+                    currencyCode={currencyCode}
                 />
             )}
 
@@ -1487,7 +1491,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
                                     // @ts-ignore
                                     <option key={svc.id} value={svc.service_id}>
                                         {// @ts-ignore
-                                            svc.service.name} ({svc.individual_price} руб.)
+                                            svc.service.name} ({formatMoney(svc.individual_price, currencyCode)})
                                     </option>
                                 ))}
                             </select>

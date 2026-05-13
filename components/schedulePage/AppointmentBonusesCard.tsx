@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Gift, Sparkles } from "lucide-react";
+import { formatMoney } from "@/lib/currency";
 
 type AppointmentBonusesCardProps = {
     clientId?: number | null;
@@ -9,6 +10,7 @@ type AppointmentBonusesCardProps = {
     cost: number;
     value: number;
     onChange: (value: number) => void;
+    currencyCode?: string | null;
 };
 
 const formatAmount = (value: number) =>
@@ -26,6 +28,7 @@ export default function AppointmentBonusesCard({
     cost,
     value,
     onChange,
+    currencyCode,
 }: AppointmentBonusesCardProps) {
     const availableBalance = Math.max(0, Number(balance ?? 0));
     const maxSpend = Math.min(availableBalance, Math.max(0, cost));
@@ -105,7 +108,7 @@ export default function AppointmentBonusesCard({
                     <div className="mt-3 rounded-xl border border-white/60 bg-white/70 p-3 dark:border-white/10 dark:bg-white/[0.04]">
                         <div className="flex items-center justify-between gap-3 text-sm text-gray-500 dark:text-white/55">
                             <span>Стоимость услуг</span>
-                            <span>{formatAmount(cost)} ₽</span>
+                            <span>{formatMoney(cost, currencyCode)}</span>
                         </div>
 
                         <div className="mt-2 flex items-center justify-between gap-3 text-sm text-emerald-700 dark:text-emerald-300">
@@ -121,7 +124,7 @@ export default function AppointmentBonusesCard({
                                 К оплате
                             </span>
                             <span className="text-xl font-bold text-violet-600 dark:text-violet-300">
-                                {formatAmount(payableAmount)} ₽
+                                {formatMoney(payableAmount, currencyCode)}
                             </span>
                         </div>
                     </div>

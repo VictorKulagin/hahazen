@@ -17,6 +17,7 @@ type EmployeeDetailsPanelProps = {
     onBack: () => void;
     onEdit: () => void;
     getAvatarColor: (name?: string) => string;
+    currencyCode?: string | null;
 };
 
 export default function EmployeeDetailsPanel({
@@ -25,6 +26,7 @@ export default function EmployeeDetailsPanel({
     onBack,
     onEdit,
     getAvatarColor,
+    currencyCode,
 }: EmployeeDetailsPanelProps) {
     const [activeTab, setActiveTab] = useState<EmployeeDetailsTab>("overview");
 
@@ -52,6 +54,7 @@ export default function EmployeeDetailsPanel({
                         employee={employee}
                         canEdit={canEdit}
                         onEdit={onEdit}
+                        currencyCode={currencyCode}
                     />
                 );
             case "permissions":

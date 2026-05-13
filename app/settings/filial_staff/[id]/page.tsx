@@ -1,4 +1,4 @@
-//staff/[id]/page.tsx
+//filial_staff/[id]/page.tsx
 "use client";
 import React, {useEffect, useState, useRef} from "react";
 import {
@@ -99,6 +99,7 @@ const Page: React.FC = ( ) => {
     const { collapsed, setCollapsed, isReady } = useSidebarCollapsed();
 
     const { theme } = useTheme();
+    const currencyCode = companiesData?.[0]?.currency_code;
 
     const router = useRouter();
 
@@ -613,6 +614,7 @@ const Page: React.FC = ( ) => {
                         onBack={() => setDetailsEmployee(null)}
                         onEdit={() => handleEdit(detailsEmployee)}
                         getAvatarColor={getEmployeeAvatarColor}
+                        currencyCode={currencyCode}
                     />
                 ) : (
                     <EmployeesTable
@@ -648,6 +650,7 @@ const Page: React.FC = ( ) => {
                             // После создания — обновим список
                             fetchEmployees().then(setEmployees);
                         }}
+                        currencyCode={currencyCode}
                     />
                 )}
                 {/* ✅ Новое окно — редактирование сотрудника */}
@@ -659,6 +662,7 @@ const Page: React.FC = ( ) => {
                               setIsEditModalOpen(false);
                               setEditingEmployee(null);
                         }}
+                        currencyCode={currencyCode}
                         onSave={async (updated) => {
                             const savedEmployee = await updateEmployee(updated.id, updated);
 

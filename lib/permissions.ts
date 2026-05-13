@@ -37,4 +37,9 @@ export const can = {
         update: () => authStorage.has("service:update"),
         delete: () => authStorage.has("service:delete"),
     },
+
+    company: {
+        updateProfile: () => authStorage.has("company:profile:update"),
+        updateSettings: () => authStorage.has("company:settings:update"),
+    },
 };

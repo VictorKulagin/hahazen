@@ -174,6 +174,7 @@ const Page: React.FC = () => {
     const { collapsed, setCollapsed, isReady } = useSidebarCollapsed();
 
     const { theme } = useTheme();
+    const currencyCode = companiesData?.[0]?.currency_code;
 
     // const { employees } = useEmployees();
 
@@ -366,12 +367,12 @@ const Page: React.FC = () => {
             try {
                 const data = await companiesList();
                 console.log("response.data companiesList", data);
-                setCompaniesData(data); // РЎРѕС…СЂР°РЅСЏРµРј РґР°РЅРЅС‹Рµ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+                setCompaniesData(data); // Сохраняем данные пользователя
             } catch (err: unknown) {
                 if (err instanceof Error) {
-                    setError(`РћС€РёР±РєР°: ${err.message}`);
+                    setError(`Ошибка: ${err.message}`);
                 } else {
-                    setError("РќРµРёР·РІРµСЃС‚РЅР°СЏ РѕС€РёР±РєР°");
+                    setError("Неизвестная ошибка");
                 }
             }finally {
                 setIsLoading(false);
@@ -397,7 +398,7 @@ const Page: React.FC = () => {
                     console.log("Данные пользователя:", data);
                     setUserData(data);
                 } catch (err: any) {
-                    console.error("РћС€РёР±РєР° API:", err);
+                    console.error("Ошибка API:", err);
                     setError(err.response?.data?.message || "Ошибка при загрузке данных.");
                 } finally {
                     setIsLoading(false);
@@ -513,7 +514,7 @@ const Page: React.FC = () => {
 
         // 3. Преобразуем услуги в формат { id, qty }
         const initialSelected = (src?.services ?? []).map(s => ({
-            id: (s as any).service_id ?? (s as any).id, // вњ… РїРѕРґРґРµСЂР¶РєР° Рё service_id, Рё id РЅР° РІСЃСЏРєРёР№ СЃР»СѓС‡Р°Р№
+            id: (s as any).service_id ?? (s as any).id, // Поддержка и service_id, и id на всякий случай
             qty: (s as any).qty ?? 1,
         }));
         console.log("🎯 Преобразованные услуги (initialSelected):", initialSelected);
@@ -666,7 +667,7 @@ const Page: React.FC = () => {
 
     // Пример клиентов
     const clients = [
-        { id: 1, name: "РљР»РёРµРЅС‚СЃРєР°СЏ Р±Р°Р·Р°", url: `/clients/base/${id}` },
+        { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
     ];
 
 
@@ -694,7 +695,7 @@ const Page: React.FC = () => {
         setSelectedDate(date);
     };
 
-    if (isLoading) return <p>Р—Р°РіСЂСѓР·РєР° СЃРѕС‚СЂСѓРґРЅРёРєРѕРІ...</p>;
+    if (isLoading) return <p>Загрузка сотрудников...</p>;
     if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
@@ -753,14 +754,14 @@ const Page: React.FC = () => {
                         >
                             <Image
                                 src="/logo.png"
-                                alt="Р›РѕРіРѕС‚РёРї"
+                                alt="Логотип"
                                 width={32}
                                 height={32}
                                 className="mr-2"
                             />
                             {!collapsed && (
                                 <span className="text-sm font-medium truncate">
-                        {companiesData?.[0]?.name || "РљРѕРјРїР°РЅРёСЏ РЅРµ РЅР°Р№РґРµРЅР°"}
+                        {companiesData?.[0]?.name || "Компания не найдена"}
                     </span>
                             )}
                         </button>
@@ -1063,7 +1064,10 @@ const Page: React.FC = () => {
                     <section className="col-span-5 p-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] rounded-2xl">{/* rounded shadow */}
 
                         <div className="mb-6">
-                            <PeriodStatsModule branchId={id ? Number(id) : null} />
+                            <PeriodStatsModule
+                                branchId={id ? Number(id) : null}
+                                currencyCode={currencyCode}
+                            />
                         </div>
 
                 </section>
@@ -1085,6 +1089,7 @@ const Page: React.FC = () => {
                                 masterSearch={scheduleMasterSearch}
                                 onMasterSearchChange={setScheduleMasterSearch}
                                 showMasterSearch={false}
+                                currencyCode={currencyCode}
                             />
 
                     {can.employees.update() && (
@@ -1093,6 +1098,7 @@ const Page: React.FC = () => {
                             employee={selectedEmployee}
                             onClose={() => setSelectedEmployee(null)}
                             onSave={handleSaveEmployee}
+                            currencyCode={currencyCode}
                         />
                     )}
 
@@ -1101,6 +1107,7 @@ const Page: React.FC = () => {
                             isOpen={!!editingEvent}
                             onClose={() => setEditingEvent(null)}
                             eventData={editingEvent}
+                            currencyCode={currencyCode}
                         />
                     )}
 
@@ -1115,6 +1122,7 @@ const Page: React.FC = () => {
                             defaultStartTime={formatTimeLocal(selectedStartMinutes)}
                             defaultEndTime={formatTimeLocal(selectedStartMinutes + 30)} // пока 30 мин шаг
                             isOutsideSchedule={isOutsideSchedule} // 👈 передаём
+                            currencyCode={currencyCode}
                         />
                     )}
 
@@ -1126,6 +1134,7 @@ const Page: React.FC = () => {
                             onSave={() => {
                                 setIsCreateEmployeeOpen(false);
                             }}
+                            currencyCode={currencyCode}
                         />
                     )}
 
@@ -1133,7 +1142,11 @@ const Page: React.FC = () => {
 
                       {/* Создание услуги + список */}
                     {can.services.create() && isCreateServiceOpen && (
-                        <ServiceManager branchId={id} onClose={() => setIsCreateServiceOpen(false)}/>
+                        <ServiceManager
+                            branchId={id}
+                            onClose={() => setIsCreateServiceOpen(false)}
+                            currencyCode={currencyCode}
+                        />
                     )}
 
                         <CreateMenuModal

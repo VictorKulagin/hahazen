@@ -4,11 +4,13 @@ import React, { useMemo, useState } from "react";
 import { formatDateLocal } from "@/components/utils/date";
 import { usePeriodStats } from "@/hooks/useAppointments";
 import { ChevronDown, CalendarDays, Banknote, BarChart3 } from "lucide-react";
+import { formatMoney } from "@/lib/currency";
 
 
 
 type Props = {
     branchId?: number | null;
+    currencyCode?: string | null;
 };
 
 type RangeType = "day" | "week" | "month";
@@ -46,7 +48,7 @@ function getRangeDates(type: RangeType) {
     };
 }
 
-const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
+const PeriodStatsModule: React.FC<Props> = ({ branchId, currencyCode }) => {
     const [rangeType, setRangeType] = useState<RangeType>("day");
     const [isMobileStatsCollapsed, setIsMobileStatsCollapsed] = useState(true);
 
@@ -168,7 +170,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                             <div className="mt-1 text-2xl lg:text-3xl font-semibold text-green-400">
                                 {isLoading
                                     ? "..."
-                                    : `${(data?.period_totals?.paid_amount ?? 0).toLocaleString("ru-RU")} сом`}
+                                    : formatMoney(data?.period_totals?.paid_amount ?? 0, currencyCode)}
                             </div>
                         </div>
                     </div>
@@ -182,7 +184,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                 Средний чек
                             </div>
                             <div className="mt-1 text-2xl lg:text-3xl font-semibold text-[rgb(var(--foreground))]">
-                                {isLoading ? "..." : `${avgCheck.toLocaleString("ru-RU")} сом`}
+                                {isLoading ? "..." : formatMoney(avgCheck, currencyCode)}
                             </div>
                         </div>
                     </div>
@@ -244,7 +246,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                             {day.appointments_count}
                                         </td>
                                         <td className="whitespace-nowrap px-4 py-3 text-[rgb(var(--foreground))]">
-                                            {day.paid_amount.toLocaleString("ru-RU")} сом
+                                            {formatMoney(day.paid_amount, currencyCode)}
                                         </td>
                                     </tr>
                                 ))
@@ -300,14 +302,14 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                 <div className="rounded-2xl border border-[rgb(var(--border))] bg-[rgb(var(--card))] p-3 text-center shadow-sm">
                                     <div className="mb-1 text-sm text-[rgb(var(--foreground))]/60">Оплачено</div>
                                     <div className="text-xl font-bold text-[rgb(var(--foreground))]">
-                                        {(data?.period_totals?.paid_amount ?? 0).toLocaleString("ru-RU")} сом
+                                        {formatMoney(data?.period_totals?.paid_amount ?? 0, currencyCode)}
                                     </div>
                                 </div>
 
                                 <div className="rounded-xl bg-[rgb(var(--border))] p-3 text-center col-span-2">
                                     <div className="mb-1 text-sm text-[rgb(var(--foreground))]/60">Средний чек</div>
                                     <div className="text-xl font-bold text-[rgb(var(--foreground))]">
-                                        {avgCheck.toLocaleString("ru-RU")} сом
+                                        {formatMoney(avgCheck, currencyCode)}
                                     </div>
                                 </div>
                             </div>
@@ -333,7 +335,7 @@ const PeriodStatsModule: React.FC<Props> = ({ branchId }) => {
                                             <div className="mt-2 flex items-center justify-between gap-3 text-sm">
                                                 <span className="text-[rgb(var(--foreground))]/60">Оплачено</span>
                                                 <span className="font-medium text-[rgb(var(--foreground))]">
-                        {day.paid_amount.toLocaleString("ru-RU")} сом
+                        {formatMoney(day.paid_amount, currencyCode)}
                     </span>
                                             </div>
                                         </div>

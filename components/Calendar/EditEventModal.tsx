@@ -2,15 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { AppointmentRequest } from "@/types/appointments";
 import { useServices, useEmployeeServices } from '@/hooks/useServices';
 import { validatePhone, validateName } from '@/components/Validations';
+import { formatMoney } from "@/lib/currency";
 
 interface EditEventModalProps {
     event: AppointmentRequest;
     onSave: (data: AppointmentRequest) => void;
     onClose: () => void;
     employeeId: number | null; // Добавить пропс
+    currencyCode?: string | null;
 }
 
-export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEventModalProps) => {
+export const EditEventModal = ({ event, onSave, onClose, employeeId, currencyCode }: EditEventModalProps) => {
     const [form, setForm] = useState<AppointmentRequest>({} as AppointmentRequest);
     // Внутри компонента:
     const [validationErrors, setValidationErrors] = useState({
@@ -213,7 +215,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId }: EditEvent
                                     <option key={// @ts-ignore
                                         svc.service_id} value={svc.service_id}>
                                         {// @ts-ignore
-                                            svc.service.name} ({svc.individual_price} руб.)
+                                            svc.service.name} ({formatMoney(svc.individual_price, currencyCode)})
                                     </option>
                                 ))}
                             </select>

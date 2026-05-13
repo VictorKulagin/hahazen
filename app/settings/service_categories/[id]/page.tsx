@@ -33,6 +33,7 @@ import { useTheme } from "@/lib/theme/theme.context";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import { can } from "@/lib/permissions";
+import { formatMoney } from "@/lib/currency";
 
 const Page: React.FC = ( ) => {
 
@@ -74,6 +75,7 @@ const Page: React.FC = ( ) => {
     const { mutateAsync: deleteService } = useDeleteService(); // ✅ Добавлено
 
     const { theme } = useTheme();
+    const currencyCode = companiesData?.[0]?.currency_code;
 
 
     const toggleFilModal = () => {
@@ -477,6 +479,7 @@ const Page: React.FC = ( ) => {
                     loading={servicesLoading}
                     error={servicesError?.message || ""}  // чтобы тип совпал
                     services={services}
+                    currencyCode={currencyCode}
                     handleDelete={handleDelete}
                     setIsUpdateOpen={setIsUpdateOpen}
                     setSelectedService={setSelectedService}
@@ -514,6 +517,7 @@ const Page: React.FC = ( ) => {
                     <ServiceManager
                         branchId={id}
                         onClose={() => setIsServiceManagerOpen(false)}
+                        currencyCode={currencyCode}
                     />
                 )}
 
@@ -521,6 +525,7 @@ const Page: React.FC = ( ) => {
                     <ServiceManagerUpdateOne
                         service={selectedService}
                         onClose={() => setSelectedService(null)}
+                        currencyCode={currencyCode}
                     />
                 )}
 
@@ -536,6 +541,7 @@ const ServicesTable = ({
                            loading,
                            error,
                            services,
+                           currencyCode,
                            handleDelete,
                            setIsUpdateOpen,
                            setSelectedService
@@ -543,6 +549,7 @@ const ServicesTable = ({
     loading: boolean;
     error: string;
     services: Services[];
+    currencyCode?: string | null;
     handleDelete: (id: number) => void;
     setIsUpdateOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setSelectedService: React.Dispatch<React.SetStateAction<Services | null>>;
@@ -589,7 +596,7 @@ const ServicesTable = ({
                                                 <span className="text-gray-400 dark:text-gray-500">•</span>
 
                                                 <span className="font-semibold text-gray-900 dark:text-white">
-                {service.base_price} ₽
+                {formatMoney(service.base_price, currencyCode)}
             </span>
                                             </div>
                                         </div>
@@ -601,7 +608,7 @@ const ServicesTable = ({
 
                                         {/* Цена на desktop */}
                                         <div className="hidden text-sm font-semibold text-gray-900 dark:text-white lg:block lg:text-left">
-                                            {service.base_price} ₽
+                                            {formatMoney(service.base_price, currencyCode)}
                                         </div>
 
                                         {/* Кнопки */}

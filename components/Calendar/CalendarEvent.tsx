@@ -1,5 +1,6 @@
 // components/Calendar/CalendarEvent.tsx
 import { AppointmentRequest, AppointmentService } from "@/types/appointments";
+import { formatMoney } from "@/lib/currency";
 
 // 1. Добавим тип для редактируемого события (в types/Appointment.ts)
 export interface Appointment extends AppointmentRequest {
@@ -11,9 +12,10 @@ interface CalendarEventProps {
     event: Appointment;
     onDelete: (id: number) => void;
     onEdit: (event: Appointment) => void; // Добавьте пропс
+    currencyCode?: string | null;
 }
 
-export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) => {
+export const CalendarEvent = ({ event, onDelete, onEdit, currencyCode }: CalendarEventProps) => {
 
     //console.log('CalendarEvent received:', JSON.stringify(event, null, 2));
     // Проверка наличия обязательных полей
@@ -154,8 +156,8 @@ export const CalendarEvent = ({ event, onDelete, onEdit }: CalendarEventProps) =
 
                                                 {
                                                     // @ts-ignore
-                                                    service.individual_price
-                                                } ₽</span>
+                                                    formatMoney(service.individual_price, currencyCode)
+                                                }</span>
                                         </div>
                                     ))}
                                 </div>

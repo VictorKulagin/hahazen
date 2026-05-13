@@ -26,13 +26,15 @@ import {
 } from "@/components/utils/phone";
 import SpecialtyAutocomplete from "@/components/schedulePage/SpecialtyAutocomplete";
 import QualificationSelect from "@/components/schedulePage/QualificationSelect";
+import { formatMoney, normalizeCurrencyCode } from "@/lib/currency";
 
 
 type Props = {
     isOpen: boolean;
     branchId: number | null;
     onClose: () => void;
-    onSave: () => void; // РІС‹Р·С‹РІР°РµРј РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ СЃРѕР·РґР°РЅРёСЏ
+    onSave: () => void; // вызываем после успешного создания
+    currencyCode?: string | null;
 };
 
 
@@ -103,7 +105,7 @@ const CREATE_EMPLOYEE_TABS: Array<{
     { id: "permissions", label: "Разрешения", icon: ShieldCheck },
 ];
 
-export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose, onSave }) => {
+export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose, onSave, currencyCode }) => {
     const [name, setName] = useState("");
     const [lastName, setLastName] = useState("");
     //const [phone, setPhone] = useState("");
@@ -124,10 +126,10 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
     const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
     const { data: allServices = [] } = useServices();
     const { mutateAsync: syncServices } = useSyncEmployeeServices();
-    const { mutateAsync: createService } = useCreateService(); // вњ… СЃРѕР·РґР°С‘Рј СѓСЃР»СѓРіСѓ
+    const { mutateAsync: createService } = useCreateService();
 
 
-    // рџ”№ Р»РѕРєР°Р»СЊРЅС‹Р№ СЃС‚РµР№С‚ РґР»СЏ РЅРѕРІРѕР№ СѓСЃР»СѓРіРё
+    // Локальный стейт для новой услуги
     const [newServiceName, setNewServiceName] = useState("");
     const [newServicePrice, setNewServicePrice] = useState(0);
     const [newServiceDuration, setNewServiceDuration] = useState(30);
@@ -158,7 +160,7 @@ text-black dark:text-white \
 transition \
 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
-    // РґРµС„РѕР»С‚РЅС‹Рµ РґР°С‚С‹ РіСЂР°С„РёРєР°
+    // Дефолтные даты графика
     useEffect(() => {
         if (!isOpen) return;
 
@@ -168,7 +170,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             .toISOString()
             .split("T")[0];
 
-        // РћСЃРЅРѕРІРЅС‹Рµ РїРѕР»СЏ
+        // Основные поля
         setName("");
         setLastName("");
         setPhone("");
@@ -178,25 +180,25 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         setHireDate("");
         setRole("master");
 
-        // Р’РєР»Р°РґРєР°
+        // Вкладка
         setActiveTab("info");
 
-        // Р“СЂР°С„РёРє
+        // График
         setLocalStartDate(defaultStart);
         setLocalEndDate(defaultEnd);
         setPeriods([{ day: "mon" as WeekDay, start: "09:00", end: "18:00" }]);
 
-        // РЈСЃР»СѓРіРё СЃРѕС‚СЂСѓРґРЅРёРєР°
+        // Услуги сотрудника
         setSelectedServices([]);
         setServiceSearch("");
         setIsServiceDropdownOpen(false);
 
-        // РЎРѕР·РґР°РЅРёРµ РЅРѕРІРѕР№ СѓСЃР»СѓРіРё
+        // Создание новой услуги
         setNewServiceName("");
         setNewServicePrice(0);
         setNewServiceDuration(30);
 
-        // РЎС‚Р°С‚СѓСЃС‹ UI
+        // Статусы UI
         setSubmitError(null);
         setIsSubmitting(false);
         setSuccess(false);
@@ -266,7 +268,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     };
 
     const changeSelectedQty = (serviceId: number, delta: number) => {
-        // РµСЃР»Рё qty Сѓ С‚РµР±СЏ С‚СѓС‚ РЅРµ РЅСѓР¶РµРЅ РґР»СЏ employee services вЂ” СЌС‚РѕС‚ РєСѓСЃРѕРє РјРѕР¶РЅРѕ СѓР±СЂР°С‚СЊ
+        // qty для услуг сотрудника сейчас не используется
     };
 
     const filteredServices = allServices.filter((service) => {
@@ -320,15 +322,15 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             err?.response?.data?.error ||
             err?.message;
 
-        if (!msg) return "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СЃРѕС‚СЂСѓРґРЅРёРєР°. РџРѕРїСЂРѕР±СѓР№С‚Рµ РµС‰С‘ СЂР°Р·.";
+        if (!msg) return "Не удалось создать сотрудника. Попробуйте ещё раз.";
 
-        // С‡СѓС‚СЊ вЂњРїСЂРёС‡РµСЃР°С‚СЊвЂќ РґСѓР±Р»Рё С‚РёРїР° "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ...: РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ..."
-        return String(msg).replace(/^(РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ:\s*)+/i, "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓС‡С‘С‚РЅСѓСЋ Р·Р°РїРёСЃСЊ: ");
+        // Немного чистим дубли вида "Не удалось создать...: Не удалось создать..."
+        return String(msg).replace(/^(Не удалось создать учётную запись:\s*)+/i, "Не удалось создать учётную запись: ");
     };
 
     const handleSave = async () => {
         if (!branchId) {
-            alert("Р¤РёР»РёР°Р» РЅРµ РІС‹Р±СЂР°РЅ");
+            alert("Филиал не выбран");
             return;
         }
 
@@ -336,7 +338,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         setIsSubmitting(true);
 
         try {
-            // вњЁ Р¤РѕСЂРјРёСЂСѓРµРј payload СЃС‚СЂРѕРіРѕ РїРѕ EmployeeCreatePayload
+            // Формируем payload строго по EmployeeCreatePayload
             const payload: EmployeeCreatePayload = {
                 branch_id: branchId,
                 name,
@@ -344,16 +346,16 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 lvl: lvl || null,
                 hire_date: hireDate,
                 online_booking: 1,
-                role,        // <-- Р’РЎРўРђР’РРўР¬ РЎР®Р”Рђ
+                role,
                 last_name: lastName || null,
                 phone: phone || null,
                 email: email || null,
             };
 
-            // вњЁ Р’С‹Р·С‹РІР°РµРј createEmployee Рё СЃРѕС…СЂР°РЅСЏРµРј СЂРµР·СѓР»СЊС‚Р°С‚
+            // Создаём сотрудника и сохраняем результат
             const newEmployee = await createEmployee(payload);
 
-            // 2. СЃРѕР·РґР°С‘Рј РіСЂР°С„РёРє
+            // 2. Создаём график
             await createSchedule({
                 employee_id: newEmployee.id,
                 schedule_type: "weekly",
@@ -363,7 +365,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 periods: periods.map((p) => [p.day, p.start, p.end]) as [string, string, string][],
             });
 
-            // 3. СЃРѕС…СЂР°РЅСЏРµРј СѓСЃР»СѓРіРё
+            // 3. Сохраняем услуги
             const normalized: EmployeeServicePayload[] = selectedServices.map((s) => ({
                 service_id: s.service_id,
                 individual_price: s.individual_price ?? 0,
@@ -377,25 +379,21 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 });
             }
 
-            //console.log("вњ… РЎРѕС‚СЂСѓРґРЅРёРє СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅ:", newEmployee);
-
-            console.log("вњ… РЎРѕС‚СЂСѓРґРЅРёРє СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅ:", newEmployee);
+            console.log("Сотрудник успешно создан:", newEmployee);
 
             setSuccess(true);
             onSave();
 
-            return; // РІР°Р¶РЅРѕ
+            return;
         } catch (err) {
-            /*console.error("вќЊ РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё СЃРѕС‚СЂСѓРґРЅРёРєР°:", err);
-            alert("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СЃРѕС‚СЂСѓРґРЅРёРєР°");*/
-            console.error("вќЊ РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё СЃРѕС‚СЂСѓРґРЅРёРєР°:", err);
-           setSubmitError(getErrorMessage(err)); // вњ… РІРѕС‚ С‚СѓС‚
+            console.error("Ошибка при создании сотрудника:", err);
+           setSubmitError(getErrorMessage(err));
         } finally {
             setIsSubmitting(false);
         }
     };
 
-    // вњ… СЃРѕР·РґР°РЅРёРµ СѓСЃР»СѓРіРё РїСЂСЏРјРѕ РёР· РјРѕРґР°Р»РєРё СЃРѕС‚СЂСѓРґРЅРёРєР°
+    // Создание услуги прямо из модалки сотрудника
     const handleCreateService = async () => {
         if (!newServiceName || !branchId) return;
 
@@ -410,16 +408,16 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 online_booking_description: "",
             });
 
-            // РѕС‡РёС‰Р°РµРј РїРѕР»СЏ
+            // Очищаем поля
             setNewServiceName("");
             setNewServicePrice(0);
             setNewServiceDuration(30);
 
-            // РѕР±РЅРѕРІР»СЏРµРј СЃРїРёСЃРѕРє СѓСЃР»СѓРі РІРµР·РґРµ, РіРґРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ useServices()
+            // Обновляем список услуг везде, где используется useServices()
             queryClient.invalidateQueries({ queryKey: ["services"] });
         } catch (err) {
-            console.error("вќЊ РћС€РёР±РєР° РїСЂРё СЃРѕР·РґР°РЅРёРё СѓСЃР»СѓРіРё:", err);
-            alert("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ СѓСЃР»СѓРіСѓ");
+            console.error("Ошибка при создании услуги:", err);
+            alert("Не удалось создать услугу");
         }
     };
 
@@ -501,7 +499,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                     </div>
                 </div>
 
-                {/* РљРѕРЅС‚РµРЅС‚ */}
+                {/* Контент */}
                 <div className="flex-1 overflow-y-auto p-4 text-black dark:text-white space-y-4 bg-gray-50 dark:bg-[rgb(var(--background))]">
                     {activeTab === "info" && (
                         <div className="space-y-4">
@@ -842,7 +840,7 @@ transition"
 
                     {activeTab === "services" && (
                         <div className="space-y-4">
-                            {/* РќРѕРІС‹Р№ Р±Р»РѕРє СЃРѕР·РґР°РЅРёСЏ СѓСЃР»СѓРіРё */}
+                            {/* Новый блок создания услуги */}
                             <div className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
                                 <div className="flex items-start gap-3">
                                     <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-violet-50 text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
@@ -888,7 +886,7 @@ transition"
                                 </button>
                             </div>
 
-                            {/* Picker СѓСЃР»СѓРі */}
+                            {/* Выбор услуг */}
                             <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
                                 <div className="mb-4 flex items-start justify-between gap-3">
                                     <div>
@@ -905,7 +903,7 @@ transition"
                                 </div>
 
                                 <div className="relative rounded-2xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/[0.04]">
-                                    {/* Р’С‹Р±СЂР°РЅРЅС‹Рµ СѓСЃР»СѓРіРё */}
+                                    {/* Выбранные услуги */}
                                     {selectedServices.length > 0 && (
                                         <div className="flex flex-wrap gap-2 mb-3">
                                             {selectedServices.map((selected) => {
@@ -938,7 +936,7 @@ transition"
                                                         <div className="grid grid-cols-2 gap-3 mt-3">
                                                             <div>
                                                                 <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">
-                                                                    Индивидуальная цена
+                                                                    Индивидуальная цена ({normalizeCurrencyCode(currencyCode)})
                                                                 </label>
                                                                 <input
                                                                     type="number"
@@ -1001,7 +999,7 @@ transition"
                                         </div>
                                     )}
 
-                                    {/* РџРѕРёСЃРє + РєРЅРѕРїРєР° */}
+                                    {/* Поиск + кнопка */}
                                     <div className="flex items-center gap-2">
                                         <input
                                             type="text"
@@ -1038,7 +1036,7 @@ transition"
                                     {service.name}
                                 </span>
                                                     <span className="text-sm text-gray-500 dark:text-gray-400">
-                                    {service.base_price}₽
+                                    {formatMoney(service.base_price, currencyCode)}
                                 </span>
                                                 </button>
                                             ))}
@@ -1146,7 +1144,7 @@ transition"
                     )}
                 </div>
 
-                {/* Р¤СѓС‚РµСЂ */}
+                {/* Футер */}
                 <div className="sticky bottom-0 z-20 border-t border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md px-4 py-4">
 
                     {(submitError || success) && (

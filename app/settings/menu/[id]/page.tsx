@@ -24,6 +24,7 @@ import {Employee, fetchEmployees} from "@/services/employeeApi";
 //import { useEmployees } from '@/contexts/EmployeesContext_';
 import EmployeesList from "@/components/EmployeesList";
 import { logoutApi } from "@/services/logoutApi";
+import CompanySettingsCard from "@/components/settings/CompanySettingsCard";
 
 
 const Page: React.FC = () => {
@@ -50,6 +51,19 @@ const Page: React.FC = () => {
     const toggleFilModal = () => {
         setIsModalFilOpen((prev) => !prev);
     };
+
+    const handleCompanySaved = (updatedCompany: any) => {
+        setCompaniesData((current: any) => {
+            if (Array.isArray(current)) {
+                return current.map((company) =>
+                    company.id === updatedCompany.id ? updatedCompany : company
+                );
+            }
+
+            return updatedCompany ? [updatedCompany] : current;
+        });
+    };
+
     const handleLogout = async () => {
         await logoutApi();
         localStorage.removeItem("access_token"); // Удаляем токен
@@ -461,6 +475,13 @@ const Page: React.FC = () => {
                         </div>
                         <p>Настройки филиала</p>
                     </section>
+
+                    <div className="md:col-span-2">
+                        <CompanySettingsCard
+                            company={companiesData?.[0]}
+                            onSaved={handleCompanySaved}
+                        />
+                    </div>
                 </div>
             </main>
         </div>

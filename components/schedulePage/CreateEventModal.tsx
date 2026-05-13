@@ -10,6 +10,7 @@ import {useCreateClientBonusTransaction} from "@/hooks/useClientBonusTransaction
 import {XMarkIcon} from "@heroicons/react/24/outline";
 import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
 import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
+import { formatMoney } from "@/lib/currency";
 //import {getPhoneDigitsCount, MIN_PHONE_DIGITS, normalizePhoneInput} from "@/components/utils/phone";
 import {
     normalizePhoneInput,
@@ -82,6 +83,7 @@ interface CreateEventModalProps {
     defaultStartTime?: string;
     defaultEndTime?: string;
     isOutsideSchedule?: boolean; // 👈 добавляем сюда (необязательный проп)
+    currencyCode?: string | null;
 }
 
 const CreateEventModal: React.FC<CreateEventModalProps> = ({
@@ -93,6 +95,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                                defaultStartTime,
                                                                defaultEndTime,
                                                                isOutsideSchedule = false, // 👈 значение по умолчанию
+                                                               currencyCode,
                                                            }) => {
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
     const [selectedClientBonusBalance, setSelectedClientBonusBalance] = useState(0);
@@ -640,7 +643,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 </span>
 
                                                             <span className="text-sm text-gray-500">
-                                    {price}₽
+                                    {formatMoney(price, currencyCode)}
                                 </span>
 
                                                             <div className="flex items-center gap-1 ml-1">
@@ -728,7 +731,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         </span>
 
                                                             <span className="text-sm text-gray-500 dark:text-white/60">
-          {price}₽
+          {formatMoney(price, currencyCode)}
         </span>
                                                         </button>
                                                     );
@@ -793,6 +796,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                         cost={cost}
                                         value={bonusSpend}
                                         onChange={setBonusSpend}
+                                        currencyCode={currencyCode}
                                     />
 
                                     <div>
