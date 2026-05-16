@@ -257,7 +257,6 @@ const Page: React.FC = () => {
                 address: branchForm.address.trim() || null,
                 phone: branchForm.phone.trim() || null,
                 email: branchForm.email.trim() || null,
-                timezone: "Asia/Almaty",
             });
 
             setBranchForm({ name: "", address: "", phone: "", email: "" });
