@@ -97,7 +97,7 @@ export const syncEmployeeServices = async (
 ): Promise<EmployeeServiceResponse[]> => {
     try {
         const response = await apiClient.post<unknown>(
-            `/employees/${employeeId}/sync-services`,
+            `/employees/${employeeId}/services`,
             { services }
         );
         const payload = response.data as { services?: EmployeeServiceResponse[] } | null;
@@ -114,7 +114,7 @@ export const syncEmployeeServices = async (
         throw new Error(
             getApiErrorMessage(
                 error,
-                `API endpoint not found: POST /employees/${employeeId}/sync-services`
+                `API endpoint not found: POST /employees/${employeeId}/services`
             )
         );
     }

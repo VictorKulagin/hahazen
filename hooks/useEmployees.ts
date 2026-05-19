@@ -178,7 +178,32 @@ export const useCreateEmployee = () => {
 
     return useMutation<Employee, Error, EmployeeCreatePayload>({
         mutationFn: (payload: EmployeeCreatePayload) => createEmployee(payload),
-        onSuccess: () => {
+        onSuccess: (createdEmployee, variables) => {
+            const employeeForCache: Employee = {
+                ...createdEmployee,
+                branch_id: createdEmployee.branch_id ?? variables.branch_id,
+            };
+
+            queryClient.setQueriesData<Employee[]>(
+                { queryKey: ["employees"] },
+                (oldEmployees) => {
+                    if (!oldEmployees) return [employeeForCache];
+
+                    const exists = oldEmployees.some(
+                        (employee) => employee.id === employeeForCache.id
+                    );
+
+                    if (exists) {
+                        return oldEmployees.map((employee) =>
+                            employee.id === employeeForCache.id
+                                ? employeeForCache
+                                : employee
+                        );
+                    }
+
+                    return [...oldEmployees, employeeForCache];
+                }
+            );
             queryClient.invalidateQueries({ queryKey: ["employees"] });
         },
     });
