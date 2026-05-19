@@ -193,29 +193,25 @@ const Page: React.FC = () => {
 
     //const id = branchesData?.[0]?.company_id ?? null;
 
-
-    const getCompanyId = (data: any[]): number | null => {
-        return data?.[0]?.id ?? null;
-    };
-// Использование:
-    const id = getCompanyId(branchesData);
-
     const params = useParams();
-    //const idFromUrl = params.id as string || null;
     let idFromUrl: string | null = null;
     if (params && 'id' in params) {
         idFromUrl = params.id as string;
     }
+    const parsedIdFromUrl = idFromUrl ? Number(idFromUrl) : NaN;
+    const routeBranchId = Number.isFinite(parsedIdFromUrl) ? parsedIdFromUrl : null;
+    const id = routeBranchId ?? branchesData?.[0]?.id ?? null;
 
 
 
     useEffect(() => {
-        if (!idFromUrl || !id) return;
-        if (String(idFromUrl) !== String(id)) {
+        if (!idFromUrl || !branchesData) return;
+        const branchExists = branchesData.some((branch: any) => String(branch.id) === String(idFromUrl));
+        if (!branchExists) {
             console.warn(`Редирект на 404: idFromUrl (${idFromUrl}) !== id (${id})`);
             router.replace("/404");
         }
-    }, [idFromUrl, id]);
+    }, [idFromUrl, branchesData, id, router]);
 
 
     { console.log(userData + id + "userData id"); }

@@ -11,7 +11,7 @@ type Props = {
 };
 
 export const ServiceManager: React.FC<Props> = ({ branchId, onClose, currencyCode }) => {
-    const { refetch } = useServices(); // ✅ используем refetch для обновления списка
+    const { refetch } = useServices(branchId); // ✅ используем refetch для обновления списка
     const { mutateAsync: createService, isPending } = useCreateService();
 
     const [name, setName] = useState("");

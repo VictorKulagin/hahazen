@@ -124,7 +124,7 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
 
     const { mutateAsync: createEmployee } = useCreateEmployee();
     const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
-    const { data: allServices = [] } = useServices();
+    const { data: allServices = [] } = useServices(branchId ?? undefined);
     const { mutateAsync: syncServices } = useSyncEmployeeServices();
     const { mutateAsync: createService } = useCreateService();
 

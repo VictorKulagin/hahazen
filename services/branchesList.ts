@@ -26,7 +26,16 @@ interface branchesL {
 export const branchesList = async (companyId: number): Promise<branchesL[]> => {
     try {
         const response = await apiClient.get<unknown>("/branches");
-        return normalizeListPayload<branchesL>(response.data).rows;
+        const rows = normalizeListPayload<branchesL>(response.data).rows;
+        const activeBranchId = authStorage.getContext()?.branch_id;
+
+        if (!activeBranchId) return rows;
+
+        return [...rows].sort((a, b) => {
+            if (a.id === activeBranchId) return -1;
+            if (b.id === activeBranchId) return 1;
+            return 0;
+        });
     } catch (error: any) {
         if (error?.response?.status !== 403) {
             throw error;

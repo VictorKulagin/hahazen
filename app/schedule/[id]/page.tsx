@@ -417,15 +417,15 @@ const Page: React.FC = () => {
         return () => clearTimeout(t);
     }, []);
 
-
-    const id = branchesData?.[0]?.id ?? null;
-    console.log("ID из данных PAGE:", id);
     const params = useParams();
-    //const idFromUrl = params.id as string || null;
     let idFromUrl: string | null = null;
     if (params && 'id' in params) {
         idFromUrl = params.id as string;
     }
+    const parsedIdFromUrl = idFromUrl ? Number(idFromUrl) : NaN;
+    const routeBranchId = Number.isFinite(parsedIdFromUrl) ? parsedIdFromUrl : null;
+    const id = routeBranchId ?? branchesData?.[0]?.id ?? null;
+    console.log("ID из данных PAGE:", id);
 
 
     console.log("ID из данных филиала:", id);
@@ -620,12 +620,15 @@ const Page: React.FC = () => {
 
     const [isNotFound, setIsNotFound] = useState(false);
     useEffect(() => {
-        if (!idFromUrl || !id) return;
-        if (String(idFromUrl) !== String(id)) {
+        if (!idFromUrl || !branchesData) return;
+        const branchExists = branchesData.some((branch: any) => String(branch.id) === String(idFromUrl));
+        if (!branchExists) {
             console.warn(`Несоответствие ID: idFromUrl (${idFromUrl}) !== id (${id})`);
             setIsNotFound(true);
+        } else {
+            setIsNotFound(false);
         }
-    }, [idFromUrl, id]);
+    }, [idFromUrl, branchesData, id]);
 
     useEffect(() => {
         // Изменяем заголовок страницы

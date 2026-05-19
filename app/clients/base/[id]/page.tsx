@@ -40,7 +40,8 @@ import {useQueryClient} from "@tanstack/react-query";
 import {fetchClients} from "@/services/clientApi";
 import ClientCardEditable from "@/components/ClientCardEditable";
 import Loader from "@/components/Loader";
-//import {authStorage} from "@/services/authStorage";
+import {authStorage} from "@/services/authStorage";
+import { setApiContext } from "@/services/apiContext";
 import {fetchEmployees} from "@/services/employeeApi";
 import {EditClientModal} from "@/components/schedulePage/EditСlientModal";
 import {CreateClientModal} from "@/components/schedulePage/CreateСlientModal";
@@ -78,17 +79,28 @@ const Page: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState(""); // Для поиска в будущем
     // ЕДИНСТВЕННЫЙ ВЫЗОВ useClients (с переименованным error):
     const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
+    const [isBranchContextReady, setIsBranchContextReady] = useState(false);
+    const params = useParams();
+    let idFromUrl: string | null = null;
+    if (params && 'id' in params) {
+        idFromUrl = params.id as string;
+    }
+    const parsedIdFromUrl = idFromUrl ? Number(idFromUrl) : NaN;
+    const routeBranchId = Number.isFinite(parsedIdFromUrl) ? parsedIdFromUrl : null;
+    const branchId = routeBranchId ?? branchesData?.[0]?.id ?? null;
 
     const clientsQueryEnabled =
         !isLoading &&
         Boolean(companiesData) &&
         Boolean(branchesData) &&
+        Boolean(branchId) &&
         Boolean(userData) &&
+        isBranchContextReady &&
         can.clients.viewAny();
 
     const clientsScopeKey = [
         companiesData?.[0]?.id ?? "no-company",
-        branchesData?.[0]?.id ?? "no-branch",
+        branchId ?? "no-branch",
         userData?.id ?? "no-user",
         can.clients.viewAny() ? "can-view" : "no-view",
         can.clients.viewContacts() ? "can-contacts" : "no-contacts",
@@ -139,7 +151,8 @@ const Page: React.FC = () => {
         isLoading ||
         !companiesData ||
         !branchesData ||
-        !userData
+        !userData ||
+        !isBranchContextReady
 
     const globalError = error || !companiesData || !branchesData ? error : "";
 
@@ -171,7 +184,7 @@ const Page: React.FC = () => {
     // Функция предзагрузки
     const prefetchPage = (targetPage: number) => {
         queryClient.prefetchQuery({
-            queryKey: ['clients', searchQuery, targetPage, perPage],
+            queryKey: ['clients', clientsScopeKey, filters, targetPage, perPage],
             queryFn: () => fetchClients({
                 search: searchQuery,
                 page: targetPage,
@@ -331,26 +344,8 @@ const Page: React.FC = () => {
         }
     }, []);
 
-    //const id = branchesData?.[0]?.company_id ?? null;
-
-
-    /*const getCompanyId = (data: any[]): number | null => {
-        return data?.[0]?.id ?? null;
-    };
-// Использование:
-    const id = getCompanyId(branchesData);*/
-
-    const branchId = branchesData?.[0]?.id ?? null;
-
 // ✅ временно оставляем старое имя, чтобы ничего не ломать
     const id = branchId;
-
-    const params = useParams();
-    //const idFromUrl = params.id as string || null;
-    let idFromUrl: string | null = null;
-    if (params && 'id' in params) {
-        idFromUrl = params.id as string;
-    }
 
     const companyId = companiesData?.[0]?.id ?? null;
     const userId = userData?.id ?? null; // у тебя внизу уже есть userData?.id
@@ -359,12 +354,62 @@ const Page: React.FC = () => {
     console.log("ID из URL:", idFromUrl);
 
     useEffect(() => {
-        if (!idFromUrl || !id) return;
-        if (String(idFromUrl) !== String(id)) {
+        if (!companyId || !branchId || !branchesData) {
+            setIsBranchContextReady(false);
+            return;
+        }
+
+        let isCancelled = false;
+        const selectedBranch = branchesData.find((branch: any) => branch.id === branchId);
+        const currentContext = authStorage.getContext();
+
+        if (
+            currentContext?.company_id === companyId &&
+            currentContext?.branch_id === branchId
+        ) {
+            setIsBranchContextReady(true);
+            return;
+        }
+
+        setIsBranchContextReady(false);
+
+        setApiContext({
+            company_id: companyId,
+            branch_id: branchId,
+        })
+            .then((context) => {
+                if (isCancelled) return;
+
+                authStorage.setContext(context ?? {
+                    company_id: companyId,
+                    branch_id: branchId,
+                    company_name: companiesData?.[0]?.name ?? null,
+                    branch_name: selectedBranch?.name ?? null,
+                });
+
+                queryClient.invalidateQueries({ queryKey: ["clients"] });
+                setIsBranchContextReady(true);
+            })
+            .catch((err) => {
+                console.error("Не удалось синхронизировать контекст филиала:", err);
+                if (!isCancelled) {
+                    setIsBranchContextReady(true);
+                }
+            });
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [companyId, branchId, branchesData, companiesData, queryClient]);
+
+    useEffect(() => {
+        if (!idFromUrl || !branchesData) return;
+        const branchExists = branchesData.some((branch: any) => String(branch.id) === String(idFromUrl));
+        if (!branchExists) {
             console.warn(`Редирект на 404: idFromUrl (${idFromUrl}) !== id (${id})`);
             router.replace("/404");
         }
-    }, [idFromUrl, id]);
+    }, [idFromUrl, branchesData, id, router]);
 
 
 

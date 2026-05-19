@@ -640,6 +640,7 @@ const Calendar: React.FC<CalendarProps> = ({ branchId, currencyCode }) => {
             {modalData && (
                 <Modal
                     data={modalData}
+                    branchId={branchId}
                     employeeId={employeeId}
                     onSave={data => {
                         handleAddEvent({
@@ -1255,13 +1256,14 @@ const Calendar: React.FC<CalendarProps> = ({ branchId, currencyCode }) => {
 
 interface ModalProps {
     data: { date: string; time: string };
+    branchId: number | null;
     employeeId: number | null | undefined; // Добавляем undefined
     editingEvent?: AppointmentRequest | null;
     onSave: (data: AppointmentRequest | Omit<AppointmentRequest, 'id'>) => void;
     onClose: () => void;
 }
 
-const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) => {
+const Modal = ({ data, branchId, employeeId, editingEvent, onSave, onClose }: ModalProps) => {
 
     // Внутри компонента:
     const [validationErrors, setValidationErrors] = useState({
@@ -1311,7 +1313,7 @@ const Modal = ({ data, employeeId, editingEvent, onSave, onClose }: ModalProps) 
         data: services,
         isLoading: isLoadingServices, // Переименовано
         isError: isServicesError
-    } = useServices();
+    } = useServices(branchId || undefined);
 
 
     const {

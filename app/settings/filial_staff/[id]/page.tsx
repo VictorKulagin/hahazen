@@ -102,13 +102,20 @@ const Page: React.FC = ( ) => {
     const currencyCode = companiesData?.[0]?.currency_code;
 
     const router = useRouter();
+    const params = useParams();
+    let idFromUrl: string | null = null;
+    if (params && 'id' in params) {
+        idFromUrl = params.id as string;
+    }
+    const parsedIdFromUrl = idFromUrl ? Number(idFromUrl) : NaN;
+    const routeBranchId = Number.isFinite(parsedIdFromUrl) ? parsedIdFromUrl : null;
+    const id = routeBranchId ?? branchesData?.[0]?.id ?? null;
 
     const globalLoading =
         isLoading ||
         !companiesData ||
         !branchesData ||
-        !userData ||
-        employeesList.length === 0;
+        !userData;
 
     const globalError = error || !companiesData || !branchesData ? error : "";
 
@@ -171,9 +178,11 @@ const Page: React.FC = ( ) => {
     };
 
     useEffect(() => {
+        if (!id) return;
+
         const loadEmployees = async () => {
             try {
-                const employees = await fetchEmployees();
+                const employees = await fetchEmployees(id);
                 setEmployeesList(employees);
             } catch (err) {
                 setError("Ошибка при загрузке сотрудников.");
@@ -183,7 +192,7 @@ const Page: React.FC = ( ) => {
         };
 
         loadEmployees();
-    }, []);
+    }, [id]);
 
     useEffect(() => {
         if (!companiesData || companiesData.length === 0) return;
@@ -273,9 +282,11 @@ const Page: React.FC = ( ) => {
 
 
     useEffect(() => {
+        if (!id) return;
+
         const loadEmployees = async () => {
             try {
-                const employeesData = await fetchEmployees(); // Используем функцию из API
+                const employeesData = await fetchEmployees(id); // Используем функцию из API
                 setEmployees(employeesData); // Обновляем состояние сотрудников
             } catch (error: any) {
                 setError(error.response?.data?.message || error.message); // Обработка ошибок
@@ -285,29 +296,22 @@ const Page: React.FC = ( ) => {
         };
 
         loadEmployees(); // Запуск функции загрузки сотрудников
-    }, []);
-
-    const id = branchesData?.[0]?.id ?? null;
+    }, [id]);
     console.log(id + " ID из данных филиала ....");
-
-
-    const params = useParams();
-    //const idFromUrl = params.id as string || null;
-    let idFromUrl: string | null = null;
-    if (params && 'id' in params) {
-        idFromUrl = params.id as string;
-    }
 
     console.log("ID из данных филиала:", id);
     console.log("ID из URL:", idFromUrl);
 
     useEffect(() => {
-        if (!idFromUrl || !id) return;
-        if (String(idFromUrl) !== String(id)) {
+        if (!idFromUrl || !branchesData) return;
+        const branchExists = branchesData.some((branch: any) => String(branch.id) === String(idFromUrl));
+        if (!branchExists) {
             console.warn(`Несоответствие ID: idFromUrl (${idFromUrl}) !== id (${id})`);
             setIsNotFound(true);
+        } else {
+            setIsNotFound(false);
         }
-    }, [idFromUrl, id]);
+    }, [idFromUrl, branchesData, id]);
 
     useEffect(() => {
         // Изменяем заголовок страницы
@@ -648,7 +652,7 @@ const Page: React.FC = ( ) => {
                         onSave={() => {
                             setIsAddModalOpen(false);
                             // После создания — обновим список
-                            fetchEmployees().then(setEmployees);
+                            fetchEmployees(id ?? undefined).then(setEmployees);
                         }}
                         currencyCode={currencyCode}
                     />
@@ -672,9 +676,6 @@ const Page: React.FC = ( ) => {
                             setDetailsEmployee((prev) =>
                                 prev?.id === savedEmployee.id ? savedEmployee : prev
                             );
-
-                            setIsEditModalOpen(false);
-                            setEditingEmployee(null);
                         }}
                     />
                 )}

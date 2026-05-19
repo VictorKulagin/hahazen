@@ -41,7 +41,7 @@ export type EditEmployeeModalProps = {
     isOpen: boolean;
     employee: Employee | null;
     onClose: () => void;
-    onSave: (updated: Employee) => void;
+    onSave: (updated: Employee) => void | Promise<void>;
     currencyCode?: string | null;
 };
 
@@ -147,7 +147,7 @@ export const EditEmployeeModal: React.FC<EditEmployeeModalProps> = ({
     const { mutateAsync: createSchedule } = useCreateEmployeeSchedule();
     const { mutateAsync: updateSchedule } = useUpdateEmployeeSchedule();
 
-    const { data: allServices = [] } = useServices();
+    const { data: allServices = [] } = useServices(employee?.branch_id);
     const { data: employeeServices = [] } = useEmployeeServices(employee?.id);
     const { mutateAsync: syncServices } = useSyncEmployeeServices();
     const deleteEmployeeMutation = useDeleteEmployee();
@@ -578,6 +578,9 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             });
 
             setSuccess(true);
+            closeTimeoutRef.current = setTimeout(() => {
+                onClose();
+            }, 300);
         } catch (err) {
             console.error("Ошибка сохранения:", err);
             setSubmitError(getErrorMessage(err));

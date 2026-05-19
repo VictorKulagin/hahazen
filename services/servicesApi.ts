@@ -2,7 +2,6 @@
 import apiClient from "./api";
 import { normalizeListPayload } from "./normalize";
 
-// Интерфейс для сотрудника
 export interface Services {
     id: number;
     branch_id: number;
@@ -14,64 +13,84 @@ export interface Services {
     online_booking_description: string;
 }
 
-
-
-// Интерфейс для связи мастера и услуги
 export interface EmployeeService {
     service_id: number;
     individual_price: number;
     duration_minutes: number;
 }
 
-// Ответ с назначенными услугами мастера (расширяем базовую услугу)
-/*export interface EmployeeServiceResponse extends Services {
-    pivot: {
-        employee_id: number;
-        service_id: number;
-        individual_price: number;
-        duration_minutes: number;
-    };
-}*/
-
-// Ответ с назначенными услугами мастера
 export interface EmployeeServiceResponse {
-    id: number;               // id связи
+    id: number;
     service_id: number;
     employee_id: number;
     individual_price: number;
     duration_minutes: number;
-    service: Services;        // объект с полной информацией об услуге
+    service: Services;
 }
 
-export const fetchServices = async (): Promise<Services[]> => {
+const getApiErrorMessage = (error: any, fallback: string): string => {
+    const data = error?.response?.data;
+
+    if (Array.isArray(data)) {
+        const messages = data
+            .map((item) => item?.message || item?.error || JSON.stringify(item))
+            .filter(Boolean);
+
+        if (messages.length > 0) return messages.join("; ");
+    }
+
+    if (data && typeof data === "object") {
+        if (typeof data.message === "string") return data.message;
+        if (typeof data.error === "string") return data.error;
+        if (data.errors && typeof data.errors === "object") {
+            const messages = Object.values(data.errors)
+                .flat()
+                .map((value) => String(value));
+
+            if (messages.length > 0) return messages.join("; ");
+        }
+    }
+
+    if (typeof data === "string") {
+        const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(data);
+        return looksLikeHtml ? fallback : data;
+    }
+    if (typeof error?.message === "string") return error.message;
+
+    return fallback;
+};
+
+export const fetchServices = async (branchId?: number): Promise<Services[]> => {
     try {
-        const response = await apiClient.get<unknown>("/services");
+        const response = await apiClient.get<unknown>("/services", {
+            params: branchId ? { branch_id: branchId } : undefined,
+        });
         return normalizeListPayload<Services>(response.data).rows;
     } catch (error) {
-        console.error("Ошибка при загрузке услуг:", error);
-        throw new Error("Не удалось загрузить услуги");
+        console.error("Error fetching services:", error);
+        throw new Error(getApiErrorMessage(error, "Не удалось загрузить услуги"));
     }
 };
 
-// Создание нового сотрудника
-export const createServices = async (newServices: Omit<Services, 'id'>): Promise<Services> => {
+export const createServices = async (
+    newServices: Omit<Services, "id">
+): Promise<Services> => {
     const response = await apiClient.post<Services>("/services", newServices);
     return response.data;
 };
 
-// Удаление сотрудника
 export const deleteServices = async (id: number): Promise<void> => {
     await apiClient.delete(`/services/${id}`);
 };
 
-// Обновление сотрудника
-export const updateServices = async (id: number, updatedData: Partial<Services>): Promise<Services> => {
+export const updateServices = async (
+    id: number,
+    updatedData: Partial<Services>
+): Promise<Services> => {
     const response = await apiClient.put<Services>(`/services/${id}`, updatedData);
     return response.data;
 };
 
-
-// Синхронизация услуг мастера
 export const syncEmployeeServices = async (
     employeeId: number,
     services: EmployeeService[]
@@ -81,14 +100,26 @@ export const syncEmployeeServices = async (
             `/employees/${employeeId}/sync-services`,
             { services }
         );
+        const payload = response.data as { services?: EmployeeServiceResponse[] } | null;
+        if (payload && Array.isArray(payload.services)) {
+            return payload.services;
+        }
+
         return normalizeListPayload<EmployeeServiceResponse>(response.data).rows;
-    } catch (error) {
-        console.error("Ошибка синхронизации услуг:", error);
-        throw new Error("Не удалось обновить услуги мастера");
+    } catch (error: any) {
+        console.error(
+            "Error syncing employee services:",
+            error?.response?.data || error
+        );
+        throw new Error(
+            getApiErrorMessage(
+                error,
+                `API endpoint not found: POST /employees/${employeeId}/sync-services`
+            )
+        );
     }
 };
 
-// Получение услуг мастера
 export const fetchEmployeeServices = async (
     employeeId: number
 ): Promise<EmployeeServiceResponse[]> => {
@@ -98,7 +129,7 @@ export const fetchEmployeeServices = async (
         );
         return normalizeListPayload<EmployeeServiceResponse>(response.data).rows;
     } catch (error) {
-        console.error("Ошибка загрузки услуг мастера:", error);
-        throw new Error("Не удалось получить услуги мастера");
+        console.error("Error fetching employee services:", error);
+        throw new Error(getApiErrorMessage(error, "Не удалось получить услуги мастера"));
     }
 };

@@ -20,7 +20,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId, currencyCod
         name: '',
         services: ''
     });
-    const { data: services } = useServices();
+    const { data: services } = useServices(event?.branch_id || undefined);
     const {
         data: employeeServices,
         isLoading: isLoadingEmployeeServices

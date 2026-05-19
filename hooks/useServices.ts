@@ -1,27 +1,41 @@
 // hooks/useServices.ts
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+    createServices,
+    deleteServices,
+    EmployeeService,
+    EmployeeServiceResponse,
+    fetchEmployeeServices,
     fetchServices,
     Services,
     syncEmployeeServices,
-    fetchEmployeeServices,
-    EmployeeService, createServices, deleteServices, updateServices,
+    updateServices,
 } from "@/services/servicesApi";
 
 export interface NormalizedEmployeeService extends EmployeeService {
-    name: string; // имя услуги (для отображения)
-    base_price: number; // базовая цена услуги (можно использовать как подсказку)
+    name: string;
+    base_price: number;
 }
 
-export const useServices = () => {
+const normalizeEmployeeServices = (
+    items: EmployeeServiceResponse[]
+): NormalizedEmployeeService[] =>
+    items.map((item) => ({
+        service_id: item.service_id,
+        individual_price: item.individual_price,
+        duration_minutes: item.duration_minutes,
+        name: item.service?.name ?? "-",
+        base_price: item.service?.base_price ?? 0,
+    }));
+
+export const useServices = (branchId?: number) => {
     return useQuery<Services[], Error>({
-        queryKey: ["services"],
-        queryFn: () => fetchServices(),
+        queryKey: ["services", branchId ?? "all"],
+        queryFn: () => fetchServices(branchId),
         staleTime: 5 * 60 * 1000,
     });
 };
 
-// ✅ новый хук с нормализацией
 export const useEmployeeServices = (employeeId: number | undefined) => {
     return useQuery<NormalizedEmployeeService[], Error>({
         queryKey: ["employeeServices", employeeId],
@@ -29,13 +43,7 @@ export const useEmployeeServices = (employeeId: number | undefined) => {
             if (!employeeId) return [];
             const response = await fetchEmployeeServices(employeeId);
 
-            return response.map((item) => ({
-                service_id: item.service_id,
-                individual_price: item.individual_price,
-                duration_minutes: item.duration_minutes,
-                name: item.service?.name ?? "—",
-                base_price: item.service?.base_price ?? 0,
-            }));
+            return normalizeEmployeeServices(response);
         },
         enabled: !!employeeId,
     });
@@ -46,37 +54,38 @@ export const useSyncEmployeeServices = () => {
 
     return useMutation({
         mutationFn: async ({
-                               employeeId,
-                               services,
-                           }: {
+            employeeId,
+            services,
+        }: {
             employeeId: number;
             services: EmployeeService[];
-        }) => {
-            await syncEmployeeServices(employeeId, services);
-        },
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["employeeServices"] });
+        }) => syncEmployeeServices(employeeId, services),
+        onSuccess: (services, variables) => {
+            queryClient.setQueryData(
+                ["employeeServices", variables.employeeId],
+                normalizeEmployeeServices(services)
+            );
+            queryClient.invalidateQueries({
+                queryKey: ["employeeServices", variables.employeeId],
+            });
         },
     });
 };
 
-// Хук для создания новой услуги
-// Создание услуги
 export const useCreateService = () => {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async (data: Omit<Services, "id">) => createServices(data), // ✅
+        mutationFn: async (data: Omit<Services, "id">) => createServices(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["services"] });
         },
         onError: (error) => {
-            console.error("❌ Ошибка при создании услуги:", error);
+            console.error("Error creating service:", error);
         },
     });
 };
 
-// 🔹 Удаление услуги
 export const useDeleteService = () => {
     const queryClient = useQueryClient();
 
@@ -88,7 +97,6 @@ export const useDeleteService = () => {
     });
 };
 
-// 🔹 Обновление услуги
 export const useUpdateService = () => {
     const queryClient = useQueryClient();
 

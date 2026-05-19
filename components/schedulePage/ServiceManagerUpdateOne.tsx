@@ -6,6 +6,7 @@ import { normalizeCurrencyCode } from "@/lib/currency";
 type Props = {
     service: {
         id: number;
+        branch_id?: number;
         name: string;
         base_price: number;
         duration_minutes: number;
@@ -15,7 +16,7 @@ type Props = {
 };
 
 export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose, currencyCode }) => {
-    const { refetch } = useServices();
+    const { refetch } = useServices(service?.branch_id);
     const { mutateAsync: updateService, isPending } = useUpdateService();
 
     // 🧩 всегда вызываем хуки, даже если service = null
