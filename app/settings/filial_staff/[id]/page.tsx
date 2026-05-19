@@ -445,9 +445,16 @@ const Page: React.FC = ( ) => {
                             className="mr-2"
                         />
                         {!collapsed && (
-                            <span className="text-sm font-medium truncate">
-        {companiesData?.[0]?.name || "Компания не найдена"}
-      </span>
+                            <div className="min-w-0 text-left">
+                                <p className="truncate text-sm font-semibold">
+                                    {branchesData?.find((branch: any) => branch.id === id)?.name ||
+                                        branchesData?.[0]?.name ||
+                                        "Филиал не найден"}
+                                </p>
+                                <p className="truncate text-xs text-[rgb(var(--muted-foreground))]">
+                                    {companiesData?.[0]?.name || "Компания не найдена"}
+                                </p>
+                            </div>
                         )}
                     </button>
 
