@@ -824,6 +824,7 @@ const Page: React.FC = () => {
                         <SidebarMenu
                             id={id}
                             companyName={companiesData?.[0]?.name}
+                            branchName={branchesData?.find((branch: any) => branch.id === id)?.name || branchesData?.[0]?.name}
                             userData={userData}
                             variant="desktop"
                             onLogout={handleLogout}
@@ -860,9 +861,14 @@ const Page: React.FC = () => {
                         <SidebarMenu
                             id={id}
                             companyName={companiesData?.[0]?.name}
+                            branchName={branchesData?.find((branch: any) => branch.id === id)?.name || branchesData?.[0]?.name}
                             userData={userData}
                             variant="mobile"
                             onLogout={handleLogout}
+                            onBranchClick={() => {
+                                setIsMenuOpen(false);
+                                setIsModalFilOpen(true);
+                            }}
                             onNavigate={() => setIsMenuOpen(false)} // закрываем при переходе
                         />
                     </div>

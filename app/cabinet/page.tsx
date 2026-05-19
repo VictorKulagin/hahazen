@@ -336,9 +336,16 @@ const Page: React.FC = () => {
                             className="mr-2"
                         />
                         {!collapsed && (
-                            <span className="text-sm font-medium truncate">
-        {companiesData?.[0]?.name || "Компания не найдена"}
-      </span>
+                            <div className="min-w-0 text-left">
+                                <p className="truncate text-sm font-semibold">
+                                    {branchesData?.find((branch: BranchItem) => branch.id === id)?.name ||
+                                        branchesData?.[0]?.name ||
+                                        "Филиал не найден"}
+                                </p>
+                                <p className="truncate text-xs text-[rgb(var(--muted-foreground))]">
+                                    {companiesData?.[0]?.name || "Компания не найдена"}
+                                </p>
+                            </div>
                         )}
                     </button>
 
@@ -358,6 +365,7 @@ const Page: React.FC = () => {
                     <SidebarMenu
                         id={id}
                         companyName={companiesData?.[0]?.name}
+                        branchName={branchesData?.find((branch: BranchItem) => branch.id === id)?.name || branchesData?.[0]?.name}
                         userData={userData}
                         variant="desktop"
                         onLogout={handleLogout}
@@ -556,9 +564,14 @@ const Page: React.FC = () => {
                             <SidebarMenu
                                 id={id}
                                 companyName={companiesData?.[0]?.name}
+                                branchName={branchesData?.find((branch: BranchItem) => branch.id === id)?.name || branchesData?.[0]?.name}
                                 userData={userData}
                                 variant="mobile"
                                 onLogout={handleLogout}
+                                onBranchClick={() => {
+                                    setIsMenuOpen(false);
+                                    setIsModalFilOpen(true);
+                                }}
                                 onNavigate={() => setIsMenuOpen(false)} // закрываем при переходе
                             />
                         </div>
