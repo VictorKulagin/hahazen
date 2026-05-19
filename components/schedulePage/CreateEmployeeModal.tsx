@@ -5,7 +5,7 @@ import { useCreateEmployee } from "@/hooks/useEmployees";
 import { useCreateEmployeeSchedule } from "@/hooks/useEmployeeSchedules";
 import {useCreateService, useServices, useSyncEmployeeServices} from "@/hooks/useServices";
 import { EmployeeService as EmployeeServicePayload } from "@/services/servicesApi";
-import { EmployeeCreatePayload, EmployeeRole } from "@/services/employeeApi";
+import { Employee, EmployeeCreatePayload, EmployeeRole } from "@/services/employeeApi";
 import {useQueryClient} from "@tanstack/react-query";
 import {
     BadgeCheck,
@@ -33,7 +33,7 @@ type Props = {
     isOpen: boolean;
     branchId: number | null;
     onClose: () => void;
-    onSave: () => void; // вызываем после успешного создания
+    onSave: (createdEmployee?: Employee) => void | Promise<void>; // вызываем после успешного создания
     currencyCode?: string | null;
 };
 
@@ -152,6 +152,34 @@ export const CreateEmployeeModal: React.FC<Props> = ({ isOpen, branchId, onClose
     const showError = touched && phone.length > 0 && !phoneIsValid;
 
     const queryClient = useQueryClient();
+
+    const upsertEmployeeInScheduleCache = (employee: Employee) => {
+        if (!branchId || !employee.id) return;
+
+        const employeeForCache: Employee = {
+            ...employee,
+            branch_id: employee.branch_id ?? branchId,
+        };
+
+        queryClient.setQueriesData<Employee[]>(
+            { queryKey: ["employees", branchId] },
+            (oldEmployees) => {
+                if (!oldEmployees) return [employeeForCache];
+
+                const exists = oldEmployees.some(
+                    (item) => item.id === employeeForCache.id
+                );
+
+                if (exists) {
+                    return oldEmployees.map((item) =>
+                        item.id === employeeForCache.id ? employeeForCache : item
+                    );
+                }
+
+                return [...oldEmployees, employeeForCache];
+            }
+        );
+    };
 
     const inputClass = "w-full px-4 py-3 rounded-xl \
 border border-gray-200 dark:border-white/10 \
@@ -381,8 +409,16 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
             console.log("Сотрудник успешно создан:", newEmployee);
 
+            await queryClient.invalidateQueries({
+                queryKey: ["employeeSchedules", branchId],
+            });
+            await queryClient.invalidateQueries({
+                queryKey: ["employees", branchId],
+            });
+            upsertEmployeeInScheduleCache(newEmployee);
+
             setSuccess(true);
-            onSave();
+            await onSave(newEmployee);
 
             return;
         } catch (err) {

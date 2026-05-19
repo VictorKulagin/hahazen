@@ -34,6 +34,7 @@ export const useEmployees = (branchId?: number) => {
         queryKey: employeesQueryKey,
         queryFn: () => fetchEmployees(branchId!),
         staleTime: 1000 * 60 * 5,
+        refetchOnMount: "always",
         enabled: !!branchId,
         retry: 2,
         retryDelay: 1000,
@@ -185,7 +186,7 @@ export const useCreateEmployee = () => {
             };
 
             queryClient.setQueriesData<Employee[]>(
-                { queryKey: ["employees"] },
+                { queryKey: ["employees", variables.branch_id] },
                 (oldEmployees) => {
                     if (!oldEmployees) return [employeeForCache];
 
@@ -204,7 +205,9 @@ export const useCreateEmployee = () => {
                     return [...oldEmployees, employeeForCache];
                 }
             );
-            queryClient.invalidateQueries({ queryKey: ["employees"] });
+            queryClient.invalidateQueries({
+                queryKey: ["employees", variables.branch_id],
+            });
         },
     });
 };
