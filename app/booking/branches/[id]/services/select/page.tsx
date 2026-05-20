@@ -6,6 +6,7 @@ import { useServices, useAvailability, useAvailableEmployees } from "@/hooks/use
 import { Service, Employee } from "@/services/branchApi";
 import { useCreateAppointment } from "@/hooks/useBranches";
 import { formatMoney } from "@/lib/currency";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 
 type ParamsType = {
@@ -269,7 +270,7 @@ const ServiceSelectionPage = () => {
                             <input
                                 type="tel"
                                 value={clientData.phone}
-                                onChange={(e) => setClientData({...clientData, phone: e.target.value})}
+                                onChange={(e) => setClientData({...clientData, phone: normalizePhoneInput(e.target.value)})}
                                 className="w-full p-2 border border-gray-200 dark:border-white/10 rounded-md bg-white dark:bg-white/5 text-black dark:text-white focus:ring-2 focus:ring-green-500"
                                 required
                             />

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 // Интерфейс для данных формы
 interface FormState {
@@ -25,7 +26,7 @@ export function companiesAddForm() {
         const { id, value } = e.target;
         setFormState((prevState) => ({
             ...prevState,
-            [id]: value,
+            [id]: id === "phone" ? normalizePhoneInput(value) : value,
         }));
     };
 

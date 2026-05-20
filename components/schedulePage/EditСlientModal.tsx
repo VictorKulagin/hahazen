@@ -73,7 +73,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         setName(client.name ?? "");
         setLastName(client.last_name ?? "");
         setPatronymic(client.patronymic ?? "");
-        setPhone(client.phone ?? "");
+        setPhone(normalizePhoneInput(client.phone ?? ""));
         setEmail(client.email ?? "");
         setGender((client.gender as any) ?? "");
         setVip((client.vip ?? 0) as 0 | 1);

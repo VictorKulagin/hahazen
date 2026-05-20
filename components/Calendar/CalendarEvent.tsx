@@ -1,6 +1,7 @@
 // components/Calendar/CalendarEvent.tsx
 import { AppointmentRequest, AppointmentService } from "@/types/appointments";
 import { formatMoney } from "@/lib/currency";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 // 1. Добавим тип для редактируемого события (в types/Appointment.ts)
 export interface Appointment extends AppointmentRequest {
@@ -108,7 +109,7 @@ export const CalendarEvent = ({ event, onDelete, onEdit, currencyCode }: Calenda
       </span>
                             <span className="text-sm text-gray-700 ml-2 truncate">
         📞 {           //@ts-ignore
-                                event.client.phone}
+                                normalizePhoneInput(event.client.phone ?? "")}
       </span>
                         </div>
 
@@ -134,7 +135,7 @@ export const CalendarEvent = ({ event, onDelete, onEdit, currencyCode }: Calenda
 
                                 📞 {
                                 //@ts-ignore
-                                event.client.phone}
+                                normalizePhoneInput(event.client.phone ?? "")}
                             </div>
                             {/*{event.comment && (
                                 <div className="text-sm text-gray-500 mt-1 truncate">

@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Pencil } from "lucide-react";
 import { Client } from "@/services/clientApi";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 type InfoItem = {
     icon: React.ComponentType<{ className?: string }>;
@@ -69,7 +70,7 @@ export default function ClientOverviewTab({
     ];
 
     const contactInfo: InfoItem[] = [
-        { icon: PhoneIcon, label: "Телефон", value: client.phone },
+        { icon: PhoneIcon, label: "Телефон", value: normalizePhoneInput(client.phone ?? "") },
         { icon: UserIcon, label: "Email", value: client.email },
     ];
 

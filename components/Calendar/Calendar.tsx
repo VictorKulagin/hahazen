@@ -20,6 +20,7 @@ import Spinner from "@/components/Spinner";
 import { useIsFetching } from '@tanstack/react-query';
 import { useEmployeeId } from "@/hooks/useEmployeeId";
 import { formatMoney } from "@/lib/currency";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 // Функции остаются те же
 const convertTimeToMinutes = (time?: string | null): number => {
@@ -1413,10 +1414,7 @@ const Modal = ({ data, branchId, employeeId, editingEvent, onSave, onClose }: Mo
                         onChange={(e) => {
                             const inputValue = e.target.value;
                             // Форматирование
-                            let filteredValue = inputValue
-                                .replace(/[^\d+]/g, '')
-                                .replace(/^\+?/, '+')
-                                .slice(0, 16);
+                            const filteredValue = normalizePhoneInput(inputValue);
                             //@ts-ignore
                             setForm({ ...form, client_phone: filteredValue });
                             setValidationErrors(prev => ({

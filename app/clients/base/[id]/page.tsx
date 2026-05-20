@@ -13,6 +13,7 @@ import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 import { can } from "@/lib/permissions";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 import {Pencil, Trash2} from "lucide-react";
 
@@ -244,7 +245,7 @@ const Page: React.FC = () => {
 
     const contactInfo = selectedClient
         ? [
-            { icon: PhoneIcon, label: "Телефон", value: selectedClient.phone },
+            { icon: PhoneIcon, label: "Телефон", value: normalizePhoneInput(selectedClient.phone ?? "") },
             { icon: UserIcon, label: "Email", value: selectedClient.email },
         ]
         : [];
@@ -970,7 +971,7 @@ const Page: React.FC = () => {
                                                                                     {/* мобила */}
                                                                                     <div className="mt-1 text-sm text-gray-500 dark:text-gray-400 truncate xl:hidden">
                                                                                         {can.clients.viewContacts()
-                                                                                            ? client.phone || "— не указан —"
+                                                                                            ? normalizePhoneInput(client.phone ?? "") || "— не указан —"
                                                                                             : "Контакты скрыты"}
                                                                                     </div>
                                                                                 </div>
@@ -978,7 +979,7 @@ const Page: React.FC = () => {
                                                                                 {/* Телефон (только desktop) */}
                                                                                 <div className="hidden text-sm text-gray-500 dark:text-gray-400 xl:block">
                                                                                     {can.clients.viewContacts()
-                                                                                        ? client.phone || "— не указан —"
+                                                                                        ? normalizePhoneInput(client.phone ?? "") || "— не указан —"
                                                                                         : "Контакты скрыты"}
                                                                                 </div>
 

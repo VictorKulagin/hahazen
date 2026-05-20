@@ -9,6 +9,7 @@ import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
 import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
 import { formatMoney } from "@/lib/currency";
 import { getApiErrorMessage } from "@/services/apiError";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 interface UpdateEventModalProps {
     isOpen: boolean;
@@ -87,7 +88,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
 
         setName(eventData.client?.name ?? "");
         setLastName(eventData.client?.last_name ?? "");
-        setPhone(eventData.client?.phone ?? "");
+        setPhone(normalizePhoneInput(eventData.client?.phone ?? ""));
 
         setSelectedServices(
             (eventData.services ?? []).map((s) => ({
@@ -324,7 +325,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                                            className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Имя"/>
                                     <input value={lastName} onChange={(e) => setLastName(e.target.value)}
                                            className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Фамилия"/>
-                                    <input value={phone} onChange={(e) => setPhone(e.target.value)}
+                                    <input value={phone} onChange={(e) => setPhone(normalizePhoneInput(e.target.value))}
                                            className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500" placeholder="Телефон"/>
                                     <button type="button" onClick={() => setIsEditingClient(false)}
                                             className="text-gray-500 hover:underline text-sm">

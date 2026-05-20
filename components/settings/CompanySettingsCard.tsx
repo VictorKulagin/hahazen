@@ -8,6 +8,7 @@ import {
 } from "@/services/companiesList";
 import { can } from "@/lib/permissions";
 import { getApiErrorMessage } from "@/services/apiError";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 type CompanySettingsCardProps = {
     company: Company | null | undefined;
@@ -68,7 +69,7 @@ export default function CompanySettingsCard({
 
         setName(company.name ?? "");
         setAddress(company.address ?? "");
-        setPhone(company.phone ?? "");
+        setPhone(normalizePhoneInput(company.phone ?? ""));
         setEmail(company.email ?? "");
         setCountryCode((company.country_code ?? "KG").toUpperCase());
         setCurrencyCode((company.currency_code ?? "KGS").toUpperCase());
@@ -185,7 +186,7 @@ export default function CompanySettingsCard({
                         </span>
                         <input
                             value={phone}
-                            onChange={(event) => setPhone(event.target.value)}
+                            onChange={(event) => setPhone(normalizePhoneInput(event.target.value))}
                             disabled={!canUpdateProfile || isSaving}
                             className={inputClass}
                         />

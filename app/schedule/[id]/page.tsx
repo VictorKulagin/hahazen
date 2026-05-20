@@ -53,6 +53,7 @@ import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import { authStorage } from "@/services/authStorage";
 import { getApiErrorMessage } from "@/services/apiError";
+import { normalizePhoneInput } from "@/components/utils/phone";
 import { can } from "@/lib/permissions";
 
 type BranchItem = {
@@ -318,7 +319,10 @@ const Page: React.FC = () => {
 
     const handleBranchFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        setBranchForm((prev) => ({ ...prev, [name]: value }));
+        setBranchForm((prev) => ({
+            ...prev,
+            [name]: name === "phone" ? normalizePhoneInput(value) : value,
+        }));
     };
 
     const handleCreateBranch = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -952,7 +956,7 @@ const Page: React.FC = () => {
                                                             )}
                                                             {branch.phone && (
                                                                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                                                    {branch.phone}
+                                                                    {normalizePhoneInput(branch.phone)}
                                                                 </p>
                                                             )}
                                                         </div>

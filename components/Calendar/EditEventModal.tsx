@@ -3,6 +3,7 @@ import { AppointmentRequest } from "@/types/appointments";
 import { useServices, useEmployeeServices } from '@/hooks/useServices';
 import { validatePhone, validateName } from '@/components/Validations';
 import { formatMoney } from "@/lib/currency";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 interface EditEventModalProps {
     event: AppointmentRequest;
@@ -57,7 +58,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId, currencyCod
                 //@ts-ignore
                 client_name: client.name || '',
                 client_last_name: client.last_name || '',
-                client_phone: client.phone || '',
+                client_phone: normalizePhoneInput(client.phone || ''),
                 services: convertedServices,
                 // Форматируем время
                 date: start.toISOString().split('T')[0],
@@ -67,7 +68,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId, currencyCod
 
             console.log('Processed form data:', {
                 client_name: client.name,
-                client_phone: client.phone,
+                client_phone: normalizePhoneInput(client.phone || ''),
                 time_start: `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`,
                 time_end: `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
             });
@@ -144,10 +145,7 @@ export const EditEventModal = ({ event, onSave, onClose, employeeId, currencyCod
                         onChange={(e) => {
                             const inputValue = e.target.value;
                             // Форматирование
-                            let filteredValue = inputValue
-                                .replace(/[^\d+]/g, '')
-                                .replace(/^\+?/, '+')
-                                .slice(0, 16);
+                            const filteredValue = normalizePhoneInput(inputValue);
 
                             setForm({
                                 //@ts-ignore

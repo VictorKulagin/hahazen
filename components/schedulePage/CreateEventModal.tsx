@@ -432,7 +432,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             setSelectedClientBonusBalance(client.bonus_balance ?? 0);
                                             setName(client.name ?? "");
                                             setLastName(client.last_name ?? "");
-                                            setPhone(client.phone ?? "");
+                                            setPhone(normalizePhoneInput(client.phone ?? ""));
                                             setShowClientFields(true);
                                         }}
                                     />

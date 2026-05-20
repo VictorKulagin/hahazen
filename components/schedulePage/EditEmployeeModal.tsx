@@ -201,7 +201,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         if (employee && isOpen) {
             setName(employee.name);
             setLastName(employee.last_name ?? "");
-            setPhone(employee.phone ?? "");
+            setPhone(normalizePhoneInput(employee.phone ?? ""));
             setSpecialty(employee.specialty ?? "");
             setLvl(employee.lvl == null ? "" : String(employee.lvl));
             setEmail(employee.email ?? "");

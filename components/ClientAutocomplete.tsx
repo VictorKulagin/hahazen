@@ -104,7 +104,7 @@ const ClientAutocomplete: React.FC<ClientAutocompleteProps> = ({ onSelect }) => 
                       {client.name} {client.last_name}
                     </span>
                                         <span className="text-gray-500 text-sm ml-2">
-                      {client.phone}
+                      {normalizePhoneInput(client.phone ?? "")}
                     </span>
                                     </div>
                                 ))

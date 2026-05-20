@@ -27,6 +27,7 @@ import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import CompanySettingsCard from "@/components/settings/CompanySettingsCard";
 import { getApiErrorMessage } from "@/services/apiError";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 type BranchItem = {
     id: number;
@@ -236,7 +237,10 @@ const Page: React.FC = () => {
 
     const handleBranchFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        setBranchForm((prev) => ({ ...prev, [name]: value }));
+        setBranchForm((prev) => ({
+            ...prev,
+            [name]: name === "phone" ? normalizePhoneInput(value) : value,
+        }));
     };
 
     const handleCreateBranch = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -439,7 +443,7 @@ const Page: React.FC = () => {
                                                         )}
                                                         {branch.phone && (
                                                             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                                                {branch.phone}
+                                                                {normalizePhoneInput(branch.phone)}
                                                             </p>
                                                         )}
                                                     </div>
@@ -623,7 +627,7 @@ const Page: React.FC = () => {
                                 </div>
                                 <div className="flex items-center">
                                     <PhoneIcon className="h-6 w-6 text-black dark:text-white mr-2" />
-                                    <p>Телефон: {userData?.phone}</p>
+                                    <p>Телефон: {normalizePhoneInput(userData?.phone ?? "") || "Телефон не найден"}</p>
                                 </div>
                                 <div className="flex items-center">
                                     <UserIcon className="h-6 w-6 text-black dark:text-white mr-2" />
@@ -633,7 +637,7 @@ const Page: React.FC = () => {
 
                                 <p>Компания: {companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Компания не найдена"}</p>
                                 <p>Адрес: {companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Адрес не найден"}</p>
-                                <p>Телефон: {companiesData && companiesData.length > 0 ? companiesData[0]?.phone : "Телефон не найден"}</p>
+                                <p>Телефон: {companiesData && companiesData.length > 0 ? normalizePhoneInput(companiesData[0]?.phone ?? "") || "Телефон не найден" : "Телефон не найден"}</p>
                                 <p>Email: {companiesData && companiesData.length > 0 ? companiesData[0]?.email : "Email не найден"}</p>
                                 <p>ID: {companiesData && companiesData.length > 0 ? companiesData[0]?.id : "id не найден"}</p>
                             </div>

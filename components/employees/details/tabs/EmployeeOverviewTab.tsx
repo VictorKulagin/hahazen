@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Employee } from "@/services/employeeApi";
 import { LEVEL_OPTIONS } from "@/lib/employee-levels";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 type InfoItem = {
     icon: React.ComponentType<{ className?: string }>;
@@ -93,7 +94,7 @@ export default function EmployeeOverviewTab({
     ];
 
     const contactInfo: InfoItem[] = [
-        { icon: Phone, label: "Телефон", value: employee.phone },
+        { icon: Phone, label: "Телефон", value: normalizePhoneInput(employee.phone ?? "") },
         { icon: Mail, label: "Email", value: employee.email },
     ];
 

@@ -7,6 +7,7 @@ import { branchesList } from "@/services/branchesList";
 import { setApiContext } from "@/services/apiContext";
 import { authStorage } from "@/services/authStorage";
 import { getApiErrorMessage } from "@/services/apiError";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 export type BranchSwitcherItem = {
     id: number;
@@ -103,7 +104,10 @@ export default function BranchSwitcherModal({
 
     const handleBranchFormChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = event.target;
-        setBranchForm((prev) => ({ ...prev, [name]: value }));
+        setBranchForm((prev) => ({
+            ...prev,
+            [name]: name === "phone" ? normalizePhoneInput(value) : value,
+        }));
     };
 
     const handleCreateBranch = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -197,7 +201,7 @@ export default function BranchSwitcherModal({
                                             )}
                                             {branch.phone && (
                                                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                                    {branch.phone}
+                                                    {normalizePhoneInput(branch.phone)}
                                                 </p>
                                             )}
                                         </div>

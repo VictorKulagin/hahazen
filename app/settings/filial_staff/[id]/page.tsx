@@ -32,6 +32,7 @@ import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import { LEVEL_COLOR_STYLES, LEVEL_OPTIONS } from "@/lib/employee-levels";
 import EmployeeDetailsPanel from "@/components/employees/details/EmployeeDetailsPanel";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
 import { can } from "@/lib/permissions";
 
@@ -815,7 +816,7 @@ const EmployeesTable = ({
                                     </div>
 
                                     <div className="hidden text-sm text-gray-500 dark:text-gray-400 xl:block">
-                                        {employee.phone || "—"}
+                                        {normalizePhoneInput(employee.phone ?? "") || "—"}
                                     </div>
 
                                     {/* Кнопки (пока без финальной стилизации) */}

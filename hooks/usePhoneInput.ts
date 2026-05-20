@@ -1,29 +1,20 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState, type ChangeEvent } from "react";
+import { normalizePhoneInput } from "@/components/utils/phone";
 
-const usePhoneInput = (initialValue: string = "+") => {
-    const [phone, setPhone] = useState(initialValue);
+const usePhoneInput = (initialValue: string = "") => {
+    const [phone, setPhone] = useState(normalizePhoneInput(initialValue));
 
     const handlePhoneChange = useCallback(
-        (e: React.ChangeEvent<HTMLInputElement>) => {
-            const inputValue = e.target.value;
-            // Удаляем все символы, кроме цифр и плюса
-            let cleanedValue = inputValue.replace(/[^\d+]/g, '');
-
-            // Если плюса нет в начале - добавляем
-            if (!cleanedValue.startsWith('+')) {
-                cleanedValue = '+' + cleanedValue.replace(/\D/g, '');
-            }
-
-            // Ограничиваем максимальную длину (1 '+' + 15 цифр = 16 символов)
-            const MAX_LENGTH = 16;
-            const truncatedValue = cleanedValue.slice(0, MAX_LENGTH);
-
-            setPhone(truncatedValue);
+        (event: ChangeEvent<HTMLInputElement>) => {
+            setPhone(normalizePhoneInput(event.target.value));
         },
         []
     );
 
-    const resetPhone = useCallback(() => setPhone(initialValue), [initialValue]);
+    const resetPhone = useCallback(
+        () => setPhone(normalizePhoneInput(initialValue)),
+        [initialValue]
+    );
 
     return {
         phone,
