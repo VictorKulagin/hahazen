@@ -2,17 +2,30 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Footer from "@/components/Footer";
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
+import { authStorage } from "@/services/authStorage";
 
 export default function Home() {
     const [showContent, setShowContent] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isAuthChecked, setIsAuthChecked] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
+        const token = authStorage.getToken();
+        if (token) {
+            router.replace(authStorage.getContext() ? "/cabinet" : "/context/select");
+            return;
+        }
+
+        setIsAuthChecked(true);
         const timeout = setTimeout(() => setShowContent(true), 120);
         return () => clearTimeout(timeout);
-    }, []);
+    }, [router]);
+
+    if (!isAuthChecked) return null;
 
     const navItems = [
         { label: "О нас", href: "#about" },

@@ -1,18 +1,31 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { signinApi } from "@/services/signinApi";
 import { authStorage } from "@/services/authStorage";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { ensureApiContext } from "@/services/apiContext";
 
 export default function Page() {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [isAuthChecked, setIsAuthChecked] = useState(false);
 
     const router = useRouter();
+
+    useEffect(() => {
+        const token = authStorage.getToken();
+        if (token) {
+            router.replace(authStorage.getContext() ? "/cabinet" : "/context/select");
+            return;
+        }
+
+        setIsAuthChecked(true);
+    }, [router]);
+
+    if (!isAuthChecked) return null;
 
     const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
