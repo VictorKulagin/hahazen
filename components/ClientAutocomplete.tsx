@@ -10,6 +10,7 @@ import {
     getPhoneDigitsCount,
     MIN_PHONE_DIGITS,
 } from "@/components/utils/phone";
+import { getApiErrorMessage } from "@/services/apiError";
 
 interface ClientAutocompleteProps {
     onSelect: (client: Client) => void;
@@ -69,9 +70,9 @@ const ClientAutocomplete: React.FC<ClientAutocompleteProps> = ({ onSelect }) => 
             // ВАЖНО: передаем выбранного клиента наверх
             onSelect(created);
             setShowDropdown(false);
-        } catch (err: any) {
+        } catch (err) {
             console.error("Ошибка создания клиента:", err);
-            alert(err?.message || "Не удалось создать клиента");
+            alert(getApiErrorMessage(err, "Не удалось создать клиента"));
         }
     };
 

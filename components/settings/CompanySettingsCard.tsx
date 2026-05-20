@@ -7,6 +7,7 @@ import {
     updateCompany,
 } from "@/services/companiesList";
 import { can } from "@/lib/permissions";
+import { getApiErrorMessage } from "@/services/apiError";
 
 type CompanySettingsCardProps = {
     company: Company | null | undefined;
@@ -115,12 +116,8 @@ export default function CompanySettingsCard({
             const updatedCompany = await updateCompany(company.id, payload);
             onSaved?.(updatedCompany);
             setMessage("Настройки сохранены");
-        } catch (err: any) {
-            setError(
-                err?.response?.data?.message ||
-                    err?.message ||
-                    "Не удалось сохранить настройки компании"
-            );
+        } catch (err) {
+            setError(getApiErrorMessage(err, "Не удалось сохранить настройки компании"));
         } finally {
             setIsSaving(false);
         }

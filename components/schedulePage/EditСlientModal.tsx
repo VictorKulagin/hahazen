@@ -11,6 +11,7 @@ import {
     getPhoneDigitsCount,
     MIN_PHONE_DIGITS,
 } from "@/components/utils/phone";
+import { getApiErrorMessage } from "@/services/apiError";
 
 type Props = {
     isOpen: boolean;
@@ -85,11 +86,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
     if (!isOpen) return null;
 
-    const getErrorMessage = (err: any) =>
-        err?.response?.data?.message ||
-        err?.response?.data?.error ||
-        err?.message ||
-        "Не удалось обновить клиента.";
+    const getErrorMessage = (err: unknown) =>
+        getApiErrorMessage(err, "Не удалось обновить клиента.");
 
     const handleSave = async () => {
         if (!client?.id) {
@@ -160,13 +158,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         try {
             await deleteClient(client.id);
             onClose();
-        } catch (err: any) {
-            setSubmitError(
-                err?.response?.data?.message ||
-                err?.response?.data?.error ||
-                err?.message ||
-                "Не удалось удалить клиента."
-            );
+        } catch (err) {
+            setSubmitError(getApiErrorMessage(err, "Не удалось удалить клиента."));
         } finally {
             setIsDeleting(false);
         }

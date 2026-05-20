@@ -8,6 +8,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
 import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
 import { formatMoney } from "@/lib/currency";
+import { getApiErrorMessage } from "@/services/apiError";
 
 interface UpdateEventModalProps {
     isOpen: boolean;
@@ -237,7 +238,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
             onClose();
         } catch (err) {
             console.error("Ошибка удаления:", err);
-            alert("Не удалось удалить запись");
+            alert(getApiErrorMessage(err, "Не удалось удалить запись"));
         }
     };
 

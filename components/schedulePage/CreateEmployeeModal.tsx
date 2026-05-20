@@ -27,6 +27,7 @@ import {
 import SpecialtyAutocomplete from "@/components/schedulePage/SpecialtyAutocomplete";
 import QualificationSelect from "@/components/schedulePage/QualificationSelect";
 import { formatMoney, normalizeCurrencyCode } from "@/lib/currency";
+import { getApiErrorMessage } from "@/services/apiError";
 
 
 type Props = {
@@ -343,18 +344,9 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
 
 
-    const getErrorMessage = (err: any) => {
-        // axios style
-        const msg =
-            err?.response?.data?.message ||
-            err?.response?.data?.error ||
-            err?.message;
-
-        if (!msg) return "Не удалось создать сотрудника. Попробуйте ещё раз.";
-
-        // Немного чистим дубли вида "Не удалось создать...: Не удалось создать..."
-        return String(msg).replace(/^(Не удалось создать учётную запись:\s*)+/i, "Не удалось создать учётную запись: ");
-    };
+    const getErrorMessage = (err: unknown) =>
+        getApiErrorMessage(err, "Не удалось создать сотрудника. Попробуйте ещё раз.")
+            .replace(/^(Не удалось создать учётную запись:\s*)+/i, "Не удалось создать учётную запись: ");
 
     const handleSave = async () => {
         if (!branchId) {

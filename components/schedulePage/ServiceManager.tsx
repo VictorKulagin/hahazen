@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useCreateService, useServices } from "@/hooks/useServices";
 import { normalizeCurrencyCode } from "@/lib/currency";
+import { getApiErrorMessage } from "@/services/apiError";
 
 type Props = {
     branchId: number;
@@ -28,15 +29,8 @@ text-black dark:text-white \
 transition \
 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
-    const getErrorMessage = (err: any) => {
-        const msg =
-            err?.response?.data?.message ||
-            err?.response?.data?.error ||
-            err?.message;
-
-        if (!msg) return "Не удалось добавить услугу. Попробуйте ещё раз.";
-        return String(msg);
-    };
+    const getErrorMessage = (err: unknown) =>
+        getApiErrorMessage(err, "Не удалось добавить услугу. Попробуйте ещё раз.");
     const handleSave = async () => {
         //if (!name.trim() || !price || !duration) return;
 

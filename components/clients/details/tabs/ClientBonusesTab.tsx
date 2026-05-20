@@ -7,6 +7,7 @@ import {
     useClientBonusTransactions,
     useCreateClientBonusTransaction,
 } from "@/hooks/useClientBonusTransactions";
+import { getApiErrorMessage } from "@/services/apiError";
 
 type ClientBonusesTabProps = {
     client: Client;
@@ -117,10 +118,7 @@ export default function ClientBonusesTab({
                     setComment("");
                 },
                 onError: (mutationError) => {
-                    const message =
-                        (mutationError as { response?: { data?: { message?: string } } })
-                            ?.response?.data?.message;
-                    setFormError(message ?? "Не удалось сохранить операцию.");
+                    setFormError(getApiErrorMessage(mutationError, "Не удалось сохранить операцию."));
                 },
             },
         );

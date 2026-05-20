@@ -1,6 +1,7 @@
 // services/servicesApi.ts
 import apiClient from "./api";
 import { normalizeListPayload } from "./normalize";
+import { getApiErrorMessage } from "./apiError";
 
 export interface Services {
     id: number;
@@ -27,38 +28,6 @@ export interface EmployeeServiceResponse {
     duration_minutes: number;
     service: Services;
 }
-
-const getApiErrorMessage = (error: any, fallback: string): string => {
-    const data = error?.response?.data;
-
-    if (Array.isArray(data)) {
-        const messages = data
-            .map((item) => item?.message || item?.error || JSON.stringify(item))
-            .filter(Boolean);
-
-        if (messages.length > 0) return messages.join("; ");
-    }
-
-    if (data && typeof data === "object") {
-        if (typeof data.message === "string") return data.message;
-        if (typeof data.error === "string") return data.error;
-        if (data.errors && typeof data.errors === "object") {
-            const messages = Object.values(data.errors)
-                .flat()
-                .map((value) => String(value));
-
-            if (messages.length > 0) return messages.join("; ");
-        }
-    }
-
-    if (typeof data === "string") {
-        const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(data);
-        return looksLikeHtml ? fallback : data;
-    }
-    if (typeof error?.message === "string") return error.message;
-
-    return fallback;
-};
 
 export const fetchServices = async (branchId?: number): Promise<Services[]> => {
     try {

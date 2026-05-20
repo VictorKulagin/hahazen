@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useUpdateService, useServices } from "@/hooks/useServices";
 import { normalizeCurrencyCode } from "@/lib/currency";
+import { getApiErrorMessage } from "@/services/apiError";
 
 type Props = {
     service: {
@@ -55,15 +56,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     }, [service]);
 
 
-    const getErrorMessage = (err: any) => {
-        const msg =
-            err?.response?.data?.message ||
-            err?.response?.data?.error ||
-            err?.message;
-
-        if (!msg) return "Не удалось сохранить услугу. Попробуйте ещё раз.";
-        return String(msg);
-    };
+    const getErrorMessage = (err: unknown) =>
+        getApiErrorMessage(err, "Не удалось сохранить услугу. Попробуйте ещё раз.");
 
     const handleSave = async () => {
         if (!service) return;

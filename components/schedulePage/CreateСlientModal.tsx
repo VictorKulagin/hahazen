@@ -10,6 +10,7 @@ import {
     getPhoneDigitsCount,
     MIN_PHONE_DIGITS,
 } from "@/components/utils/phone";
+import { getApiErrorMessage } from "@/services/apiError";
 
 type Props = {
     isOpen: boolean;
@@ -62,8 +63,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
     if (!isOpen) return null;
 
-    const getErrorMessage = (err: any) =>
-        err?.response?.data?.message || err?.response?.data?.error || err?.message || "Не удалось создать клиента.";
+    const getErrorMessage = (err: unknown) =>
+        getApiErrorMessage(err, "Не удалось создать клиента.");
 
     const handleSave = async () => {
         if (!companyId || !userId) {

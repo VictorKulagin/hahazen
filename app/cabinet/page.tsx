@@ -26,6 +26,7 @@ import { useTheme } from "@/lib/theme/theme.context";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import CompanySettingsCard from "@/components/settings/CompanySettingsCard";
+import { getApiErrorMessage } from "@/services/apiError";
 
 type BranchItem = {
     id: number;
@@ -226,8 +227,8 @@ const Page: React.FC = () => {
                 return [selected, ...list.filter((item) => item.id !== branch.id)];
             });
             setIsModalFilOpen(false);
-        } catch (err: any) {
-            setBranchModalError(err?.response?.data?.message || err?.message || "Не удалось переключить филиал.");
+        } catch (err) {
+            setBranchModalError(getApiErrorMessage(err, "Не удалось переключить филиал."));
         } finally {
             setIsSwitchingBranch(null);
         }
@@ -265,8 +266,8 @@ const Page: React.FC = () => {
                 ...createdBranch,
                 company_id: createdBranch.company_id ?? companyId,
             });
-        } catch (err: any) {
-            setBranchModalError(err?.response?.data?.message || err?.message || "Не удалось создать филиал.");
+        } catch (err) {
+            setBranchModalError(getApiErrorMessage(err, "Не удалось создать филиал."));
         } finally {
             setIsCreatingBranch(false);
         }

@@ -18,6 +18,7 @@ import {
     getPhoneDigitsCount,
     MIN_PHONE_DIGITS,
 } from "@/components/utils/phone";
+import { getApiErrorMessage } from "@/services/apiError";
 
 type EmployeeServiceEither =
     | (Services & {
@@ -336,8 +337,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 setSuccess(false);
                 onClose();
             }, 1500);
-        } catch (err: any) {
-            setSubmitError(err?.message || "Не удалось создать запись");
+        } catch (err) {
+            setSubmitError(getApiErrorMessage(err, "Не удалось создать запись"));
         }
     };
 

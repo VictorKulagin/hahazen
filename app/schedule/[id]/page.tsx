@@ -52,6 +52,7 @@ import { useTheme } from "@/lib/theme/theme.context";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import { authStorage } from "@/services/authStorage";
+import { getApiErrorMessage } from "@/services/apiError";
 import { can } from "@/lib/permissions";
 
 type BranchItem = {
@@ -308,8 +309,8 @@ const Page: React.FC = () => {
             });
             setIsModalFilOpen(false);
             router.push(`/schedule/${branch.id}`);
-        } catch (err: any) {
-            setBranchModalError(err?.response?.data?.message || err?.message || "Не удалось переключить филиал.");
+        } catch (err) {
+            setBranchModalError(getApiErrorMessage(err, "Не удалось переключить филиал."));
         } finally {
             setIsSwitchingBranch(null);
         }
@@ -349,8 +350,8 @@ const Page: React.FC = () => {
                 ...createdBranch,
                 company_id: createdBranch.company_id ?? companyId,
             });
-        } catch (err: any) {
-            setBranchModalError(err?.response?.data?.message || err?.message || "Не удалось создать филиал.");
+        } catch (err) {
+            setBranchModalError(getApiErrorMessage(err, "Не удалось создать филиал."));
         } finally {
             setIsCreatingBranch(false);
         }
@@ -595,9 +596,9 @@ const Page: React.FC = () => {
             setIsCreateModalOpen(false);
             setSelectedMasterIndex(null);
             setSelectedStartMinutes(null);
-        } catch (err: any) {
+        } catch (err) {
             console.error("Ошибка создания записи:", err);
-            alert(err?.message || "Не удалось создать запись");
+            alert(getApiErrorMessage(err, "Не удалось создать запись"));
         }
     };
 
@@ -607,7 +608,7 @@ const Page: React.FC = () => {
             await updateEmployeeMutate(updatedEmployee);
         } catch (err) {
             console.error("Ошибка при сохранении сотрудника:", err);
-            alert("Не удалось обновить данные сотрудника");
+            alert(getApiErrorMessage(err, "Не удалось обновить данные сотрудника"));
         }
     };
 

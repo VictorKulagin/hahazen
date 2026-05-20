@@ -33,6 +33,7 @@ import {
     getPhoneDigitsCount,
     MIN_PHONE_DIGITS,
 } from "@/components/utils/phone";
+import { getApiErrorMessage } from "@/services/apiError";
 import SpecialtyAutocomplete from '@/components/schedulePage/SpecialtyAutocomplete';
 import QualificationSelect from "@/components/schedulePage/QualificationSelect";
 import { formatMoney, normalizeCurrencyCode } from "@/lib/currency";
@@ -513,15 +514,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     };
 
 
-    const getErrorMessage = (err: any) => {
-        const msg =
-            err?.response?.data?.message ||
-            err?.response?.data?.error ||
-            err?.message;
-
-        if (!msg) return "Не удалось сохранить изменения. Попробуйте еще раз.";
-
-        return String(msg)
+    const getErrorMessage = (err: unknown) => {
+        return getApiErrorMessage(err, "Не удалось сохранить изменения. Попробуйте еще раз.")
             .replace(/^(Не удалось создать учетную запись:\s*)+/i, "Не удалось создать учетную запись: ")
             .replace(/^(Не удалось обновить учетную запись:\s*)+/i, "Не удалось обновить учетную запись: ");
     };

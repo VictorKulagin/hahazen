@@ -6,6 +6,7 @@ import { Addbranches } from "@/services/branchesApi";
 import { branchesList } from "@/services/branchesList";
 import { setApiContext } from "@/services/apiContext";
 import { authStorage } from "@/services/authStorage";
+import { getApiErrorMessage } from "@/services/apiError";
 
 export type BranchSwitcherItem = {
     id: number;
@@ -93,8 +94,8 @@ export default function BranchSwitcherModal({
             onBranchesChange([selected, ...branchList.filter((item) => item.id !== branch.id)]);
             onClose();
             router.push(`${redirectPathPrefix}/${branch.id}`);
-        } catch (err: any) {
-            setBranchModalError(err?.response?.data?.message || err?.message || "Не удалось переключить филиал.");
+        } catch (err) {
+            setBranchModalError(getApiErrorMessage(err, "Не удалось переключить филиал."));
         } finally {
             setIsSwitchingBranch(null);
         }
@@ -131,8 +132,8 @@ export default function BranchSwitcherModal({
                 ...createdBranch,
                 company_id: createdBranch.company_id ?? company.id,
             });
-        } catch (err: any) {
-            setBranchModalError(err?.response?.data?.message || err?.message || "Не удалось создать филиал.");
+        } catch (err) {
+            setBranchModalError(getApiErrorMessage(err, "Не удалось создать филиал."));
         } finally {
             setIsCreatingBranch(false);
         }

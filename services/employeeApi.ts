@@ -40,6 +40,23 @@ export interface EmployeeCreatePayload {
     email?: string | null;
 }
 
+export type EmployeeUpdatePayload = Partial<{
+    name: string;
+    last_name: string | null;
+    patronymic: string | null;
+    specialty: string | null;
+    description: string | null;
+    phone: string | null;
+    email: string | null;
+    gender: string | null;
+    photo: string | null;
+    hire_date: string | null;
+    birth_date: string | null;
+    role: string | null;
+    online_booking: 0 | 1;
+    lvl: string | null;
+}>;
+
 export interface EmployeeInviteResponse {
     ok: boolean;
     invite_sent_at: number;
@@ -182,8 +199,38 @@ export const deleteEmployee = async (id: number): Promise<void> => {
 };
 
 // Обновление сотрудника
+const pickEmployeeUpdatePayload = (updatedData: Partial<Employee>): EmployeeUpdatePayload => {
+    const payload: EmployeeUpdatePayload = {};
+
+    const setField = <K extends keyof EmployeeUpdatePayload>(
+        key: K,
+        value: EmployeeUpdatePayload[K] | undefined
+    ) => {
+        if (value !== undefined) payload[key] = value;
+    };
+
+    setField("name", updatedData.name);
+    setField("last_name", updatedData.last_name);
+    setField("patronymic", updatedData.patronymic);
+    setField("specialty", updatedData.specialty);
+    setField("description", updatedData.description);
+    setField("phone", updatedData.phone);
+    setField("email", updatedData.email);
+    setField("gender", updatedData.gender);
+    setField("photo", updatedData.photo);
+    setField("hire_date", updatedData.hire_date);
+    setField("role", updatedData.role);
+    setField("online_booking", updatedData.online_booking as 0 | 1 | undefined);
+    setField("lvl", updatedData.lvl);
+
+    return payload;
+};
+
 export const updateEmployee = async (id: number, updatedData: Partial<Employee>): Promise<Employee> => {
-    const response = await apiClient.put<Employee>(`/employees/${id}`, updatedData);
+    const response = await apiClient.put<Employee>(
+        `/employees/${id}`,
+        pickEmployeeUpdatePayload(updatedData)
+    );
     return response.data;
 };
 
