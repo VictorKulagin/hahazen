@@ -204,7 +204,7 @@ export default function BranchSwitcherModal({
                                         <button
                                             type="button"
                                             disabled={isActive || isSwitchingBranch === branch.id}
-                                            className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600 dark:disabled:bg-white/10 dark:disabled:text-gray-400"
+                                            className="rounded-lg bg-green-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-600 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-600 dark:disabled:bg-white/10 dark:disabled:text-gray-400"
                                             onClick={() => handleBranchSwitch(branch)}
                                         >
                                             {isSwitchingBranch === branch.id ? "Переключение..." : isActive ? "Выбран" : "Выбрать"}
