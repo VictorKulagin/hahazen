@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 
 # Устанавливаем зависимости, разрешая peer-deps конфликты (для next-auth)
-RUN npm install --legacy-peer-deps
+RUN npm ci --legacy-peer-deps
 
 # Копируем остальной код
 COPY . .
