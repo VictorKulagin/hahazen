@@ -405,6 +405,26 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                         <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                     </div>
 
+                    <div className="mx-4 mt-4 rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-3">
+                        <p className="text-sm font-semibold text-green-700 dark:text-green-300">
+                            Запись появится в расписании только после кнопки «Сохранить».
+                        </p>
+                        <div className="mt-3 space-y-2 text-xs text-gray-600 dark:text-white/60">
+                            <div className="flex gap-2">
+                                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500 text-[11px] font-bold text-white">1</span>
+                                <span>Выберите клиента из базы или добавьте нового прямо здесь.</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500 text-[11px] font-bold text-white">2</span>
+                                <span>Выберите услугу, проверьте время начала и окончания.</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-green-500 text-[11px] font-bold text-white">3</span>
+                                <span>Нажмите «Сохранить» внизу окна, чтобы создать запись.</span>
+                            </div>
+                        </div>
+                    </div>
+
                     {isOutsideSchedule && (
                         <div className="mx-4 mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 flex items-start gap-2">
                             <span>⚠️</span>
@@ -424,6 +444,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                         Клиент
                                     </h3>
                                 </div>
+
+                                <p className="text-xs leading-snug text-gray-500 dark:text-white/50">
+                                    Найдите клиента, с которым работаете. Если его нет в базе, добавьте нового клиента в этом же поле.
+                                </p>
 
                                 <div>
                                     <ClientAutocomplete
@@ -537,7 +561,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                             disabled={updating}
                                             className="px-3 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50"
                                         >
-                                            {updating ? "Сохранение..." : "Сохранить"}
+                                            {updating ? "Сохранение..." : "Сохранить клиента"}
                                         </button>
 
                                     </div>
@@ -630,6 +654,10 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     Кол-во
   </span>
                                 </div>
+
+                                <p className="text-xs leading-snug text-gray-500 dark:text-white/50">
+                                    Услуга обязательна для записи. Стоимость подтянется из настроек, а длительность задается временем начала и окончания.
+                                </p>
 
                                 {isLoading ? (
                                     <p className="text-sm text-gray-500">Загрузка...</p>

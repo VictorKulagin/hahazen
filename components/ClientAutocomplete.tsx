@@ -88,6 +88,7 @@ const ClientAutocomplete: React.FC<ClientAutocompleteProps> = ({ onSelect }) => 
                             setSearch(e.target.value);
                             setShowDropdown(true);
                         }}
+                        onFocus={() => setShowDropdown(true)}
                         className="w-full px-4 py-3 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-white/5 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
                     />
                     {showDropdown && (
@@ -125,6 +126,9 @@ const ClientAutocomplete: React.FC<ClientAutocompleteProps> = ({ onSelect }) => 
                 </>
             ) : (
                 <div className="space-y-3 p-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5">
+                    <p className="rounded-xl border border-green-500/20 bg-green-500/10 px-3 py-2 text-xs leading-snug text-green-700 dark:text-green-300">
+                        Клиент добавится в базу и сразу подставится в запись. После этого нажмите «Сохранить» внизу окна, чтобы создать саму запись.
+                    </p>
                     <input
                         type="text"
                         placeholder="Имя"
@@ -182,7 +186,7 @@ const ClientAutocomplete: React.FC<ClientAutocompleteProps> = ({ onSelect }) => 
                             disabled={creating}
                             className="px-3 py-1 rounded-lg bg-green-600 hover:bg-green-700 text-white transition"
                         >
-                            {creating ? "Создание..." : "Сохранить"}
+                            {creating ? "Добавление..." : "Добавить клиента"}
                         </button>
                     </div>
                 </div>
