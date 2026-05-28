@@ -19,6 +19,7 @@ interface UserResponse {
     last_name: string;
     createdAt: string;
     updatedAt: string;
+    access_token?: string;
 }
 
 export interface AcceptInvitePayload {

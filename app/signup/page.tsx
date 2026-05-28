@@ -43,17 +43,15 @@ export default function RegisterPage() {
                 last_name: lastName,
             });
 
-            // @ts-ignore
+            const redirectPath = newUser.access_token ? "/companies" : "/signin";
+
             if (newUser.access_token) {
-                // @ts-ignore
                 localStorage.setItem("access_token", newUser.access_token);
-            } else {
-                throw new Error("Ошибка: Сервер не вернул access_token.");
             }
 
             setSuccess("Пользователь успешно зарегистрирован!");
             setError("");
-            setTimeout(() => router.push("/companies"), 2000);
+            setTimeout(() => router.push(redirectPath), 2000);
         } catch (err: any) {
             if (err.response?.status === 422) {
                 const errors = err.response.data;
