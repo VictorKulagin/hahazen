@@ -11,7 +11,13 @@ import {
     UserIcon,
     ArrowRightOnRectangleIcon,
     AtSymbolIcon,
-    PhoneIcon, CalendarIcon, Bars3Icon
+    PhoneIcon,
+    CalendarIcon,
+    Bars3Icon,
+    SparklesIcon,
+    UserGroupIcon,
+    GlobeAltIcon,
+    ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { branchesList } from "@/services/branchesList";
@@ -280,6 +286,35 @@ const Page: React.FC = () => {
     const clients = [
         { id: 1, name: "Клиентская база", url: `/clients/base/${id}` },
     ];
+
+    const setupActions = id
+        ? [
+            {
+                title: "Добавить услуги",
+                description: "Название, цена и длительность - база для записи.",
+                href: `/settings/service_categories/${id}`,
+                icon: SparklesIcon,
+            },
+            {
+                title: "Добавить мастеров",
+                description: "Укажите специалистов, роли и доступные услуги.",
+                href: `/settings/filial_staff/${id}`,
+                icon: UserGroupIcon,
+            },
+            {
+                title: "Настроить расписание",
+                description: "Проверьте рабочие дни и создайте первую запись.",
+                href: `/schedule/${id}`,
+                icon: CalendarIcon,
+            },
+            {
+                title: "Включить онлайн-запись",
+                description: "Покажите клиентам ссылку для самостоятельной записи.",
+                href: `/online/booking_forms/${id}`,
+                icon: GlobeAltIcon,
+            },
+        ]
+        : [];
 
 
     // 🔹 Единая обработка загрузки
@@ -589,12 +624,12 @@ const Page: React.FC = () => {
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
-                                Расписание
+                                Кабинет
                             </h1>
                         </div>
 
                         <p className="mt-1 hidden text-sm text-gray-500 dark:text-gray-400 md:block">
-                            Управление профилем, настройками и рабочим пространством
+                            Быстрый старт после регистрации: услуги, мастера, график и онлайн-запись
                         </p>
                     </div>
 
@@ -607,6 +642,73 @@ const Page: React.FC = () => {
                 </div>
 
 
+
+                <section className="mb-6">
+                    <div className="mb-3">
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                            С чего начать
+                        </h2>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Пройдите шаги сверху вниз, чтобы клиент мог выбрать услугу, мастера и удобное время.
+                        </p>
+                    </div>
+
+                    {setupActions.length > 0 ? (
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                            {setupActions.map((action, index) => {
+                                const Icon = action.icon;
+
+                                return (
+                                    <Link
+                                        key={action.href}
+                                        href={action.href}
+                                        className="group flex min-h-[144px] flex-col justify-between rounded-2xl bg-green-500 p-4 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-green-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))]"
+                                    >
+                                        <div className="flex items-start justify-between gap-3">
+                                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
+                                                <Icon className="h-6 w-6" />
+                                            </span>
+                                            <span className="rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold">
+                                                Шаг {index + 1}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-5">
+                                            <div className="flex items-center justify-between gap-3">
+                                                <h3 className="text-lg font-bold leading-tight">
+                                                    {action.title}
+                                                </h3>
+                                                <ArrowRightIcon className="h-5 w-5 shrink-0 transition group-hover:translate-x-1" />
+                                            </div>
+                                            <p className="mt-2 text-sm leading-snug text-white/85">
+                                                {action.description}
+                                            </p>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+                        </div>
+                    ) : (
+                        <button
+                            type="button"
+                            onClick={toggleFilModal}
+                            className="flex min-h-[120px] w-full flex-col justify-between rounded-2xl bg-green-500 p-4 text-left text-white shadow-sm transition hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))] sm:max-w-md"
+                        >
+                            <span className="flex items-center justify-between gap-3">
+                                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
+                                    <CalendarIcon className="h-6 w-6" />
+                                </span>
+                                <ArrowRightIcon className="h-5 w-5" />
+                            </span>
+                            <span>
+                                <span className="block text-lg font-bold">Выбрать филиал</span>
+                                <span className="mt-2 block text-sm text-white/85">
+                                    После выбора филиала откроются шаги для услуг, мастеров и расписания.
+                                </span>
+                            </span>
+                        </button>
+                    )}
+                </section>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <section className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white p-4 rounded shadow dark:shadow-none">
