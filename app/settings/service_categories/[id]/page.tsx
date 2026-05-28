@@ -16,6 +16,7 @@ import { Services, fetchServices } from "@/services/servicesApi";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
 import SidebarMenu from "@/components/SidebarMenu";
 import BranchSwitcherModal from "@/components/BranchSwitcherModal";
+import SetupStepNav from "@/components/SetupStepNav";
 
 import { useServices, useDeleteService } from "@/hooks/useServices";
 
@@ -477,6 +478,8 @@ const Page: React.FC = ( ) => {
                         </div>
                     </div>
                 </div>
+
+                <SetupStepNav branchId={id} currentStep="services" />
 
                 {/* Кнопка "Добавить услуги" */}
                 {/*authStorage.has("master:create") && (

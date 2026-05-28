@@ -14,6 +14,7 @@ import {branchesList} from "@/services/branchesList";
 import { useParams } from 'next/navigation';
 import SidebarMenu from "@/components/SidebarMenu";
 import BranchSwitcherModal from "@/components/BranchSwitcherModal";
+import SetupStepNav from "@/components/SetupStepNav";
 import Loader from "@/components/Loader";
 import {ThemeToggle} from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
@@ -473,6 +474,8 @@ const Page: React.FC = () => {
                         <ThemeToggle />
                     </div>
                 </div>
+
+                <SetupStepNav branchId={id} currentStep="online" />
 
                 {/* Контент: две колонки */}
                 <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] p-5 shadow-sm space-y-4">

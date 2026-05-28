@@ -654,35 +654,44 @@ const Page: React.FC = () => {
                     </div>
 
                     {setupActions.length > 0 ? (
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
                             {setupActions.map((action, index) => {
                                 const Icon = action.icon;
+                                const isNextStep = index === 0;
 
                                 return (
                                     <Link
                                         key={action.href}
                                         href={action.href}
-                                        className="group flex min-h-[144px] flex-col justify-between rounded-2xl bg-green-500 p-4 text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-green-600 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))]"
+                                        className={`group relative flex min-h-[132px] transform-gpu flex-col justify-between overflow-hidden rounded-lg border p-3 shadow-sm transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out will-change-transform hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))] motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:min-h-[188px] sm:p-4 ${
+                                            isNextStep
+                                                ? "border-green-500 bg-white shadow-green-500/10 dark:border-green-400 dark:bg-[linear-gradient(135deg,rgba(17,24,39,0.98),rgba(18,33,55,0.96))]"
+                                                : "border-gray-200 bg-white hover:border-green-300 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(17,24,39,0.96),rgba(20,34,54,0.92))] dark:hover:border-green-400/50"
+                                        }`}
                                     >
-                                        <div className="flex items-start justify-between gap-3">
-                                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15">
-                                                <Icon className="h-6 w-6" />
+                                        <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.12),transparent_38%)] opacity-70 dark:opacity-100" />
+
+                                        <div className="relative flex items-start justify-between gap-3">
+                                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-500/15 text-green-600 shadow-sm dark:bg-green-400/15 dark:text-green-300 sm:h-12 sm:w-12">
+                                                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
                                             </span>
-                                            <span className="rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold">
+                                            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-700 dark:bg-white/10 dark:text-white/90 sm:px-3 sm:text-xs">
                                                 Шаг {index + 1}
                                             </span>
                                         </div>
 
-                                        <div className="mt-5">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <h3 className="text-lg font-bold leading-tight">
-                                                    {action.title}
-                                                </h3>
-                                                <ArrowRightIcon className="h-5 w-5 shrink-0 transition group-hover:translate-x-1" />
+                                        <div className="relative mt-4 sm:mt-8">
+                                            <div className="flex items-end justify-between gap-3 sm:gap-4">
+                                                <div className="min-w-0">
+                                                    <h3 className="text-sm font-bold leading-tight text-gray-950 dark:text-white sm:text-base">
+                                                        {action.title}
+                                                    </h3>
+                                                    <p className="mt-1.5 text-xs leading-5 text-gray-600 dark:text-white/70 sm:mt-3 sm:text-sm sm:leading-6">
+                                                        {action.description}
+                                                    </p>
+                                                </div>
+                                                <ArrowRightIcon className="mb-4 h-5 w-5 shrink-0 text-green-500 transition-transform duration-300 ease-out group-hover:translate-x-0.5 dark:text-green-300 sm:mb-5 sm:h-6 sm:w-6" />
                                             </div>
-                                            <p className="mt-2 text-sm leading-snug text-white/85">
-                                                {action.description}
-                                            </p>
                                         </div>
                                     </Link>
                                 );
@@ -692,17 +701,18 @@ const Page: React.FC = () => {
                         <button
                             type="button"
                             onClick={toggleFilModal}
-                            className="flex min-h-[120px] w-full flex-col justify-between rounded-2xl bg-green-500 p-4 text-left text-white shadow-sm transition hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))] sm:max-w-md"
+                            className="group relative flex min-h-[132px] w-full transform-gpu flex-col justify-between overflow-hidden rounded-lg border border-green-500 bg-white p-3 text-left shadow-sm transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out will-change-transform hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))] motion-reduce:transition-none motion-reduce:hover:translate-y-0 dark:border-green-400 dark:bg-[linear-gradient(135deg,rgba(17,24,39,0.98),rgba(18,33,55,0.96))] sm:min-h-[160px] sm:max-w-md sm:p-4"
                         >
-                            <span className="flex items-center justify-between gap-3">
-                                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15">
-                                    <CalendarIcon className="h-6 w-6" />
+                            <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.12),transparent_42%)]" />
+                            <span className="relative flex items-center justify-between gap-3">
+                                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-500/15 text-green-600 dark:bg-green-400/15 dark:text-green-300 sm:h-12 sm:w-12">
+                                    <CalendarIcon className="h-5 w-5 sm:h-6 sm:w-6" />
                                 </span>
-                                <ArrowRightIcon className="h-5 w-5" />
+                                <ArrowRightIcon className="h-5 w-5 text-green-500 transition-transform duration-300 ease-out group-hover:translate-x-0.5 dark:text-green-300 sm:h-6 sm:w-6" />
                             </span>
-                            <span>
-                                <span className="block text-lg font-bold">Выбрать филиал</span>
-                                <span className="mt-2 block text-sm text-white/85">
+                            <span className="relative">
+                                <span className="block text-sm font-bold text-gray-950 dark:text-white sm:text-lg">Выбрать филиал</span>
+                                <span className="mt-1.5 block text-xs leading-5 text-gray-600 dark:text-white/70 sm:mt-2 sm:text-sm sm:leading-6">
                                     После выбора филиала откроются шаги для услуг, мастеров и расписания.
                                 </span>
                             </span>

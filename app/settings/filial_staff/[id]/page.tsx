@@ -21,6 +21,7 @@ import { EditEmployeeModal } from "@/components/schedulePage/EditEmployeeModal";
 import {useEmployeeServices, useSyncEmployeeServices} from "@/hooks/useServices";
 import SidebarMenu from "@/components/SidebarMenu";
 import BranchSwitcherModal from "@/components/BranchSwitcherModal";
+import SetupStepNav from "@/components/SetupStepNav";
 import Image from "next/image";
 import Loader from "@/components/Loader";
 //import { authStorage } from "@/services/authStorage";
@@ -614,6 +615,8 @@ const Page: React.FC = ( ) => {
                         </div>
                     </div>
                 </div>
+
+                <SetupStepNav branchId={id} currentStep="employees" />
 
                 {/* Кнопка "Добавить сотрудника" */}
                 {/*authStorage.has("master:create") && (

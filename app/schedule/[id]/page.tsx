@@ -43,6 +43,7 @@ import { ServiceManager} from "@/components/schedulePage/ServiceManager";
 import {CreateEmployeeModal} from "@/components/schedulePage/CreateEmployeeModal";
 import CustomCalendarMobile from "@/components/CustomCalendarMobile";
 import SidebarMenu from "@/components/SidebarMenu";
+import SetupStepNav from "@/components/SetupStepNav";
 import { CreateClientModal } from "@/components/schedulePage/CreateСlientModal";
 import Loader from "@/components/Loader";
 import PeriodStatsModule from "@/components/schedulePage/PeriodStatsModule";
@@ -1069,6 +1070,8 @@ const Page: React.FC = () => {
                         <ThemeToggle />
                     </div>
                 </div>
+
+                <SetupStepNav branchId={id} currentStep="schedule" />
 
                 {/* Календарь — показывать только на мобильных */}
                 <div className="block md:hidden w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-sm p-3 mb-4">
