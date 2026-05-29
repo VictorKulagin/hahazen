@@ -301,6 +301,11 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        if (!selectedClientId) {
+            setSubmitError("Выберите клиента");
+            return;
+        }
+
         if (selectedServices.length === 0) {
             setSubmitError("Выберите хотя бы одну услугу");
             return;
