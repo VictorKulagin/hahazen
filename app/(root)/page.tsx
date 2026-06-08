@@ -6,103 +6,100 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, type Variants } from "framer-motion";
 import {
+    ArrowRight,
     CalendarDays,
     CalendarRange,
+    Check,
+    ClipboardList,
+    Gift,
     MapPin,
-    Menu,
-    Search,
-    Scissors,
+    ShieldCheck,
     Star,
+    Menu,
     UsersRound,
-    WalletCards,
     X,
 } from "lucide-react";
 import { authStorage } from "@/services/authStorage";
 
 const navItems = [
-    { label: "О нас", href: "#about" },
-    { label: "Салоны", href: "#catalog" },
+    { label: "О нас", href: "#legend" },
+    { label: "Для бизнеса", href: "#business" },
+    { label: "Тарифы", href: "#pricing" },
     { label: "Контакты", href: "#contacts" },
 ];
 
-const stats = [
-    { value: "0 ₽", label: "Первые 6 месяцев" },
-    { value: "24/7", label: "Онлайн-запись" },
-    { value: "1 система", label: "Для всех филиалов" },
-];
-
-const salons = [
+const ownerFeatures = [
     {
-        name: "Studio Lumen",
-        location: "Москва · Хамовники",
-        tags: ["Стрижки", "Окрашивание", "Уход"],
-        description: "Светлая мастерская с фокусом на натуральные оттенки и здоровье волос.",
-        rating: "4.9",
-        reviews: "312",
-        visual: "linear-gradient(140deg, #f3e7d7 0%, #eef4ed 42%, #08252b 100%)",
-    },
-    {
-        name: "Noir Atelier",
-        location: "Санкт-Петербург · Центр",
-        tags: ["Барбершоп", "Бритье", "Стайлинг"],
-        description: "Классический барбершоп с виски, редкими ножницами и японскими расческами.",
-        rating: "4.8",
-        reviews: "248",
-        visual: "linear-gradient(135deg, #1b100d 0%, #6d3b23 37%, #041419 100%)",
-    },
-    {
-        name: "Zenmara Spa",
-        location: "Москва · Патриаршие",
-        tags: ["Массаж", "SPA", "Ароматерапия"],
-        description: "Тишина, камень и эвкалипт. Пространство, где тело учится дышать.",
-        rating: "5.0",
-        reviews: "187",
-        visual: "linear-gradient(145deg, #3c2114 0%, #c4853c 46%, #0b2624 100%)",
-    },
-    {
-        name: "Petal Nails",
-        location: "Казань · Вахитовский",
-        tags: ["Маникюр", "Педикюр", "Дизайн"],
-        description: "Аккуратный маникюр и пастельная палитра в спокойном камерном салоне.",
-        rating: "4.9",
-        reviews: "401",
-        visual: "linear-gradient(135deg, #f5c2cd 0%, #f9e7e8 45%, #123233 100%)",
-    },
-    {
-        name: "Greenroom Barber",
-        location: "Москва · Дорогомилово",
-        tags: ["Мужские стрижки", "Борода", "Камуфляж"],
-        description: "Теплый свет, винил и мастера, которым доверяют перед важной встречей.",
-        rating: "4.7",
-        reviews: "156",
-        visual: "linear-gradient(145deg, #07110f 0%, #19533f 45%, #050b0e 100%)",
-    },
-    {
-        name: "Clarte Clinic",
-        location: "Санкт-Петербург · Петроградский",
-        tags: ["Косметология", "Уход", "Аппаратные"],
-        description: "Светлые процедуры, доказательный подход и понятные рекомендации.",
-        rating: "4.9",
-        reviews: "273",
-        visual: "linear-gradient(135deg, #f7f8f3 0%, #dce7e5 46%, #08232a 100%)",
-    },
-];
-
-const businessCards = [
-    {
-        title: "Записи без хаоса",
-        text: "Единое расписание, повторные визиты, окна и переносы в одном спокойном экране.",
+        title: "Расписание мастеров",
+        text: "Видите загрузку каждого мастера по дням и неделям. Перетаскивайте записи, избегайте пересечений.",
         icon: CalendarRange,
     },
     {
-        title: "Клиенты и история визитов",
-        text: "Карточка клиента с любимым мастером, аллергиями и заметками после каждого визита.",
+        title: "Клиентская база",
+        text: "Все клиенты в одном месте: контакты, предпочтения, теги и сегменты для рассылок.",
         icon: UsersRound,
     },
     {
-        title: "Финансы и отчеты",
-        text: "Касса, зарплаты мастеров и понятные отчеты без таблиц на коленке.",
-        icon: WalletCards,
+        title: "Онлайн-запись 24/7",
+        text: "Клиенты записываются сами через каталог или вашу персональную страницу — без звонков.",
+        icon: CalendarDays,
+    },
+    {
+        title: "История визитов и карта тела",
+        text: "Карточка клиента с историей услуг, отметками по телу для массажа и SPA, суммами и заметками мастера.",
+        icon: ClipboardList,
+    },
+    {
+        title: "Бонусная система",
+        text: "Начисляйте бонусы после визитов, настраивайте правила и возвращайте клиентов без скидочного хаоса.",
+        icon: Gift,
+    },
+    {
+        title: "Роли и доступы",
+        text: "Настраивайте права владельца, администратора и мастеров: каждый видит только нужные разделы и данные.",
+        icon: ShieldCheck,
+    },
+];
+
+const plans = [
+    {
+        name: "Solo",
+        description: "Для частных мастеров и небольших студий",
+        price: "2 000",
+        features: ["Расписание и записи", "Клиентская база", "Онлайн-запись", "Карточка клиента"],
+    },
+    {
+        name: "Salon",
+        description: "Один филиал · неограниченное число мастеров",
+        price: "3 000",
+        badge: "Популярный",
+        featured: true,
+        features: ["Всё из Solo", "Безлимит мастеров", "Карта тела и SPA-протоколы", "Роли и доступы сотрудников"],
+    },
+    {
+        name: "Доп. филиал",
+        description: "К любому действующему тарифу",
+        price: "+3 000",
+        features: ["Отдельное расписание", "Свои мастера и услуги", "Общая база клиентов", "Сводная аналитика"],
+    },
+];
+
+const partnerSalons = [
+    {
+        label: "Пилотный партнёр",
+        name: "Партнёрский салон",
+        location: "Бишкек",
+        services: "Стрижки · Окрашивание · Маникюр",
+        rating: "4.9",
+        visual: "radial-gradient(circle at 24% 20%, rgba(72, 231, 191, 0.22), transparent 34%), linear-gradient(135deg, #21463f, #17312e 54%, #102320)",
+    },
+    {
+        label: "Демо-карточка",
+        name: "Массажная студия",
+        location: "Бишкек",
+        services: "Массаж · SPA · Уход",
+        rating: "—",
+        visual: "radial-gradient(circle at 78% 28%, rgba(70, 210, 179, 0.16), transparent 30%), linear-gradient(145deg, #1c3b36, #142d2a 58%, #0f211f)",
     },
 ];
 
@@ -237,6 +234,15 @@ export default function Home() {
                     }
                 }
 
+                @keyframes heroCardFloat {
+                    0%, 100% {
+                        transform: translate3d(0, 0, 0);
+                    }
+                    50% {
+                        transform: translate3d(0, var(--float-distance, -6px), 0);
+                    }
+                }
+
                 .landing-surface {
                     --hz-text-strong: #eef6f1;
                     --hz-text: #d8e5e1;
@@ -280,9 +286,9 @@ export default function Home() {
 
                 .hero-section {
                     background:
-                        radial-gradient(ellipse 58rem 42rem at 50% 50%, rgba(40, 224, 194, 0.12), transparent 72%),
-                        radial-gradient(ellipse 92rem 64rem at 18% 18%, rgba(12, 89, 98, 0.24), transparent 74%),
-                        linear-gradient(180deg, #02090b 0%, #030d0f 56%, #031112 100%);
+                        radial-gradient(ellipse 54rem 44rem at 72% 53%, rgba(23, 127, 101, 0.2), transparent 72%),
+                        radial-gradient(ellipse 70rem 60rem at 94% 48%, rgba(11, 106, 83, 0.26), transparent 74%),
+                        linear-gradient(90deg, #061515 0%, #08201e 48%, #0b3c34 100%);
                     box-shadow:
                         inset 0 -120px 220px rgba(1, 8, 10, 0.2);
                 }
@@ -296,8 +302,8 @@ export default function Home() {
                     position: relative;
                     z-index: 1;
                     isolation: isolate;
-                    margin-top: -220px;
-                    padding-top: 220px;
+                    margin-top: 0;
+                    padding-top: 0;
                     background:
                         radial-gradient(ellipse 86rem 58rem at 18% 10%, rgba(22, 112, 124, 0.22), transparent 74%),
                         radial-gradient(ellipse 92rem 68rem at 88% 46%, rgba(6, 88, 58, 0.3), transparent 82%),
@@ -396,16 +402,192 @@ export default function Home() {
                     border-color: rgba(40, 224, 194, 0.12);
                 }
 
+                .hero-reference-shell {
+                    min-height: 790px;
+                    padding-top: 72px;
+                }
+
+                .hero-reference-title {
+                    letter-spacing: -0.035em;
+                    text-wrap: balance;
+                }
+
+                .hero-product-visual {
+                    position: relative;
+                    width: 660px;
+                    height: 650px;
+                    margin-left: 25px;
+                    flex: none;
+                }
+
+                .hero-schedule-panel {
+                    position: absolute;
+                    top: 31px;
+                    left: 53px;
+                    width: 584px;
+                    height: 480px;
+                    border: 1px solid rgba(133, 176, 164, 0.16);
+                    border-radius: 16px;
+                    background: rgba(15, 42, 39, 0.88);
+                    box-shadow:
+                        0 20px 80px rgba(0, 0, 0, 0.18),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+                    overflow: hidden;
+                }
+
+                .hero-calendar-grid {
+                    position: relative;
+                    display: grid;
+                    grid-template-columns: 68px repeat(3, 1fr);
+                    grid-template-rows: 38px repeat(6, 48px);
+                    height: 326px;
+                    overflow: hidden;
+                    border: 1px solid rgba(122, 167, 157, 0.13);
+                    border-radius: 11px 11px 0 0;
+                    background: rgba(16, 43, 40, 0.72);
+                }
+
+                .hero-calendar-grid > div {
+                    border-right: 1px solid rgba(122, 167, 157, 0.1);
+                    border-bottom: 1px solid rgba(122, 167, 157, 0.1);
+                }
+
+                .hero-calendar-event {
+                    position: absolute;
+                    z-index: 2;
+                    border: 1px solid rgba(45, 224, 185, 0.54);
+                    border-radius: 11px;
+                    background: rgba(32, 105, 86, 0.7);
+                    padding: 10px 9px;
+                    font-size: 11px;
+                    line-height: 1.2;
+                    color: #4be7c6;
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+                }
+
+                .hero-calendar-event-muted {
+                    border-color: rgba(110, 168, 156, 0.18);
+                    background: rgba(27, 65, 61, 0.68);
+                    color: #c4d9d5;
+                }
+
+                .hero-float-card {
+                    position: absolute;
+                    z-index: 4;
+                    border: 1px solid rgba(121, 164, 154, 0.13);
+                    background: rgba(24, 51, 48, 0.96);
+                    box-shadow:
+                        0 20px 60px rgba(0, 0, 0, 0.2),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+                    backdrop-filter: blur(18px);
+                    will-change: transform;
+                    animation: heroCardFloat 7.6s ease-in-out infinite;
+                }
+
+                .hero-float-tool {
+                    --float-distance: -5px;
+                    animation-duration: 6.8s;
+                    animation-delay: -1.2s;
+                }
+
+                .hero-float-client {
+                    --float-distance: -7px;
+                    animation-duration: 8.2s;
+                    animation-delay: -4.4s;
+                }
+
+                .hero-float-permissions {
+                    --float-distance: -6px;
+                    animation-duration: 7.4s;
+                    animation-delay: -2.8s;
+                }
+
+                @media (max-width: 1279px) {
+                    .hero-product-visual {
+                        transform: scale(0.82);
+                        transform-origin: center;
+                        margin-inline: -60px;
+                    }
+                }
+
+                @media (max-width: 1023px) {
+                    .hero-reference-shell {
+                        min-height: auto;
+                        padding-top: 0;
+                    }
+
+                    .hero-product-visual {
+                        transform: scale(0.9);
+                        transform-origin: top center;
+                        margin: -20px auto -55px;
+                    }
+                }
+
+                @media (max-width: 700px) {
+                    .hero-product-visual {
+                        left: 50%;
+                        transform: scale(0.55);
+                        margin: -15px -330px -270px;
+                    }
+                }
+
                 .legend-section {
                     margin-top: 1rem;
                     overflow: visible;
                     background: transparent;
                 }
 
+                .legend-showcase {
+                    position: relative;
+                    min-height: 410px;
+                    overflow: hidden;
+                    border: 1px solid rgba(46, 230, 207, 0.24);
+                    border-radius: 24px;
+                    background:
+                        radial-gradient(ellipse 60% 90% at 82% 50%, rgba(34, 162, 132, 0.18), transparent 72%),
+                        linear-gradient(110deg, rgba(7, 29, 28, 0.98), rgba(12, 51, 45, 0.92));
+                    box-shadow:
+                        0 30px 100px rgba(0, 0, 0, 0.24),
+                        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                }
+
+                .legend-showcase::before {
+                    content: "";
+                    position: absolute;
+                    inset: 0;
+                    z-index: 2;
+                    pointer-events: none;
+                    background:
+                        linear-gradient(90deg, rgba(7, 29, 28, 1) 0%, rgba(7, 29, 28, 0.94) 36%, rgba(7, 29, 28, 0.2) 68%, rgba(7, 29, 28, 0.04) 100%),
+                        radial-gradient(circle at 78% 50%, rgba(38, 224, 194, 0.12), transparent 42%);
+                }
+
+                .legend-showcase-image {
+                    position: absolute;
+                    inset: 0 0 0 38%;
+                }
+
+                @media (max-width: 767px) {
+                    .legend-showcase {
+                        min-height: 650px;
+                    }
+
+                    .legend-showcase::before {
+                        background:
+                            linear-gradient(180deg, rgba(7, 29, 28, 1) 0%, rgba(7, 29, 28, 0.96) 42%, rgba(7, 29, 28, 0.28) 70%, rgba(7, 29, 28, 0.08) 100%),
+                            radial-gradient(circle at 62% 76%, rgba(38, 224, 194, 0.12), transparent 42%);
+                    }
+
+                    .legend-showcase-image {
+                        inset: 36% -28% 0 -8%;
+                    }
+                }
+
                 @media (prefers-reduced-motion: reduce) {
                     .landing-surface::before,
                     .hero-water::before,
                     .water-ripple,
+                    .hero-float-card,
                     .hero-button-primary::after {
                         animation: none;
                     }
@@ -564,7 +746,7 @@ export default function Home() {
             <main
                 className={`transition-opacity duration-700 ${showContent ? "opacity-100" : "opacity-0"}`}
             >
-                <section id="about" className="landing-section hero-section relative min-h-[720px] overflow-hidden px-4 pt-28 sm:min-h-[760px] lg:min-h-[780px]">
+                <section id="about" className="landing-section hero-section relative min-h-[790px] overflow-hidden px-4 pt-28 lg:pt-0">
                     <div className="hero-water" aria-hidden="true">
                         <span className="water-ripple" />
                         <span className="water-ripple" />
@@ -573,212 +755,371 @@ export default function Home() {
                     </div>
                     <div className="hero-transition" aria-hidden="true" />
                     <motion.div
-                        className="relative z-10 mx-auto flex min-h-[590px] max-w-[1120px] flex-col items-center justify-center pb-14 text-center sm:min-h-[630px] lg:min-h-[650px]"
+                        className="hero-reference-shell relative z-10 mx-auto grid max-w-[1230px] items-center gap-3 lg:grid-cols-[560px_1fr]"
                         variants={staggerContainer}
                         initial="hidden"
                         animate="visible"
                     >
-                        <motion.div variants={fadeInUp} className="rounded-full border border-[#2ee6cf]/10 bg-white/[0.035] px-4 py-2 text-xs font-medium text-[var(--hz-muted)] backdrop-blur">
-                            CRM с душой · Радость в порядке
-                        </motion.div>
+                        <div className="relative z-10 pt-7 lg:pt-0">
+                            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 rounded-full border border-[#2ee6cf]/25 bg-[#123d36]/75 px-3 py-1.5 text-[11px] font-medium text-[#43e6c1]">
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#43e6c1]/70" />
+                                CRM для салонов и массажных студий
+                            </motion.div>
 
-                        <motion.h1 variants={fadeInUp} className="display-serif mt-8 max-w-[1040px] text-[46px] font-bold leading-[0.98] text-[var(--hz-text-strong)] sm:text-[74px] lg:text-[88px]">
-                            Хаос превращается
-                            <span className="block">
-                                в <em className="font-normal text-[#28e0c2]">улыбку</em>
-                            </span>
-                        </motion.h1>
+                            <motion.h1 variants={fadeInUp} className="hero-reference-title display-serif mt-7 max-w-[555px] text-[43px] font-bold leading-[1.04] text-[var(--hz-text-strong)] sm:text-[56px] lg:text-[61px]">
+                                Все записи,
+                                <span className="block">клиенты и мастера</span>
+                                <span className="block">
+                                    — <span className="text-[#4de7bd]">в одном спокойном интерфейсе.</span>
+                                </span>
+                            </motion.h1>
 
-                        <motion.p variants={fadeInUp} className="mt-7 max-w-[620px] text-base leading-7 text-[var(--hz-muted)] sm:text-lg">
-                            CRM и каталог салонов для тех, кто хочет порядка в записях, клиентах и расписании.
-                        </motion.p>
+                            <motion.p variants={fadeInUp} className="mt-6 max-w-[550px] text-[16px] leading-[1.75] text-[#b9cfca] sm:text-[17px]">
+                                Hahazen помогает салонам убрать хаос из WhatsApp,
+                                <span className="block">тетрадей и Excel: расписание, онлайн-запись, клиентская база</span>
+                                <span className="block">и история визитов в одной системе.</span>
+                            </motion.p>
 
-                        <motion.div variants={fadeInUp} className="mt-10 flex w-full max-w-[340px] flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
-                            <Link
-                                href="#catalog"
-                                className="hero-button-primary relative flex h-12 items-center justify-center overflow-hidden rounded-[8px] bg-[#28e0c2] px-7 text-sm font-semibold text-[#062326] shadow-[0_0_34px_rgba(40,224,194,0.32)] transition hover:bg-[#58f4d8]"
-                            >
-                                <span className="relative z-10">Найти салон</span>
-                                <span className="absolute inset-y-0 left-0 w-10 bg-white/35 blur-md" />
-                            </Link>
-                            <Link
-                                href="#legend"
-                                className="flex h-12 items-center justify-center rounded-[8px] border border-[#2ee6cf]/10 bg-[#0a171c] px-7 text-sm font-semibold text-[var(--hz-muted)] transition hover:border-[#28e0c2]/30 hover:text-[var(--hz-text-strong)]"
-                            >
-                                Узнать историю
-                            </Link>
-                        </motion.div>
-
-                        <motion.div variants={staggerContainer} className="mt-14 grid w-full max-w-[360px] grid-cols-3 gap-2 sm:mt-16 sm:max-w-[620px] sm:gap-3">
-                            {stats.map((stat) => (
-                                <motion.div
-                                    key={stat.label}
-                                    variants={cardIn}
-                                    whileHover={{ y: -4 }}
-                                    className="haze-card flex min-h-[74px] flex-col items-center justify-center rounded-[8px] border border-white/10 bg-[#07191d]/64 px-2 py-3 text-center backdrop-blur sm:min-h-0 sm:px-6 sm:py-5"
+                            <motion.div variants={fadeInUp} className="mt-7 flex max-w-[580px] flex-col gap-3 sm:flex-row">
+                                <Link
+                                    href="/signup"
+                                    className="hero-button-primary relative flex h-12 items-center justify-center overflow-hidden rounded-full bg-[#39e2b4] px-6 text-[14px] font-semibold text-[#062c26] shadow-[0_0_34px_rgba(40,224,194,0.16)] transition hover:bg-[#58f4d8]"
                                 >
-                                    <div className="display-serif text-xl font-bold leading-none text-[#28e0c2] sm:text-3xl">{stat.value}</div>
-                                    <div className="mt-1 text-[10px] leading-tight text-[var(--hz-muted)] sm:text-sm">{stat.label}</div>
-                                </motion.div>
-                            ))}
+                                    <span className="relative z-10">Попробовать 6 месяцев бесплатно</span>
+                                    <span className="absolute inset-y-0 left-0 w-10 bg-white/35 blur-md" />
+                                </Link>
+                                <Link
+                                    href="/signin"
+                                    className="flex h-12 items-center justify-center gap-3 rounded-full border border-[#9bbcb5]/20 bg-[#102724]/70 px-6 text-[14px] font-semibold text-white transition hover:border-[#39e2b4]/40"
+                                >
+                                    Посмотреть интерфейс
+                                    <ArrowRight className="h-4 w-4 text-[#d7e8e4]" />
+                                </Link>
+                            </motion.div>
+
+                            <motion.div variants={fadeInUp} className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-[12px] text-[#b7ccc7]">
+                                {["без оплаты за каждого мастера", "3000 сом за салон", "онлайн-запись 24/7"].map((benefit) => (
+                                    <span key={benefit} className="flex items-center gap-2">
+                                        <Check className="h-4 w-4 stroke-[2.5] text-[#42e4bb]" />
+                                        {benefit}
+                                    </span>
+                                ))}
+                            </motion.div>
+                        </div>
+
+                        <motion.div variants={cardIn} className="hero-product-visual" aria-label="Интерфейс Hahazen">
+                            <div className="hero-schedule-panel">
+                                <div className="flex items-center justify-between px-6 pt-6">
+                                    <div className="flex gap-1.5">
+                                        <span className="h-2.5 w-2.5 rounded-full bg-[#cf4b4b]" />
+                                        <span className="h-2.5 w-2.5 rounded-full bg-[#d9a637]" />
+                                        <span className="h-2.5 w-2.5 rounded-full bg-[#52e0ba]" />
+                                    </div>
+                                    <span className="text-[10px] tracking-[0.08em] text-[#8eb0a9]">hahazen.app&nbsp; / &nbsp;расписание</span>
+                                    <span className="w-8" />
+                                </div>
+
+                                <div className="px-6 pt-5">
+                                    <p className="text-[10px] uppercase tracking-[0.08em] text-[#75aaa1]">Филиал · Центр</p>
+                                    <div className="mt-1 flex items-center justify-between">
+                                        <h2 className="text-[16px] font-semibold text-white">Расписание мастеров</h2>
+                                        <span className="rounded-full bg-[#37d9ad] px-4 py-1.5 text-[10px] font-semibold text-[#073229]">+ Новая запись</span>
+                                    </div>
+
+                                    <div className="hero-calendar-grid mt-6">
+                                        <div />
+                                        {["Айгуль", "Тимур", "Алия"].map((master) => (
+                                            <div key={master} className="flex items-center justify-center text-[10px] font-medium text-[#a8c9c2]">
+                                                {master}
+                                            </div>
+                                        ))}
+                                        {["10:00", "11:00", "12:00", "13:00", "14:00", "15:00"].map((time) => (
+                                            <div key={time} className="contents">
+                                                <div className="pl-2 pt-3 font-mono text-[9px] text-[#78b9ad]">{time}</div>
+                                                <div />
+                                                <div />
+                                                <div />
+                                            </div>
+                                        ))}
+
+                                        <div className="hero-calendar-event" style={{ left: 68, top: 42, width: 146, height: 88 }}>Массаж · Анна</div>
+                                        <div className="hero-calendar-event hero-calendar-event-muted" style={{ left: 223, top: 90, width: 146, height: 41 }}>Стрижка · Артём</div>
+                                        <div className="hero-calendar-event hero-calendar-event-muted" style={{ left: 378, top: 42, width: 146, height: 41 }}>Маникюр</div>
+                                        <div className="hero-calendar-event" style={{ left: 223, top: 138, width: 146, height: 88 }}>Окрашивание</div>
+                                        <div className="hero-calendar-event" style={{ left: 68, top: 186, width: 146, height: 88 }}>SPA · Камила</div>
+                                        <div className="hero-calendar-event" style={{ left: 378, top: 234, width: 146, height: 88 }}>Массаж · Лейла</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="hero-float-card hero-float-tool right-0 top-[42px] flex h-[64px] w-[288px] items-center gap-3 rounded-[16px] px-4">
+                                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#176c5e] text-[#49e2bf]">
+                                    <Gift className="h-4 w-4" />
+                                </span>
+                                <span>
+                                    <span className="block text-[9px] uppercase tracking-[0.08em] text-[#789991]">Инструмент</span>
+                                    <span className="mt-0.5 block text-[14px] font-semibold text-[#e6f0ed]">Карта тела для массажистов</span>
+                                </span>
+                            </div>
+
+                            <div className="hero-float-card hero-float-client bottom-[54px] left-0 h-[162px] w-[262px] rounded-[16px] p-4">
+                                <div className="flex items-center gap-3">
+                                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#216858] text-[15px] font-semibold text-[#4be3bd]">АК</span>
+                                    <span>
+                                        <span className="block text-[13px] font-semibold text-white">Анна К.</span>
+                                        <span className="mt-0.5 block text-[10px] text-[#819f98]">+996 555 12-34-56</span>
+                                    </span>
+                                </div>
+                                <div className="mt-3 border-t border-white/[0.035] pt-3 text-[11px] text-[#8caaa3]">
+                                    <div className="flex justify-between"><span>Визитов</span><strong className="text-white">12</strong></div>
+                                    <div className="mt-1.5 flex justify-between"><span>Последний</span><span>3 дня назад</span></div>
+                                    <div className="mt-1.5 flex justify-between"><span>Любимая услуга</span><strong className="text-[#d9e7e3]">Массаж спины</strong></div>
+                                </div>
+                            </div>
+
+                            <div className="hero-float-card hero-float-permissions bottom-0 right-[-8px] h-[198px] w-[272px] rounded-[16px] p-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#1597d1] text-white">
+                                        <ShieldCheck className="h-4 w-4" />
+                                    </span>
+                                    <span className="text-[13px] font-semibold text-[#e9f1ef]">Права сотрудников</span>
+                                </div>
+                                <div className="mt-3 rounded-[12px] bg-[#25443f] p-3 text-[10px] leading-[1.55] text-[#a8c0ba]">
+                                    <strong className="block text-[11px] text-[#dce9e5]">Мастер · индивидуальные разрешения</strong>
+                                    <span className="mt-1 block">Расписание: просмотр разрешён</span>
+                                    <span className="block">Клиенты: доступ по роли</span>
+                                </div>
+                                <div className="mt-2 flex gap-2">
+                                    <span className="flex h-7 flex-1 items-center justify-center rounded-full bg-[#236756] text-[9px] font-semibold text-[#4adbb9]">Наследовать</span>
+                                    <span className="flex h-7 flex-1 items-center justify-center rounded-full border border-[#90aaa5]/20 text-[9px] font-semibold text-[#b9cbc7]">Разрешить</span>
+                                    <span className="flex h-7 flex-1 items-center justify-center rounded-full border border-[#90aaa5]/20 text-[9px] font-semibold text-[#b9cbc7]">Запретить</span>
+                                </div>
+                            </div>
                         </motion.div>
                     </motion.div>
                 </section>
 
                 <div className="lower-flow">
-                <section id="catalog" className="landing-section soft-section scroll-mt-28 px-4 pb-24 pt-20 sm:pt-24">
+                <section id="business" className="landing-section soft-section scroll-mt-28 px-4 pb-24 pt-20 sm:pt-24">
                     <div className="relative z-10 mx-auto max-w-[1120px]">
-                        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Каталог</p>
-                        <h2 className="display-serif mt-4 max-w-[740px] text-[38px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[56px]">
-                            Салоны, которые уже можно найти в <em className="font-normal text-[#28e0c2]">Hahazen</em>
+                        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Для бизнеса</p>
+                        <h2 className="mt-4 max-w-[740px] text-[34px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[44px]">
+                            Что видит владелец салона
                         </h2>
-                        <p className="mt-5 max-w-[620px] text-base leading-7 text-[var(--hz-muted)]">
-                            Выберите салон, услугу и удобное время без лишних переписок.
+                        <p className="mt-4 max-w-[660px] text-base leading-7 text-[var(--hz-muted)]">
+                            Один экран — и понятно, что происходит сегодня, кто пришёл, кто записан и сколько заработали мастера.
                         </p>
 
-                        <form className="haze-card mt-10 grid gap-2 rounded-[8px] border border-white/10 bg-[#07191d]/72 p-3 backdrop-blur lg:grid-cols-[1.3fr_1.25fr_0.65fr_auto]">
-                            <label className="flex h-12 items-center gap-3 rounded-[8px] bg-[#041015] px-4 text-[var(--hz-soft)]">
-                                <Scissors className="h-4 w-4 shrink-0" />
-                                <span className="truncate text-sm">Услуга: стрижка, маникюр, массаж...</span>
-                            </label>
-                            <label className="flex h-12 items-center gap-3 rounded-[8px] bg-[#041015] px-4 text-[var(--hz-soft)]">
-                                <MapPin className="h-4 w-4 shrink-0" />
-                                <span className="truncate text-sm">Район или город</span>
-                            </label>
-                            <label className="flex h-12 items-center gap-3 rounded-[8px] bg-[#041015] px-4 text-[var(--hz-soft)]">
-                                <CalendarDays className="h-4 w-4 shrink-0" />
-                                <span className="truncate text-sm">дд.мм.гггг</span>
-                            </label>
-                            <button type="button" className="flex h-12 items-center justify-center gap-2 rounded-[8px] bg-[#28e0c2] px-6 text-sm font-semibold text-[#062326] transition hover:bg-[#58f4d8]">
-                                <Search className="h-4 w-4" />
-                                Найти
-                            </button>
-                        </form>
+                        <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                            {ownerFeatures.map((feature) => {
+                                const Icon = feature.icon;
 
-                        <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                            {salons.map((salon) => (
-                                <article key={salon.name} className="haze-card overflow-hidden rounded-[8px] border border-white/10 bg-[#082224]/78">
-                                    <div className="relative h-[180px]" style={{ background: salon.visual }}>
-                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.24),transparent_28%),linear-gradient(180deg,transparent_42%,rgba(0,0,0,0.72))]" />
-                                        <div className="absolute right-3 top-3 flex h-8 items-center gap-1 rounded-full bg-[#071014]/78 px-3 text-xs text-[var(--hz-text)] backdrop-blur">
-                                            <Star className="h-3.5 w-3.5 fill-[#28e0c2] text-[#28e0c2]" />
-                                            {salon.rating} · {salon.reviews}
+                                return (
+                                    <article key={feature.title} className="haze-card min-h-[180px] rounded-[14px] border border-white/[0.08] bg-[#102824]/72 p-6 backdrop-blur">
+                                        <span className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-[#1b5548] text-[#4be1bc]">
+                                            <Icon className="h-5 w-5" />
+                                        </span>
+                                        <h3 className="mt-5 text-[16px] font-semibold text-[var(--hz-text-strong)]">{feature.title}</h3>
+                                        <p className="mt-3 text-[13px] leading-6 text-[var(--hz-muted)]">{feature.text}</p>
+                                    </article>
+                                );
+                            })}
+                        </div>
+
+                        <div id="pricing" className="scroll-mt-28 mt-24 border-t border-white/[0.06] pt-20">
+                            <h2 className="max-w-[620px] text-[34px] font-bold leading-[1.05] text-[var(--hz-text-strong)] sm:text-[44px]">
+                                Простые тарифы без оплаты за каждого мастера
+                            </h2>
+                            <p className="mt-4 max-w-[680px] text-base leading-7 text-[var(--hz-muted)]">
+                                Фиксированная цена за салон. Сколько мастеров — столько и работайте.
+                            </p>
+
+                            <div className="mt-10 grid gap-4 lg:grid-cols-3">
+                                {plans.map((plan) => (
+                                    <article
+                                        key={plan.name}
+                                        className={`haze-card relative flex min-h-[330px] flex-col rounded-[18px] border p-6 backdrop-blur ${
+                                            plan.featured
+                                                ? "border-[#45dfb9]/60 bg-[#123129]/88 shadow-[0_28px_80px_rgba(34,217,172,0.14)]"
+                                                : "border-white/[0.08] bg-[#0b211e]/76"
+                                        }`}
+                                    >
+                                        {plan.badge && (
+                                            <span className="absolute -top-3 left-6 rounded-full bg-[#45dfb9] px-3 py-1 text-[10px] font-semibold text-[#073229]">
+                                                {plan.badge}
+                                            </span>
+                                        )}
+
+                                        <h3 className="text-[19px] font-semibold text-white">{plan.name}</h3>
+                                        <p className="mt-1 min-h-10 text-[12px] leading-5 text-[var(--hz-muted)]">{plan.description}</p>
+
+                                        <div className="mt-4 flex items-end gap-1.5">
+                                            <span className="text-[34px] font-semibold leading-none tracking-tight text-white">{plan.price}</span>
+                                            <span className="pb-1 text-[12px] text-[var(--hz-muted)]">сом / мес</span>
                                         </div>
-                                    </div>
 
-                                    <div className="p-6">
-                                        <h3 className="display-serif text-2xl font-bold text-[var(--hz-text-strong)]">{salon.name}</h3>
-                                        <p className="mt-2 flex items-center gap-1.5 text-sm text-[var(--hz-soft)]">
-                                            <MapPin className="h-4 w-4" />
-                                            {salon.location}
-                                        </p>
-
-                                        <div className="mt-4 flex flex-wrap gap-2">
-                                            {salon.tags.map((tag) => (
-                                                <span key={tag} className="rounded-full border border-[#28e0c2]/24 bg-[#28e0c2]/8 px-2.5 py-1 text-[11px] font-semibold uppercase text-[#28e0c2]/86">
-                                                    {tag}
-                                                </span>
+                                        <div className="mt-6 space-y-3">
+                                            {plan.features.map((feature) => (
+                                                <div key={feature} className="flex items-center gap-2 text-[12px] text-[#d4e3df]">
+                                                    <Check className="h-4 w-4 shrink-0 text-[#45dfb9]" />
+                                                    {feature}
+                                                </div>
                                             ))}
                                         </div>
 
-                                        <p className="mt-5 min-h-[72px] text-sm leading-6 text-[var(--hz-muted)]">{salon.description}</p>
+                                        <button
+                                            type="button"
+                                            disabled
+                                            className={`mt-auto flex h-11 cursor-not-allowed items-center justify-center rounded-[10px] border text-[12px] font-semibold ${
+                                                plan.featured
+                                                    ? "border-[#45dfb9]/20 bg-[#45dfb9]/18 text-[#7ce9ce]"
+                                                    : "border-white/[0.06] bg-white/[0.05] text-[#91aaa4]"
+                                            }`}
+                                        >
+                                            Подключение скоро
+                                        </button>
+                                    </article>
+                                ))}
+                            </div>
 
-                                        <div className="mt-5 grid grid-cols-2 gap-2">
-                                            <Link href="/signin" className="flex h-10 items-center justify-center rounded-[8px] bg-[#28e0c2] text-sm font-semibold text-[#062326] transition hover:bg-[#58f4d8]">
-                                                Записаться
-                                            </Link>
-                                            <Link href="#legend" className="flex h-10 items-center justify-center rounded-[8px] border border-white/10 bg-[#071014] text-sm font-semibold text-[var(--hz-muted)] transition hover:text-[var(--hz-text-strong)]">
-                                                Подробнее
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </article>
-                            ))}
+                            <div className="relative mt-12 overflow-hidden rounded-[22px] border border-[#45dfb9]/60 bg-[#0d2926]/92 px-6 py-14 text-center shadow-[0_0_70px_rgba(38,224,194,0.18),inset_0_1px_0_rgba(255,255,255,0.06)] sm:px-12 sm:py-16">
+                                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(53,226,185,0.28),transparent_34%),radial-gradient(circle_at_76%_86%,rgba(26,155,128,0.2),transparent_36%),linear-gradient(130deg,rgba(50,225,183,0.12),transparent_48%)]" />
+                                <div className="pointer-events-none absolute -left-20 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-[#28e0c2]/20 blur-[70px]" />
+                                <div className="pointer-events-none absolute -right-16 bottom-0 h-44 w-44 rounded-full bg-[#28e0c2]/16 blur-[64px]" />
+
+                                <div className="relative z-10 mx-auto max-w-[720px]">
+                                    <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#4be7c6]">
+                                        Пилотная программа
+                                    </span>
+                                    <h3 className="mt-4 text-[32px] font-bold leading-[1.08] text-white sm:text-[42px]">
+                                        6 месяцев бесплатно — в обмен на обратную связь
+                                    </h3>
+                                    <p className="mx-auto mt-5 max-w-[620px] text-[14px] leading-6 text-[#c1d7d1]">
+                                        Подключаем первые салоны бесплатно. Помогаем настроить систему и развиваем продукт вместе с вами.
+                                    </p>
+                                    <a
+                                        href="https://t.me/hahazencrm"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="hero-button-primary relative mx-auto mt-7 flex h-12 w-fit items-center justify-center overflow-hidden rounded-full bg-[#46e8c4] px-7 text-[13px] font-semibold text-[#073229] shadow-[0_0_34px_rgba(70,232,196,0.3)] transition hover:bg-[#70f3d6]"
+                                    >
+                                        <span className="relative z-10">Стать пилотным салоном</span>
+                                        <span className="absolute inset-y-0 left-0 w-10 bg-white/35 blur-md" />
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
 
                 <section className="landing-section soft-section px-4 py-24">
                     <div className="relative z-10 mx-auto max-w-[1120px]">
-                        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Для бизнеса</p>
-                        <h2 className="display-serif mt-4 max-w-[620px] text-[38px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[56px]">
-                            Что Hahazen делает для <em className="font-normal text-[#28e0c2]">бизнеса</em>
-                        </h2>
+                        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Каталог</p>
+                                <h2 className="mt-4 text-[34px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[44px]">
+                                    Каталог салонов
+                                </h2>
+                                <p className="mt-3 max-w-[650px] text-[14px] leading-6 text-[var(--hz-muted)]">
+                                    Мы только запускаемся, поэтому показываем честно: пилотные партнёры и демо-карточки. Скоро здесь появятся реальные салоны вашего города.
+                                </p>
+                            </div>
+                            <a
+                                href="https://t.me/hahazencrm"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="shrink-0 text-[13px] font-semibold text-[#45dfb9] transition hover:text-[#72f0d2]"
+                            >
+                                Стать партнёром →
+                            </a>
+                        </div>
 
-                        <div className="mt-14 grid gap-4 lg:grid-cols-3">
-                            {businessCards.map((card) => {
-                                const Icon = card.icon;
+                        <div className="mt-9 grid gap-4 lg:grid-cols-3">
+                            {partnerSalons.map((salon) => (
+                                <article key={salon.name} className="haze-card overflow-hidden rounded-[16px] border border-white/[0.08] bg-[#0c221f]/82">
+                                    <div className="relative h-[150px]" style={{ background: salon.visual }}>
+                                        <span className="absolute left-3 top-3 rounded-full border border-[#45dfb9]/32 bg-[#16483d]/88 px-3 py-1 text-[9px] font-medium text-[#5ce5c3]">
+                                            {salon.label}
+                                        </span>
+                                        <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-[#09201c]/80 px-2.5 py-1 text-[10px] font-semibold text-[#cce0db]">
+                                            <Star className="h-3 w-3 fill-[#45dfb9] text-[#45dfb9]" />
+                                            {salon.rating}
+                                        </span>
+                                    </div>
+                                    <div className="p-5">
+                                        <h3 className="text-[16px] font-semibold text-white">{salon.name}</h3>
+                                        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-[#91aaa4]">
+                                            <MapPin className="h-3.5 w-3.5 text-[#45dfb9]" />
+                                            {salon.location}
+                                        </p>
+                                        <p className="mt-4 text-[12px] text-[#9fc2ba]">{salon.services}</p>
+                                    </div>
+                                </article>
+                            ))}
 
-                                return (
-                                    <article key={card.title} className="haze-card min-h-[170px] rounded-[8px] border border-white/10 bg-[#07191d]/58 p-7 backdrop-blur">
-                                        <Icon className="h-6 w-6 text-[#28e0c2]" />
-                                        <h3 className="display-serif mt-6 text-xl font-bold text-[var(--hz-text-strong)]">{card.title}</h3>
-                                        <p className="mt-3 text-sm leading-6 text-[var(--hz-muted)]">{card.text}</p>
-                                    </article>
-                                );
-                            })}
+                            <article className="haze-card group overflow-hidden rounded-[16px] border border-dashed border-[#45dfb9]/32 bg-[#0c221f]/64 transition hover:border-[#45dfb9]/60">
+                                <div className="relative flex h-[150px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(69,223,185,0.16),transparent_50%),linear-gradient(135deg,rgba(31,78,67,0.55),rgba(12,34,31,0.78))]">
+                                    <span className="rounded-full border border-[#45dfb9]/28 bg-[#0c2823]/84 px-3 py-1 text-[9px] font-medium text-[#62dfc1]">
+                                        Скоро в каталоге
+                                    </span>
+                                </div>
+                                <div className="p-5">
+                                    <h3 className="text-[16px] font-semibold text-white">Ваш салон может быть здесь</h3>
+                                    <p className="mt-2 text-[11px] leading-5 text-[#91aaa4]">
+                                        Подключитесь к Hahazen и получите карточку салона для онлайн-записи клиентов.
+                                    </p>
+                                    <a
+                                        href="https://t.me/hahazencrm"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="mt-4 inline-flex text-[12px] font-semibold text-[#45dfb9] transition group-hover:text-[#72f0d2]"
+                                    >
+                                        Стать партнёром →
+                                    </a>
+                                </div>
+                            </article>
                         </div>
                     </div>
                 </section>
 
                 <section id="legend" className="landing-section legend-section scroll-mt-28 px-4 py-24">
-                    <div className="relative z-10 mx-auto grid max-w-[1120px] gap-12 lg:grid-cols-[0.9fr_1fr] lg:items-center">
-                        <div className="haze-card legend-portrait-card overflow-hidden rounded-[8px] border border-[#2ee6cf]/14 p-3">
-                            <div className="relative aspect-square overflow-hidden rounded-[8px] bg-[#061418]">
+                    <div className="legend-showcase relative z-10 mx-auto max-w-[1120px]">
+                        <div className="legend-showcase-image">
+                            <div className="relative h-full w-full">
                                 <Image
                                     src="/legend.png"
-                                    alt="Hahazen"
+                                    alt="Леди — спаниель и символ Hahazen"
                                     fill
-                                    sizes="(max-width: 1024px) 92vw, 500px"
+                                    sizes="(max-width: 768px) 120vw, 700px"
                                     className="object-cover"
                                     priority={false}
                                 />
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(40,224,194,0.12),transparent_58%),linear-gradient(180deg,rgba(4,16,18,0.02),rgba(4,16,18,0.18))]" />
-                                <div className="absolute bottom-5 left-5 right-5 rounded-[8px] border border-[#2ee6cf]/14 bg-[#041012]/58 px-4 py-3 backdrop-blur-md">
-                                    <p className="display-serif text-xl font-bold text-[var(--hz-text-strong)]">Леди</p>
-                                    <p className="mt-1 text-xs leading-5 text-[var(--hz-muted)]">
-                                        тихий символ заботы и гостеприимства Hahazen
-                                    </p>
-                                </div>
                             </div>
                         </div>
 
-                        <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Легенда</p>
-                            <h2 className="display-serif mt-4 max-w-[640px] text-[38px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[56px]">
-                                Легенда Hahazen: <em className="font-normal text-[#28e0c2]">Радость в порядке</em>
+                        <div className="relative z-10 max-w-[570px] px-7 py-12 sm:px-12 sm:py-14">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#45e4be]">Легенда Hahazen</p>
+                            <h2 className="mt-5 text-[38px] font-bold leading-[1.02] text-[var(--hz-text-strong)] sm:text-[52px]">
+                                Хаос превращается
+                                <span className="block text-[#49e3bd]">в улыбку</span>
                             </h2>
 
-                            <div className="mt-8 space-y-5 text-base leading-7 text-[var(--hz-muted)]">
-                                <p>
-                                    <strong className="font-semibold text-[var(--hz-text-strong)]">Ha-ha</strong> это радость, которую слышно в коридоре. Смех мастера,
-                                    довольный клиент, теплое «до встречи».
-                                </p>
-                                <p>
-                                    <strong className="font-semibold text-[var(--hz-text-strong)]">Zen</strong> это спокойствие за стойкой. Когда расписание не подводит,
-                                    касса сходится, а уведомления приходят сами.
-                                </p>
-                                <p>
-                                    И где-то рядом Леди, кокер-спаниель и наш тихий символ гостеприимства. Она встречает каждого, кто заходит в Hahazen,
-                                    и напоминает: порядок это форма заботы.
-                                </p>
-                            </div>
+                            <p className="mt-6 max-w-[460px] text-[14px] leading-7 text-[#abc7c0]">
+                                Hahazen появился из простой мысли: порядок в салоне должен ощущаться не как контроль, а как забота. Спокойное расписание, довольные мастера и клиенты — это и есть радость в порядке.
+                            </p>
 
-                            <blockquote className="haze-card legend-quote mt-9 rounded-[8px] border border-[#2ee6cf]/12 p-6">
-                                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[#28e0c2]/82">
-                                    Радость в порядке
-                                </span>
-                                <p className="display-serif mt-3 text-xl italic leading-8 text-[var(--hz-text-strong)]">
-                                    «Радость в порядке» наш способ сказать, что бизнес может быть теплым.
-                                </p>
-                            </blockquote>
+                            <div className="mt-7 flex flex-wrap gap-2">
+                                <span className="rounded-full border border-[#45dfb9]/22 bg-[#45dfb9]/8 px-3 py-1.5 text-[10px] font-medium text-[#75dfc6]">Ha-ha · радость</span>
+                                <span className="rounded-full border border-[#45dfb9]/22 bg-[#45dfb9]/8 px-3 py-1.5 text-[10px] font-medium text-[#75dfc6]">Zen · спокойствие</span>
+                                <span className="rounded-full border border-[#45dfb9]/22 bg-[#45dfb9]/8 px-3 py-1.5 text-[10px] font-medium text-[#75dfc6]">Леди · забота</span>
+                            </div>
                         </div>
                     </div>
                 </section>
                 </div>
             </main>
 
-            <footer id="contacts" className="relative bg-transparent px-4 py-14">
+            <footer id="contacts" className="relative scroll-mt-28 bg-transparent px-4 py-14">
                 <div className="mx-auto grid max-w-[1120px] gap-8 text-[var(--hz-muted)] md:grid-cols-3 md:items-center">
                     <div>
                         <Link href="/" className="flex items-center gap-3">
@@ -802,9 +1143,19 @@ export default function Home() {
                         <p className="mt-8 text-xs">© 2026 Hahazen. Радость в порядке.</p>
                     </div>
 
-                    <a href="mailto:info@hahazen.com" className="text-sm transition hover:text-[var(--hz-text-strong)] md:text-center">
-                        info@hahazen.com
-                    </a>
+                    <div className="flex flex-col gap-2 text-sm md:items-center md:text-center">
+                        <a href="mailto:info@hahazen.com" className="transition hover:text-[var(--hz-text-strong)]">
+                            info@hahazen.com
+                        </a>
+                        <a
+                            href="https://t.me/hahazencrm"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-medium text-[#45dfb9] transition hover:text-[#72f0d2]"
+                        >
+                            Telegram · @hahazencrm
+                        </a>
+                    </div>
 
                     <div className="md:text-right">
                         <Link
