@@ -14,6 +14,7 @@ import {
     Gift,
     MapPin,
     ShieldCheck,
+    Send,
     Star,
     Menu,
     UsersRound,
@@ -103,6 +104,53 @@ const partnerSalons = [
     },
 ];
 
+const interfaceShowcase = [
+    {
+        title: "Расписание по мастерам",
+        text: "Сетка дня показывает загрузку команды, свободные окна и пересечения.",
+        desktop: "/images/interface/schedule-grid.jpg",
+    },
+    {
+        title: "Записи списком",
+        text: "Компактный режим для быстрой проверки записей каждого мастера.",
+        desktop: "/images/interface/schedule-list.jpg",
+        mobile: "/images/interface/schedule-mobile.jpg",
+    },
+    {
+        title: "Создание записи",
+        text: "Клиент, время, услуги и оплата собираются в одном понятном окне.",
+        desktop: "/images/interface/create-appointment.jpg",
+        mobile: "/images/interface/create-appointment-mobile.jpg",
+    },
+    {
+        title: "График мастера",
+        text: "Рабочие дни и часы сотрудника всегда видны владельцу и администратору.",
+        desktop: "/images/interface/employee-schedule.jpg",
+    },
+    {
+        title: "История визитов",
+        text: "Все посещения, услуги и заметки сохраняются в карточке клиента.",
+        desktop: "/images/interface/client-visits.jpg",
+        mobile: "/images/interface/client-visits-mobile.jpg",
+    },
+    {
+        title: "Карта тела",
+        text: "Визуальные отметки помогают сохранять важные наблюдения между сеансами.",
+        desktop: "/images/interface/body-map.jpg",
+        mobile: "/images/interface/body-map-mobile.jpg",
+    },
+    {
+        title: "Бонусная система",
+        text: "Начисления, списания и история бонусов находятся в карточке клиента.",
+        desktop: "/images/interface/bonuses.jpg",
+    },
+    {
+        title: "Онлайн-запись",
+        text: "Клиент выбирает услуги самостоятельно, без звонков и переписки.",
+        desktop: "/images/interface/online-booking.jpg",
+    },
+];
+
 const staggerContainer: Variants = {
     hidden: {},
     visible: {
@@ -145,11 +193,28 @@ const cardIn: Variants = {
     },
 };
 
+const scrollReveal: Variants = {
+    hidden: {
+        opacity: 0,
+        y: 14,
+    },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: {
+            duration: 0.58,
+            ease: "easeOut",
+        },
+    },
+};
+
 export default function Home() {
     const [showContent, setShowContent] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAuthChecked, setIsAuthChecked] = useState(false);
+    const [activeInterfaceShot, setActiveInterfaceShot] = useState(0);
     const router = useRouter();
+    const activeInterface = interfaceShowcase[activeInterfaceShot];
 
     useEffect(() => {
         const token = authStorage.getToken();
@@ -789,7 +854,7 @@ export default function Home() {
                                     <span className="absolute inset-y-0 left-0 w-10 bg-white/35 blur-md" />
                                 </Link>
                                 <Link
-                                    href="/signin"
+                                    href="#interface"
                                     className="flex h-12 items-center justify-center gap-3 rounded-full border border-[#9bbcb5]/20 bg-[#102724]/70 px-6 text-[14px] font-semibold text-white transition hover:border-[#39e2b4]/40"
                                 >
                                     Посмотреть интерфейс
@@ -902,15 +967,17 @@ export default function Home() {
                 <div className="lower-flow">
                 <section id="business" className="landing-section soft-section scroll-mt-28 px-4 pb-24 pt-20 sm:pt-24">
                     <div className="relative z-10 mx-auto max-w-[1120px]">
-                        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Для бизнеса</p>
-                        <h2 className="mt-4 max-w-[740px] text-[34px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[44px]">
-                            Что видит владелец салона
-                        </h2>
-                        <p className="mt-4 max-w-[660px] text-base leading-7 text-[var(--hz-muted)]">
-                            Один экран — и понятно, что происходит сегодня, кто пришёл, кто записан и сколько заработали мастера.
-                        </p>
+                        <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Для бизнеса</p>
+                            <h2 className="mt-4 max-w-[740px] text-[34px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[44px]">
+                                Что видит владелец салона
+                            </h2>
+                            <p className="mt-4 max-w-[660px] text-base leading-7 text-[var(--hz-muted)]">
+                                Один экран — и понятно, что происходит сегодня, кто пришёл, кто записан и сколько заработали мастера.
+                            </p>
+                        </motion.div>
 
-                        <div className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.12 }} className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             {ownerFeatures.map((feature) => {
                                 const Icon = feature.icon;
 
@@ -924,17 +991,106 @@ export default function Home() {
                                     </article>
                                 );
                             })}
-                        </div>
+                        </motion.div>
 
-                        <div id="pricing" className="scroll-mt-28 mt-24 border-t border-white/[0.06] pt-20">
-                            <h2 className="max-w-[620px] text-[34px] font-bold leading-[1.05] text-[var(--hz-text-strong)] sm:text-[44px]">
-                                Простые тарифы без оплаты за каждого мастера
+                        <motion.div
+                            id="interface"
+                            variants={scrollReveal}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, amount: 0.08 }}
+                            className="scroll-mt-28 mt-24 border-t border-white/[0.06] pt-20"
+                        >
+                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Интерфейс</p>
+                            <h2 className="mt-4 max-w-[720px] text-[34px] font-bold leading-[1.05] text-[var(--hz-text-strong)] sm:text-[44px]">
+                                Посмотрите, как работает Hahazen
                             </h2>
                             <p className="mt-4 max-w-[680px] text-base leading-7 text-[var(--hz-muted)]">
-                                Фиксированная цена за салон. Сколько мастеров — столько и работайте.
+                                Реальные экраны системы без открытого демо-доступа и тестовых кабинетов.
                             </p>
 
-                            <div className="mt-10 grid gap-4 lg:grid-cols-3">
+                            <div className="mt-8 flex gap-2 overflow-x-auto pb-2">
+                                {interfaceShowcase.map((shot, index) => (
+                                    <button
+                                        key={shot.title}
+                                        type="button"
+                                        onClick={() => setActiveInterfaceShot(index)}
+                                        aria-pressed={activeInterfaceShot === index}
+                                        className={`shrink-0 rounded-full border px-4 py-2 text-[11px] font-medium transition ${
+                                            activeInterfaceShot === index
+                                                ? "border-[#45dfb9]/50 bg-[#45dfb9]/16 text-[#72ecd0]"
+                                                : "border-white/[0.08] bg-[#0b211e]/68 text-[#91aaa4] hover:border-[#45dfb9]/30 hover:text-[#c8ddd8]"
+                                        }`}
+                                    >
+                                        {shot.title}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="haze-card mt-6 overflow-hidden rounded-[20px] border border-white/[0.1] bg-[#071714]/86 p-3 shadow-[0_30px_100px_rgba(0,0,0,0.3)] sm:p-4">
+                                <div className="flex items-center justify-between gap-4 px-1 pb-3">
+                                    <div>
+                                        <h3 className="text-[14px] font-semibold text-white">{activeInterface.title}</h3>
+                                        <p className="mt-1 text-[11px] leading-5 text-[#91aaa4]">{activeInterface.text}</p>
+                                    </div>
+                                    <span className="hidden shrink-0 rounded-full border border-[#45dfb9]/20 bg-[#45dfb9]/8 px-3 py-1 text-[9px] font-medium text-[#5de2c2] sm:inline-flex">
+                                        Реальный интерфейс
+                                    </span>
+                                </div>
+
+                                <div className="relative aspect-[2/1] overflow-hidden rounded-[14px] border border-white/[0.08] bg-[#050a18]">
+                                    <Image
+                                        key={activeInterface.desktop}
+                                        src={activeInterface.desktop}
+                                        alt={`${activeInterface.title} в Hahazen`}
+                                        fill
+                                        sizes="(max-width: 768px) 94vw, 1080px"
+                                        className="object-cover object-top"
+                                    />
+
+                                    {activeInterface.mobile && (
+                                        <div className="absolute bottom-4 right-4 top-4 hidden w-[22%] overflow-hidden rounded-[16px] border border-[#45dfb9]/28 bg-[#08101f] p-1 shadow-[0_18px_50px_rgba(0,0,0,0.5)] sm:block">
+                                            <div className="relative h-full w-full overflow-hidden rounded-[12px]">
+                                                <Image
+                                                    key={activeInterface.mobile}
+                                                    src={activeInterface.mobile}
+                                                    alt={`${activeInterface.title} на мобильном экране`}
+                                                    fill
+                                                    sizes="240px"
+                                                    className="object-cover object-top"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {activeInterface.mobile && (
+                                    <div className="mx-auto mt-4 w-[58%] overflow-hidden rounded-[16px] border border-[#45dfb9]/24 bg-[#08101f] p-1 sm:hidden">
+                                        <div className="relative aspect-[9/19] overflow-hidden rounded-[12px]">
+                                            <Image
+                                                src={activeInterface.mobile}
+                                                alt={`${activeInterface.title} на мобильном экране`}
+                                                fill
+                                                sizes="58vw"
+                                                className="object-cover object-top"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+
+                        <div id="pricing" className="scroll-mt-28 mt-24 border-t border-white/[0.06] pt-20">
+                            <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
+                                <h2 className="max-w-[620px] text-[34px] font-bold leading-[1.05] text-[var(--hz-text-strong)] sm:text-[44px]">
+                                    Простые тарифы без оплаты за каждого мастера
+                                </h2>
+                                <p className="mt-4 max-w-[680px] text-base leading-7 text-[var(--hz-muted)]">
+                                    Фиксированная цена за салон. Сколько мастеров — столько и работайте.
+                                </p>
+                            </motion.div>
+
+                            <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.12 }} className="mt-10 grid gap-4 lg:grid-cols-3">
                                 {plans.map((plan) => (
                                     <article
                                         key={plan.name}
@@ -980,9 +1136,9 @@ export default function Home() {
                                         </button>
                                     </article>
                                 ))}
-                            </div>
+                            </motion.div>
 
-                            <div className="relative mt-12 overflow-hidden rounded-[22px] border border-[#45dfb9]/60 bg-[#0d2926]/92 px-6 py-14 text-center shadow-[0_0_70px_rgba(38,224,194,0.18),inset_0_1px_0_rgba(255,255,255,0.06)] sm:px-12 sm:py-16">
+                            <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.16 }} className="relative mt-12 overflow-hidden rounded-[22px] border border-[#45dfb9]/60 bg-[#0d2926]/92 px-6 py-14 text-center shadow-[0_0_70px_rgba(38,224,194,0.18),inset_0_1px_0_rgba(255,255,255,0.06)] sm:px-12 sm:py-16">
                                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(53,226,185,0.28),transparent_34%),radial-gradient(circle_at_76%_86%,rgba(26,155,128,0.2),transparent_36%),linear-gradient(130deg,rgba(50,225,183,0.12),transparent_48%)]" />
                                 <div className="pointer-events-none absolute -left-20 top-1/2 h-48 w-48 -translate-y-1/2 rounded-full bg-[#28e0c2]/20 blur-[70px]" />
                                 <div className="pointer-events-none absolute -right-16 bottom-0 h-44 w-44 rounded-full bg-[#28e0c2]/16 blur-[64px]" />
@@ -1007,14 +1163,14 @@ export default function Home() {
                                         <span className="absolute inset-y-0 left-0 w-10 bg-white/35 blur-md" />
                                     </a>
                                 </div>
-                            </div>
+                            </motion.div>
                         </div>
                     </div>
                 </section>
 
                 <section className="landing-section soft-section px-4 py-24">
                     <div className="relative z-10 mx-auto max-w-[1120px]">
-                        <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                        <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Каталог</p>
                                 <h2 className="mt-4 text-[34px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[44px]">
@@ -1032,9 +1188,9 @@ export default function Home() {
                             >
                                 Стать партнёром →
                             </a>
-                        </div>
+                        </motion.div>
 
-                        <div className="mt-9 grid gap-4 lg:grid-cols-3">
+                        <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.12 }} className="mt-9 grid gap-4 lg:grid-cols-3">
                             {partnerSalons.map((salon) => (
                                 <article key={salon.name} className="haze-card overflow-hidden rounded-[16px] border border-white/[0.08] bg-[#0c221f]/82">
                                     <div className="relative h-[150px]" style={{ background: salon.visual }}>
@@ -1078,12 +1234,12 @@ export default function Home() {
                                     </a>
                                 </div>
                             </article>
-                        </div>
+                        </motion.div>
                     </div>
                 </section>
 
                 <section id="legend" className="landing-section legend-section scroll-mt-28 px-4 py-24">
-                    <div className="legend-showcase relative z-10 mx-auto max-w-[1120px]">
+                    <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.16 }} className="legend-showcase relative z-10 mx-auto max-w-[1120px]">
                         <div className="legend-showcase-image">
                             <div className="relative h-full w-full">
                                 <Image
@@ -1114,7 +1270,7 @@ export default function Home() {
                                 <span className="rounded-full border border-[#45dfb9]/22 bg-[#45dfb9]/8 px-3 py-1.5 text-[10px] font-medium text-[#75dfc6]">Леди · забота</span>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 </section>
                 </div>
             </main>
@@ -1144,16 +1300,19 @@ export default function Home() {
                     </div>
 
                     <div className="flex flex-col gap-2 text-sm md:items-center md:text-center">
-                        <a href="mailto:info@hahazen.com" className="transition hover:text-[var(--hz-text-strong)]">
+                        {/*<a href="mailto:info@hahazen.com" className="transition hover:text-[var(--hz-text-strong)]">
                             info@hahazen.com
-                        </a>
+                        </a>*/}
                         <a
                             href="https://t.me/hahazencrm"
                             target="_blank"
                             rel="noreferrer"
-                            className="font-medium text-[#45dfb9] transition hover:text-[#72f0d2]"
+                            className="inline-flex items-center gap-2 font-medium text-[#45dfb9] transition hover:text-[#72f0d2]"
                         >
-                            Telegram · @hahazencrm
+                            <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#45dfb9]/22 bg-[#45dfb9]/8">
+                                <Send className="h-3.5 w-3.5" />
+                            </span>
+                            <span>Telegram · @hahazencrm</span>
                         </a>
                     </div>
 
