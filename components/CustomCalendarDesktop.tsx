@@ -37,16 +37,16 @@ export const CustomCalendarDesktop: React.FC<CustomCalendarDesktopProps> = ({
     };
 
     return (
-        <div className="w-full rounded-2xl border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-sm p-3">
+        <div className="admin-mini-calendar w-full rounded-2xl border border-gray-200 bg-white p-3 text-slate-900 shadow-sm dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-100">
             {/* Навигация */}
             <div className="flex justify-between items-center mb-3">
                 <button
                     onClick={onPrevMonth}
-                    className="text-[rgb(var(--foreground))]/70 hover:text-green-600 font-semibold"
+                    className="admin-calendar-arrow flex h-8 w-8 items-center justify-center rounded-xl font-semibold text-[rgb(var(--foreground))]/70 transition hover:text-emerald-500"
                 >
                     ←
                 </button>
-                <div className="font-semibold text-[rgb(var(--foreground))] capitalize cursor-default hover:text-green-600 transition">
+                <div className="cursor-default capitalize font-semibold text-[rgb(var(--foreground))] transition hover:text-emerald-500">
                     {new Date(year, month - 1).toLocaleString("ru-RU", {
                         month: "long",
                         year: "numeric",
@@ -54,7 +54,7 @@ export const CustomCalendarDesktop: React.FC<CustomCalendarDesktopProps> = ({
                 </div>
                 <button
                     onClick={onNextMonth}
-                    className="text-[rgb(var(--foreground))]/70 hover:text-green-600 font-semibold"
+                    className="admin-calendar-arrow flex h-8 w-8 items-center justify-center rounded-xl font-semibold text-[rgb(var(--foreground))]/70 transition hover:text-emerald-500"
                 >
                     →
                 </button>
@@ -88,10 +88,10 @@ export const CustomCalendarDesktop: React.FC<CustomCalendarDesktopProps> = ({
     transition-all duration-200
     ${day
                                 ? isSelected
-                                    ? "bg-green-500 text-white shadow-md scale-105"
+                                    ? "bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-[0_0_18px_rgba(45,212,191,0.38)] scale-105"
                                     : isHighlighted
-                                        ? "bg-green-500/15 text-green-500 hover:bg-green-500/25"
-                                        : "text-slate-900 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                        ? "border border-emerald-400/20 bg-emerald-500/15 text-emerald-500 hover:bg-emerald-500/25 dark:text-emerald-300"
+                                        : "text-slate-900 hover:bg-emerald-50 dark:text-slate-100 dark:hover:bg-white/[0.07]"
                                 : "cursor-default"
                             }
   `}

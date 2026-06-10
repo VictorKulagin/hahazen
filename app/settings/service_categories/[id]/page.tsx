@@ -25,7 +25,7 @@ import { ServiceManagerUpdateOne } from "@/components/schedulePage/ServiceManage
 
 
 import {AxiosError} from "axios";
-import Image from "next/image";
+import BranchInitial from "@/components/BranchInitial";
 import Loader from "@/components/Loader";
 
 import { Pencil, Trash2 } from "lucide-react";
@@ -304,11 +304,8 @@ const Page: React.FC = ( ) => {
                         className="flex items-center min-w-0 flex-1"
                         onClick={toggleFilModal}
                     >
-                        <Image
-                            src="/logo.png"
-                            alt="Логотип"
-                            width={32}
-                            height={32}
+                        <BranchInitial
+                            name={branchesData?.find((branch: any) => branch.id === id)?.name || branchesData?.[0]?.name}
                             className="mr-2"
                         />
                         {!collapsed && (
@@ -442,7 +439,7 @@ const Page: React.FC = ( ) => {
                 </div>
 
                 {/* Заголовок */}
-                <div className="mb-6 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                <div className="admin-page-header mb-6 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
                     <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
@@ -515,8 +512,8 @@ const Page: React.FC = ( ) => {
 
                 {/* Модальное окно */}
                 {isModalOpen && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                        <div className="bg-white text-black p-6 rounded shadow-lg w-96 relative">
+                    <div className="admin-dialog-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                        <div className="admin-dialog-panel bg-white text-black p-6 rounded shadow-lg w-96 relative">
                             {/* Кнопка закрытия */}
                             <button
                                 onClick={() => setIsModalOpen(false)}
@@ -574,7 +571,7 @@ const ServicesTable = ({
 }) => {
     return (
         <div className="grid grid-cols-1">
-            <section className="rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
+            <section className="admin-list-surface rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
                 <div className="mb-5 flex items-center gap-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                         Услуги
@@ -597,7 +594,7 @@ const ServicesTable = ({
                             {services.map((service) => (
                                 <div
                                     key={service.id}
-                                    className="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-4"
+                                    className="admin-list-row rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-4"
                                 >
                                     <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(220px,1fr)_110px_110px_auto] lg:items-center lg:gap-6">
                                         {/* Название + время + цена на мобиле */}

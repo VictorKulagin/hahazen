@@ -71,7 +71,7 @@ export default function EmployeeDetailsPanel({
     };
 
     return (
-        <div className="space-y-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none md:p-6">
+        <div className="admin-details-panel space-y-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none md:p-6">
             <EmployeeDetailsHeader
                 employee={employee}
                 onBack={onBack}

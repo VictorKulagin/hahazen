@@ -68,17 +68,17 @@ const CustomCalendarMobile: React.FC<CustomCalendarMobileProps> = ({
             : [weeks[0]];
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm p-3 w-full border border-gray-200 dark:border-slate-700">
+        <div className="admin-mini-calendar w-full rounded-2xl border border-gray-200 bg-white p-3 shadow-sm dark:border-white/10 dark:bg-white/[0.04]">
             {/* Заголовок */}
             <div className="flex items-center justify-between mb-2">
-                <button onClick={onPrevMonth} className="text-gray-500 dark:text-slate-400">←</button>
+                <button onClick={onPrevMonth} className="admin-calendar-arrow flex h-8 w-8 items-center justify-center rounded-xl text-gray-500 dark:text-slate-400">←</button>
                 <div className="font-semibold text-gray-800 dark:text-slate-100 capitalize cursor-default hover:text-green-600 transition">
                     {new Date(year, month - 1).toLocaleString("ru-RU", {
                         month: "long",
                         year: "numeric",
                     })}
                 </div>
-                <button onClick={onNextMonth} className="text-gray-500 dark:text-slate-400">→</button>
+                <button onClick={onNextMonth} className="admin-calendar-arrow flex h-8 w-8 items-center justify-center rounded-xl text-gray-500 dark:text-slate-400">→</button>
             </div>
 
             {/* Заголовки дней недели */}
@@ -112,11 +112,11 @@ const CustomCalendarMobile: React.FC<CustomCalendarMobileProps> = ({
     transition-all duration-200
     ${day
                                         ? isSelected
-                                            ? "bg-green-500 text-white shadow-md scale-105"
+                                            ? "bg-gradient-to-br from-emerald-400 to-teal-600 text-white shadow-[0_0_18px_rgba(45,212,191,0.38)] scale-105"
                                             : isHighlighted
-                                                ? "bg-green-100 text-green-700 hover:bg-green-200 \n" +
-                                                "dark:bg-green-500/15 dark:text-green-400 dark:hover:bg-green-500/25"
-                                                : "text-slate-900 dark:text-slate-100 hover:bg-gray-100 dark:hover:bg-slate-800"
+                                                ? "border border-emerald-400/20 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 \n" +
+                                                "dark:bg-emerald-500/15 dark:text-emerald-300 dark:hover:bg-emerald-500/25"
+                                                : "text-slate-900 dark:text-slate-100 hover:bg-emerald-50 dark:hover:bg-white/[0.07]"
                                         : "cursor-default"
                                     }
   `}

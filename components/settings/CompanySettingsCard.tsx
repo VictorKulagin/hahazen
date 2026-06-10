@@ -126,14 +126,14 @@ export default function CompanySettingsCard({
 
     if (!company) {
         return (
-            <section className="rounded-2xl border border-gray-200 bg-white p-4 text-gray-500 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-gray-400 dark:shadow-none">
+            <section className="admin-content-surface rounded-2xl border border-gray-200 bg-white p-4 text-gray-500 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-gray-400 dark:shadow-none">
                 Компания не найдена.
             </section>
         );
     }
 
     return (
-        <section className="rounded-2xl border border-gray-200 bg-white p-4 text-gray-900 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none">
+        <section className="admin-content-surface rounded-2xl border border-gray-200 bg-white p-4 text-gray-900 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none">
             <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                     <h2 className="text-lg font-semibold">Компания и регион</h2>

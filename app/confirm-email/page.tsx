@@ -69,7 +69,7 @@ function ConfirmEmailContent() {
             : message;
 
     return (
-        <main className="relative min-h-screen overflow-hidden bg-slate-100 px-4 py-10 text-slate-900 dark:bg-[rgb(var(--background))] dark:text-[rgb(var(--foreground))]">
+        <main className="public-auth-page relative min-h-screen overflow-hidden bg-slate-100 px-4 py-10 text-slate-900 dark:bg-[rgb(var(--background))] dark:text-[rgb(var(--foreground))]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.13),transparent_38%)] dark:bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.08),transparent_35%)]" />
             <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-white/70 to-transparent dark:from-white/5" />
 
@@ -78,7 +78,7 @@ function ConfirmEmailContent() {
             </div>
 
             <div className="relative flex min-h-[calc(100vh-5rem)] items-center justify-center">
-                <section className="w-full max-w-md rounded-3xl border border-white bg-white p-6 text-center shadow-[0_22px_60px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none sm:p-8">
+                <section className="public-auth-card w-full max-w-md rounded-3xl border border-white bg-white p-6 text-center shadow-[0_22px_60px_rgba(15,23,42,0.12)] dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none sm:p-8">
                     <div className="mb-6 flex flex-col items-center">
                         <Image
                             src="/logo.png"
@@ -88,11 +88,11 @@ function ConfirmEmailContent() {
                             className="mb-4 h-16 w-16 rounded-2xl object-cover shadow-md"
                         />
 
-                        <p className="text-sm font-bold uppercase tracking-[0.18em] text-indigo-500 dark:text-green-400">
+                        <p className="text-sm font-bold uppercase tracking-[0.18em] text-green-500 dark:text-green-400">
                             Hahazen
                         </p>
 
-                        <div className="mt-7 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500 dark:bg-green-500/10 dark:text-green-300">
+                        <div className="mt-7 flex h-16 w-16 items-center justify-center rounded-2xl bg-green-50 text-green-500 dark:bg-green-500/10 dark:text-green-300">
                             {isLoading && <Loader2 className="h-8 w-8 animate-spin" />}
                             {isSuccess && <CheckCircle2 className="h-8 w-8" />}
                             {isError && <XCircle className="h-8 w-8 text-red-500" />}
@@ -108,8 +108,8 @@ function ConfirmEmailContent() {
                     </div>
 
                     {isSuccess && (
-                        <div className="mb-5 flex items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50 px-4 py-3 text-left text-sm text-indigo-900 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-100">
-                            <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-indigo-500 dark:text-green-300" />
+                        <div className="mb-5 flex items-start gap-3 rounded-2xl border border-green-100 bg-green-50 px-4 py-3 text-left text-sm text-green-900 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-100">
+                            <MailCheck className="mt-0.5 h-5 w-5 shrink-0 text-green-500 dark:text-green-300" />
                             <span>
                                 Через несколько секунд откроем страницу входа. Если не
                                 откроется, нажмите кнопку ниже.
@@ -125,7 +125,7 @@ function ConfirmEmailContent() {
 
                     <Link
                         href="/signin"
-                        className="inline-flex w-full items-center justify-center rounded-2xl bg-indigo-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-indigo-600 dark:bg-green-500 dark:hover:bg-green-600"
+                        className="inline-flex w-full items-center justify-center rounded-2xl bg-green-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-green-600"
                     >
                         Перейти ко входу
                     </Link>
@@ -139,7 +139,7 @@ export default function ConfirmEmailPage() {
     return (
         <Suspense
             fallback={
-                <main className="flex min-h-screen items-center justify-center bg-slate-100 text-slate-500 dark:bg-[rgb(var(--background))]">
+                <main className="public-auth-page flex min-h-screen items-center justify-center bg-slate-100 text-slate-500 dark:bg-[rgb(var(--background))]">
                     Загрузка...
                 </main>
             }

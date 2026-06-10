@@ -557,6 +557,297 @@ html {
   background: rgba(34, 197, 94, 0.16);
 }
 
+/* ================= PUBLIC ACCOUNT FLOW ================= */
+.public-auth-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 58rem 42rem at 12% 4%, rgba(6, 182, 212, 0.16), transparent 68%),
+    radial-gradient(ellipse 54rem 42rem at 90% 88%, rgba(16, 185, 129, 0.18), transparent 70%),
+    linear-gradient(135deg, #f8fafc 0%, #eef8f5 50%, #e9f7f3 100%) !important;
+  background-attachment: fixed !important;
+}
+
+.dark .public-auth-page {
+  background:
+    radial-gradient(ellipse 64rem 48rem at 10% 4%, rgba(17, 126, 140, 0.36), transparent 70%),
+    radial-gradient(ellipse 62rem 46rem at 92% 88%, rgba(7, 118, 77, 0.3), transparent 72%),
+    radial-gradient(ellipse 38rem 28rem at 52% 38%, rgba(45, 212, 191, 0.06), transparent 72%),
+    linear-gradient(112deg, #082f36 0%, #061d22 32%, #041416 64%, #03100f 100%) !important;
+  background-attachment: fixed !important;
+}
+
+.public-auth-card {
+  border-color: rgba(15, 118, 110, 0.14) !important;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.7), transparent 44%),
+    rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, 0.11) !important;
+  backdrop-filter: blur(24px);
+}
+
+.dark .public-auth-card {
+  border-color: rgba(94, 234, 212, 0.13) !important;
+  background:
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.1), transparent 44%),
+    linear-gradient(145deg, rgba(8, 47, 54, 0.9), rgba(4, 24, 27, 0.88)) !important;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.3) !important;
+}
+
+.public-auth-option {
+  border-color: rgba(15, 118, 110, 0.13) !important;
+  background: rgba(255, 255, 255, 0.76) !important;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, 0.065) !important;
+  backdrop-filter: blur(18px);
+}
+
+.public-auth-option:hover {
+  border-color: rgba(16, 185, 129, 0.38) !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+}
+
+.dark .public-auth-option {
+  border-color: rgba(94, 234, 212, 0.11) !important;
+  background: rgba(7, 35, 39, 0.84) !important;
+  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18) !important;
+}
+
+.dark .public-auth-option:hover {
+  border-color: rgba(52, 211, 153, 0.32) !important;
+  background: rgba(9, 48, 52, 0.92) !important;
+}
+
+.public-auth-input {
+  border-color: rgba(15, 118, 110, 0.18) !important;
+  border-radius: 0.75rem !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  color: rgb(17 24 39) !important;
+}
+
+.dark .public-auth-input {
+  border-color: rgba(94, 234, 212, 0.12) !important;
+  background: rgba(255, 255, 255, 0.055) !important;
+  color: white !important;
+}
+
+/* ================= ADMIN SURFACE ================= */
+body:has(.admin-sidebar-menu) > main {
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse 72rem 48rem at 14% 6%, rgba(6, 182, 212, 0.12), transparent 68%),
+    radial-gradient(ellipse 62rem 52rem at 92% 82%, rgba(16, 185, 129, 0.12), transparent 72%),
+    linear-gradient(135deg, #f8fafc 0%, #f1f7f5 48%, #edf7f4 100%);
+  background-attachment: fixed;
+}
+
+.dark body:has(.admin-sidebar-menu) > main {
+  background:
+    radial-gradient(ellipse 76rem 58rem at 12% 8%, rgba(17, 126, 140, 0.34), transparent 70%),
+    radial-gradient(ellipse 72rem 54rem at 88% 78%, rgba(7, 118, 77, 0.3), transparent 74%),
+    radial-gradient(ellipse 48rem 34rem at 52% 36%, rgba(45, 212, 191, 0.055), transparent 72%),
+    linear-gradient(112deg, #082f36 0%, #061d22 30%, #041416 62%, #03100f 100%);
+  background-attachment: fixed;
+}
+
+body:has(.admin-sidebar-menu) div.relative.min-h-screen,
+body:has(.admin-sidebar-menu) main.min-h-screen {
+  background-color: transparent !important;
+}
+
+body:has(.admin-sidebar-menu) aside:has(.admin-sidebar-menu) {
+  border-right: 1px solid rgba(15, 118, 110, 0.1);
+  background: rgba(255, 255, 255, 0.78) !important;
+  box-shadow: 18px 0 55px rgba(15, 23, 42, 0.055);
+  backdrop-filter: blur(24px);
+}
+
+.dark body:has(.admin-sidebar-menu) aside:has(.admin-sidebar-menu) {
+  border-right-color: rgba(94, 234, 212, 0.09);
+  background: rgba(3, 18, 20, 0.74) !important;
+  box-shadow: 18px 0 65px rgba(0, 0, 0, 0.18);
+}
+
+body:has(.admin-sidebar-menu) .admin-page-header,
+body:has(.admin-sidebar-menu) .admin-list-surface {
+  border-color: rgba(15, 118, 110, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 22px 70px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(20px);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-page-header,
+.dark body:has(.admin-sidebar-menu) .admin-list-surface {
+  border-color: rgba(94, 234, 212, 0.1);
+  background: rgba(7, 30, 34, 0.82);
+  box-shadow: 0 24px 75px rgba(0, 0, 0, 0.2);
+}
+
+body:has(.admin-sidebar-menu) .admin-content-surface {
+  --background: 244 250 248;
+  --card: 255 255 255;
+  --border: 210 229 224;
+  border-color: rgba(15, 118, 110, 0.12);
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 22px 70px rgba(15, 23, 42, 0.07);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-content-surface {
+  --background: 4 22 24;
+  --card: 8 39 44;
+  --border: 27 69 72;
+  border-color: rgba(94, 234, 212, 0.1);
+  background: rgba(7, 30, 34, 0.82);
+  box-shadow: 0 24px 75px rgba(0, 0, 0, 0.2);
+}
+
+body:has(.admin-sidebar-menu) .admin-page-header {
+  box-shadow: 0 12px 38px rgba(15, 23, 42, 0.055);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-page-header {
+  background: rgba(8, 39, 44, 0.86);
+  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.16);
+}
+
+body:has(.admin-sidebar-menu) .admin-list-row {
+  border-color: rgba(15, 118, 110, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.045);
+}
+
+body:has(.admin-sidebar-menu) .admin-list-row:hover {
+  border-color: rgba(16, 185, 129, 0.28);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-list-row {
+  border-color: rgba(94, 234, 212, 0.09);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: none;
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-list-row:hover {
+  border-color: rgba(52, 211, 153, 0.25);
+  background: rgba(255, 255, 255, 0.075);
+}
+
+body:has(.admin-sidebar-menu) .admin-dashboard-card {
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.065);
+}
+
+body:has(.admin-sidebar-menu) .admin-dashboard-card:hover {
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-dashboard-card {
+  background:
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.1), transparent 42%),
+    linear-gradient(135deg, rgba(8, 47, 54, 0.9), rgba(5, 27, 30, 0.88));
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.17);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-dashboard-card:hover {
+  background:
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.14), transparent 44%),
+    linear-gradient(135deg, rgba(9, 55, 62, 0.94), rgba(5, 31, 34, 0.92));
+}
+
+body:has(.admin-sidebar-menu) .admin-details-panel {
+  --card: 255 255 255;
+  --border: 210 229 224;
+  border-color: rgba(15, 118, 110, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 22px 70px rgba(15, 23, 42, 0.07);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-details-panel {
+  --card: 8 39 44;
+  --border: 29 72 75;
+  border-color: rgba(94, 234, 212, 0.1);
+  background:
+    radial-gradient(circle at top left, rgba(45, 212, 191, 0.075), transparent 38%),
+    linear-gradient(135deg, rgba(7, 36, 40, 0.94), rgba(4, 25, 28, 0.93));
+  box-shadow: 0 24px 75px rgba(0, 0, 0, 0.2);
+}
+
+body:has(.admin-sidebar-menu) .admin-details-tabs {
+  border-color: rgba(15, 118, 110, 0.12);
+  background: rgba(240, 249, 246, 0.78);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-details-tabs {
+  border-color: rgba(94, 234, 212, 0.1);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+body:has(.admin-sidebar-menu) .admin-details-section {
+  border-color: rgba(15, 118, 110, 0.11);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.045);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-details-section {
+  border-color: rgba(94, 234, 212, 0.09);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: none;
+}
+
+body:has(.admin-sidebar-menu) .admin-calendar-shell {
+  border-color: rgba(15, 118, 110, 0.13);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(45, 212, 191, 0.1), transparent 48%),
+    rgba(255, 255, 255, 0.62);
+  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.07);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-calendar-shell {
+  border-color: rgba(94, 234, 212, 0.13);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(45, 212, 191, 0.13), transparent 52%),
+    rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 18px 44px rgba(0, 0, 0, 0.16);
+}
+
+body:has(.admin-sidebar-menu) .admin-mini-calendar {
+  border-color: rgba(15, 118, 110, 0.16);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-mini-calendar {
+  border-color: rgba(94, 234, 212, 0.14);
+  background: rgba(4, 25, 28, 0.76);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+body:has(.admin-sidebar-menu) .admin-calendar-arrow:hover {
+  background: rgba(16, 185, 129, 0.09);
+}
+
+.dark body:has(.admin-sidebar-menu) .admin-calendar-arrow:hover {
+  background: rgba(45, 212, 191, 0.1);
+}
+
+.admin-dialog-overlay {
+  width: 100vw;
+  height: 100dvh;
+  background: rgba(2, 12, 14, 0.52) !important;
+  backdrop-filter: blur(5px);
+}
+
+.admin-dialog-panel {
+  --background: 244 250 248;
+  --card: 255 255 255;
+  border-color: rgba(15, 118, 110, 0.14) !important;
+  box-shadow: -22px 0 70px rgba(15, 23, 42, 0.16) !important;
+}
+
+.dark .admin-dialog-panel {
+  --background: 4 22 24;
+  --card: 7 35 39;
+  border-color: rgba(94, 234, 212, 0.12) !important;
+  box-shadow: -24px 0 80px rgba(0, 0, 0, 0.34) !important;
+}
+
 @keyframes fadeInSoft {
   from {
     opacity: 0;
@@ -579,6 +870,3 @@ html {
   background: rgba(255,255,255,0.2);
   border-radius: 10px;
 }
-
-
-

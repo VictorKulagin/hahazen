@@ -47,7 +47,7 @@ export default function Page() {
     };
 
     return (
-        <div className="relative min-h-screen overflow-hidden bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
+        <div className="public-auth-page relative min-h-screen overflow-hidden bg-[rgb(var(--background))] text-[rgb(var(--foreground))]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.08),transparent_35%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent)]" />
 
@@ -56,7 +56,7 @@ export default function Page() {
             </div>
 
             <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
-                <div className="w-full max-w-md rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none sm:p-8">
+                <div className="public-auth-card w-full max-w-md rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none sm:p-8">
                     <div className="mb-6 flex flex-col items-center text-center">
                         <img
                             src="/logo.png"

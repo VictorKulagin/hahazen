@@ -513,7 +513,7 @@ export default function ScheduleModule({
         <>
 
             <div className="mb-3 hidden md:flex items-center justify-end">
-                <div className="relative inline-flex items-center rounded-2xl bg-white dark:bg-[#182235] p-1 shadow-sm border border-gray-200 dark:border-white/10">
+                <div className="relative inline-flex items-center rounded-2xl bg-white dark:bg-white/[0.05] p-1 shadow-sm border border-gray-200 dark:border-white/10">
                     <div
                         className={`absolute top-1 bottom-1 w-[112px] rounded-xl bg-green-500 shadow-md transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                             viewMode === "list" ? "left-1" : "left-[113px]"
@@ -557,7 +557,7 @@ export default function ScheduleModule({
                             value={masterSearch}
                             onChange={(event) => setMasterSearch(event.target.value)}
                             placeholder="Поиск мастера"
-                            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-[#1f2937] dark:text-white dark:placeholder:text-white/40"
+                            className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-white/40"
                         />
                     </div>
                 )}
@@ -570,7 +570,7 @@ export default function ScheduleModule({
                             className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition-all duration-300 ease-out ${
                                 selectedMaster === "all"
                                     ? "bg-green-500 text-white shadow-sm"
-                                    : "bg-white text-gray-700 border border-gray-200 dark:bg-[#1f2937] dark:text-white/80 dark:border-white/10"
+                                    : "bg-white text-gray-700 border border-gray-200 dark:bg-white/[0.06] dark:text-white/80 dark:border-white/10"
                             }`}
                         >
                             Все
@@ -587,7 +587,7 @@ export default function ScheduleModule({
                                     className={`shrink-0 rounded-2xl px-4 py-2 text-sm font-medium transition-all duration-300 ease-out ${
                                         selectedMaster === idx
                                             ? "bg-green-500 text-white shadow-sm"
-                                            : "bg-white text-gray-700 border border-gray-200 dark:bg-[#1f2937] dark:text-white/80 dark:border-white/10"
+                                            : "bg-white text-gray-700 border border-gray-200 dark:bg-white/[0.06] dark:text-white/80 dark:border-white/10"
                                     }`}
                                 >
                                     {employee.name}

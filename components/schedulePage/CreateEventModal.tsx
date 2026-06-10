@@ -350,7 +350,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     return (
         <div
             className={`
-    fixed inset-0 z-50 flex justify-end
+    admin-dialog-overlay fixed inset-0 z-50 flex justify-end
     bg-black bg-opacity-50
     transition-opacity duration-300
     ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}
@@ -372,7 +372,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
 
                 {/*<div className="bg-white rounded p-2 w-full max-w-md text-black">*/}
-                <div className="relative bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
+                <div className="admin-dialog-panel relative bg-[rgb(var(--background))] w-full sm:w-[28rem] h-full shadow-lg flex flex-col">
                     {/* Header */}
                     <div className="sticky top-0 z-20 border-b border-white/10 bg-[rgb(var(--card))]/95 backdrop-blur-md">
                         <div className="flex items-start justify-between px-4 py-0">

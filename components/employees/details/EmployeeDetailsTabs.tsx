@@ -36,7 +36,7 @@ export default function EmployeeDetailsTabs({
 }: EmployeeDetailsTabsProps) {
     return (
         <div className="overflow-x-auto">
-            <div className="inline-flex min-w-full gap-2 rounded-2xl border border-gray-200 bg-gray-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
+            <div className="admin-details-tabs inline-flex min-w-full gap-2 rounded-2xl border border-gray-200 bg-gray-50 p-2 dark:border-white/10 dark:bg-white/[0.03]">
                 {tabs.map((tab) => {
                     const Icon = tab.icon;
                     const isActive = tab.id === activeTab;

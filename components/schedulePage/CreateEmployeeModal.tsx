@@ -451,8 +451,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
 
     return (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/50">
-            <div className="flex h-full w-full flex-col overflow-hidden bg-[rgb(var(--background))] text-[rgb(var(--foreground))] shadow-2xl sm:w-[28rem] sm:rounded-l-2xl sm:rounded-tr-2xl sm:border-l sm:border-gray-200 dark:sm:border-white/10">
+        <div className="admin-dialog-overlay fixed inset-0 z-50 flex justify-end bg-black/50">
+            <div className="admin-dialog-panel flex h-full w-full flex-col overflow-hidden bg-[rgb(var(--background))] text-[rgb(var(--foreground))] shadow-2xl sm:w-[28rem] sm:rounded-l-2xl sm:rounded-tr-2xl sm:border-l sm:border-gray-200 dark:sm:border-white/10">
 
 
                 <div className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur-md dark:border-white/10 dark:bg-[rgb(var(--card))]/95">

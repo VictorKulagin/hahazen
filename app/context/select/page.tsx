@@ -48,7 +48,7 @@ export default function ContextSelectPage() {
     };
 
     return (
-        <main className="min-h-screen bg-[rgb(var(--background))] px-4 py-8 text-[rgb(var(--foreground))]">
+        <main className="public-auth-page min-h-screen bg-[rgb(var(--background))] px-4 py-8 text-[rgb(var(--foreground))]">
             <div className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-2xl flex-col">
                 <div className="mb-6 flex items-center justify-between">
                     <div>
@@ -69,11 +69,11 @@ export default function ContextSelectPage() {
                 )}
 
                 {isLoading ? (
-                    <div className="rounded-lg border border-gray-200 bg-white p-5 text-sm text-gray-500 dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-gray-300">
+                    <div className="public-auth-option rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-500 dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-gray-300">
                         Загрузка...
                     </div>
                 ) : contexts.length === 0 ? (
-                    <div className="rounded-lg border border-gray-200 bg-white p-5 text-sm text-gray-600 dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-gray-300">
+                    <div className="public-auth-option rounded-2xl border border-gray-200 bg-white p-5 text-sm text-gray-600 dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-gray-300">
                         Для пользователя не найдено ни одной компании или филиала.
                     </div>
                 ) : (
@@ -93,7 +93,7 @@ export default function ContextSelectPage() {
                                     type="button"
                                     disabled={isSaving}
                                     onClick={() => handleSelect(context)}
-                                    className="w-full rounded-lg border border-gray-200 bg-white px-4 py-4 text-left shadow-sm transition hover:border-green-400 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-[rgb(var(--card))] dark:hover:border-green-500/70 dark:hover:bg-green-500/10"
+                                    className="public-auth-option w-full rounded-2xl border border-gray-200 bg-white px-4 py-4 text-left shadow-sm transition hover:border-green-400 hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-white/10 dark:bg-[rgb(var(--card))] dark:hover:border-green-500/70 dark:hover:bg-green-500/10"
                                 >
                                     <span className="block text-base font-semibold text-gray-900 dark:text-white">
                                         {title}

@@ -22,7 +22,7 @@ import {useEmployeeServices, useSyncEmployeeServices} from "@/hooks/useServices"
 import SidebarMenu from "@/components/SidebarMenu";
 import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 import SetupStepNav from "@/components/SetupStepNav";
-import Image from "next/image";
+import BranchInitial from "@/components/BranchInitial";
 import Loader from "@/components/Loader";
 //import { authStorage } from "@/services/authStorage";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -439,11 +439,8 @@ const Page: React.FC = ( ) => {
                         className="flex items-center min-w-0 flex-1"
                         onClick={toggleFilModal}
                     >
-                        <Image
-                            src="/logo.png"
-                            alt="Логотип"
-                            width={32}
-                            height={32}
+                        <BranchInitial
+                            name={branchesData?.find((branch: any) => branch.id === id)?.name || branchesData?.[0]?.name}
                             className="mr-2"
                         />
                         {!collapsed && (
@@ -579,7 +576,7 @@ const Page: React.FC = ( ) => {
 
 
                 {/* Заголовок */}
-                <div className="mb-6 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                <div className="admin-page-header mb-6 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
                     <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
@@ -736,7 +733,7 @@ const EmployeesTable = ({
 
     return (
         <div className="grid grid-cols-1 gap-4 mt-6">
-            <section className="rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
+            <section className="admin-list-surface rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
                 <div className="mb-5 flex items-center gap-3">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
                         Сотрудники
@@ -767,7 +764,7 @@ const EmployeesTable = ({
                                         handleOpenDetails(employee);
                                     }
                                 }}
-                                className="cursor-pointer rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors hover:border-green-200 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:border-green-400/30 dark:hover:bg-white/[0.08] md:px-5 md:py-5"
+                                className="admin-list-row cursor-pointer rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors hover:border-green-200 hover:bg-gray-50 dark:border-white/10 dark:bg-white/5 dark:shadow-none dark:hover:border-green-400/30 dark:hover:bg-white/[0.08] md:px-5 md:py-5"
                             >
                                 <div className="flex flex-col gap-4 xl:grid xl:grid-cols-[56px_minmax(180px,1fr)_150px_220px_220px_auto] xl:items-center xl:gap-6">
 

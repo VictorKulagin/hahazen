@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { withAuth } from "@/hoc/withAuth";
-import Image from "next/image";
+import BranchInitial from "@/components/BranchInitial";
 import Link from "next/link";
 import { cabinetDashboard } from "@/services/cabinetDashboard";
 import { companiesList } from "@/services/companiesList";
@@ -368,11 +368,8 @@ const Page: React.FC = () => {
                         className="flex items-center min-w-0 flex-1"
                         onClick={toggleFilModal}
                     >
-                        <Image
-                            src="/logo.png"
-                            alt="Логотип"
-                            width={32}
-                            height={32}
+                        <BranchInitial
+                            name={branchesData?.find((branch: BranchItem) => branch.id === id)?.name || branchesData?.[0]?.name}
                             className="mr-2"
                         />
                         {!collapsed && (
@@ -420,10 +417,10 @@ const Page: React.FC = () => {
                 onClick={() => isMenuOpen && setIsMenuOpen(false)}
             >
                 {isModalFilOpen && (
-                    <div className="fixed inset-0 flex items-center justify-left bg-black/50 z-[60]"
+                    <div className="admin-dialog-overlay fixed inset-0 flex items-center justify-left bg-black/50 z-[60]"
                          onClick={toggleFilModal}
                     >
-                        <div className="z-[61] max-h-[calc(100vh-120px)] overflow-y-auto bg-white dark:bg-[rgb(var(--card))] p-6 rounded-lg shadow-lg dark:shadow-none text-black dark:text-white absolute top-[100px] w-full sm:w-11/12 md:w-[520px]"
+                        <div className="admin-dialog-panel z-[61] max-h-[calc(100vh-120px)] overflow-y-auto bg-white dark:bg-[rgb(var(--card))] p-6 rounded-2xl shadow-lg dark:shadow-none text-black dark:text-white absolute top-[100px] w-full sm:w-11/12 md:w-[520px]"
                              onClick={(e) => e.stopPropagation()}
                         >
                             <div className="flex items-start justify-between gap-4">
@@ -620,7 +617,7 @@ const Page: React.FC = () => {
 
                 {/* Заголовок */}
                 <div
-                    className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                    className="admin-page-header mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
@@ -663,10 +660,10 @@ const Page: React.FC = () => {
                                     <Link
                                         key={action.href}
                                         href={action.href}
-                                        className={`group relative flex min-h-[132px] transform-gpu flex-col justify-between overflow-hidden rounded-lg border p-3 shadow-sm transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out will-change-transform hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))] motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:min-h-[188px] sm:p-4 ${
+                                        className={`admin-dashboard-card group relative flex min-h-[132px] transform-gpu flex-col justify-between overflow-hidden rounded-2xl border p-3 shadow-sm transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out will-change-transform hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))] motion-reduce:transition-none motion-reduce:hover:translate-y-0 sm:min-h-[188px] sm:p-4 ${
                                             isNextStep
-                                                ? "border-green-500 bg-white shadow-green-500/10 dark:border-green-400 dark:bg-[linear-gradient(135deg,rgba(17,24,39,0.98),rgba(18,33,55,0.96))]"
-                                                : "border-gray-200 bg-white hover:border-green-300 dark:border-white/10 dark:bg-[linear-gradient(135deg,rgba(17,24,39,0.96),rgba(20,34,54,0.92))] dark:hover:border-green-400/50"
+                                                ? "border-green-500 bg-white shadow-green-500/10 dark:border-green-400"
+                                                : "border-gray-200 bg-white hover:border-green-300 dark:border-white/10 dark:hover:border-green-400/50"
                                         }`}
                                     >
                                         <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.12),transparent_38%)] opacity-70 dark:opacity-100" />
@@ -701,7 +698,7 @@ const Page: React.FC = () => {
                         <button
                             type="button"
                             onClick={toggleFilModal}
-                            className="group relative flex min-h-[132px] w-full transform-gpu flex-col justify-between overflow-hidden rounded-lg border border-green-500 bg-white p-3 text-left shadow-sm transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out will-change-transform hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))] motion-reduce:transition-none motion-reduce:hover:translate-y-0 dark:border-green-400 dark:bg-[linear-gradient(135deg,rgba(17,24,39,0.98),rgba(18,33,55,0.96))] sm:min-h-[160px] sm:max-w-md sm:p-4"
+                            className="admin-dashboard-card group relative flex min-h-[132px] w-full transform-gpu flex-col justify-between overflow-hidden rounded-2xl border border-green-500 bg-white p-3 text-left shadow-sm transition-[transform,box-shadow,border-color,background-color] duration-300 ease-out will-change-transform hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-400/40 focus:ring-offset-2 focus:ring-offset-[rgb(var(--background))] motion-reduce:transition-none motion-reduce:hover:translate-y-0 dark:border-green-400 sm:min-h-[160px] sm:max-w-md sm:p-4"
                         >
                             <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,197,94,0.12),transparent_42%)]" />
                             <span className="relative flex items-center justify-between gap-3">
@@ -721,7 +718,7 @@ const Page: React.FC = () => {
                 </section>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <section className="bg-white dark:bg-[rgb(var(--card))] text-black dark:text-white p-4 rounded shadow dark:shadow-none">
+                    <section className="admin-content-surface rounded-2xl border border-gray-200 bg-white p-4 text-black shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none">
                         <div className="flex items-center mb-2">
                             <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Личные данные</h2>
                         </div>

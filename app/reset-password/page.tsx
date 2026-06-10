@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { resetPasswordApi } from "@/services/resetPasswordApi";
 import PasswordInput from "@/components/PasswordInput";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 
 export default function ResetPasswordPage() {
     const searchParams = useSearchParams();
@@ -34,20 +35,23 @@ export default function ResetPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100">
-            <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-                <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+        <div className="public-auth-page relative min-h-screen flex items-center justify-center px-4 py-10 text-[rgb(var(--foreground))]">
+            <div className="absolute right-4 top-4 z-10">
+                <ThemeToggle />
+            </div>
+            <div className="public-auth-card w-full max-w-md rounded-[28px] border border-gray-200 bg-white p-8 shadow-md dark:border-white/10 dark:bg-[rgb(var(--card))]">
+                <h2 className="mb-6 text-center text-2xl font-bold text-gray-800 dark:text-white">
                     Установить новый пароль
                 </h2>
 
-                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-                {message && <p className="text-green-600 text-sm mb-4">{message}</p>}
+                {error && <p className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">{error}</p>}
+                {message && <p className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900/40 dark:bg-green-900/20 dark:text-green-300">{message}</p>}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label
                             htmlFor="password"
-                            className="block text-sm font-medium text-gray-700"
+                            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
                         >
                             Новый пароль
                         </label>
@@ -57,14 +61,14 @@ export default function ResetPasswordPage() {
 
                     <button
                         type="submit"
-                        className="w-full bg-green-500 text-white py-2 px-4 rounded-md shadow hover:bg-green-600"
+                        className="w-full rounded-xl bg-green-500 px-4 py-3 text-sm font-semibold text-white shadow transition hover:bg-green-600"
                     >
                         Сохранить пароль
                     </button>
                 </form>
 
-                <div className="text-center mt-4">
-                    <a href="/signin" className="text-green-500 hover:underline">
+                <div className="mt-6 border-t border-gray-200 pt-4 text-center dark:border-white/10">
+                    <a href="/signin" className="text-sm font-medium text-green-500 hover:text-green-400">
                         Вернуться к входу
                     </a>
                 </div>

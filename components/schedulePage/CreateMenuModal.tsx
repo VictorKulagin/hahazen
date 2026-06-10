@@ -22,9 +22,10 @@ export const CreateMenuModal: React.FC<Props> = ({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 flex justify-end">
+        <div className="admin-dialog-overlay fixed inset-0 z-50 bg-black/50 flex justify-end">
             <div
                 className="
+                    admin-dialog-panel
                     bg-[rgb(var(--background))]
                     text-[rgb(var(--foreground))]
                     w-full sm:w-[28rem]

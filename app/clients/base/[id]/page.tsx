@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { withAuth } from "@/hoc/withAuth";
-import Image from "next/image";
+import BranchInitial from "@/components/BranchInitial";
 import Link from "next/link";
 import { cabinetDashboard } from "@/services/cabinetDashboard";
 import { companiesList } from "@/services/companiesList";
@@ -478,11 +478,8 @@ const Page: React.FC = () => {
                         className="flex items-center min-w-0 flex-1"
                         onClick={toggleFilModal}
                     >
-                        <Image
-                            src="/logo.png"
-                            alt="Логотип"
-                            width={32}
-                            height={32}
+                        <BranchInitial
+                            name={branchesData?.find((branch: any) => branch.id === id)?.name || branchesData?.[0]?.name}
                             className="mr-2"
                         />
                         {!collapsed && (
@@ -614,7 +611,7 @@ const Page: React.FC = () => {
 
 
                 {/* Заголовок */}
-                <div className="mb-6 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                <div className="admin-page-header mb-6 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
                     <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                             <div className="flex items-center gap-2">
@@ -700,7 +697,7 @@ const Page: React.FC = () => {
                 {/* Контент: две колонки */}
                 <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mt-6">
                     {/* Первая колонка */}
-                    <section className="rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
+                    <section className="admin-list-surface rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
 
                         {/* Ссылка с динамическим путем */}
                         {/*<div className="mb-2">*/}
@@ -936,7 +933,7 @@ const Page: React.FC = () => {
                                                                                 ? () => setSelectedClientId(client.id ?? null)
                                                                                 : undefined
                                                                         }
-                                                                        className={`rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-5 ${
+                                                                        className={`admin-list-row rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-5 ${
                                                                             can.clients.viewAny()
                                                                                 ? "cursor-pointer hover:bg-gray-50 dark:hover:bg-white/10"
                                                                                 : "cursor-default"

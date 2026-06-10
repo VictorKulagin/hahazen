@@ -119,7 +119,7 @@ export default function EmployeePermissionsTab({
                     {matrix.rows.map((row) => (
                         <section
                             key={row.rowKey}
-                            className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none"
+                            className="admin-details-section rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none"
                         >
                             <div className="mb-4">
                                 <h3 className="font-semibold text-gray-900 dark:text-white">

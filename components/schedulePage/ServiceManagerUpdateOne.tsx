@@ -96,8 +96,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     if (!service) return null;
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/50 flex justify-end"> {/*backdrop-blur-sm*/}
-            <div className="bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-fullshadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden flex flex-col">
+        <div className="admin-dialog-overlay fixed inset-0 z-50 bg-black/50 flex justify-end"> {/*backdrop-blur-sm*/}
+            <div className="admin-dialog-panel bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-full shadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden flex flex-col">
                 <div className="sticky top-0 z-20 border-b border-gray-200 dark:border-white/10 bg-white/95 dark:bg-[rgb(var(--card))]/95 backdrop-blur-md">
                     <div className="flex items-start justify-between px-4 py-0">
                         <div className="flex items-start gap-3 min-w-0">

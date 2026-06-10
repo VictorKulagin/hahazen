@@ -246,8 +246,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
     if (!isOpen || !eventData) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black bg-opacity-50">
-            <div className="bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-full shadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden">
+        <div className="admin-dialog-overlay fixed inset-0 z-50 flex justify-end bg-black bg-opacity-50">
+            <div className="admin-dialog-panel bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-full shadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden">
                 <div className="h-full flex flex-col">
 
                 <button

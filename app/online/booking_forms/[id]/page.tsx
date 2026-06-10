@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { withAuth } from "@/hoc/withAuth";
-import Image from "next/image";
+import BranchInitial from "@/components/BranchInitial";
 import Link from "next/link";
 import { cabinetDashboard } from "@/services/cabinetDashboard";
 import { companiesList } from "@/services/companiesList";
@@ -271,11 +271,8 @@ const Page: React.FC = () => {
                         className="flex items-center min-w-0 flex-1"
                         onClick={toggleFilModal}
                     >
-                        <Image
-                            src="/logo.png"
-                            alt="Логотип"
-                            width={32}
-                            height={32}
+                        <BranchInitial
+                            name={branchesData?.find((branch: any) => branch.id === id)?.name || branchesData?.[0]?.name}
                             className="mr-2"
                         />
                         {!collapsed && (
@@ -454,7 +451,7 @@ const Page: React.FC = () => {
 
                 {/* Заголовок */}
                 <div
-                    className="mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
+                    className="admin-page-header mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
@@ -478,7 +475,7 @@ const Page: React.FC = () => {
                 <SetupStepNav branchId={id} currentStep="online" />
 
                 {/* Контент: две колонки */}
-                <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] p-5 shadow-sm space-y-4">
+                <div className="admin-content-surface rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] p-5 shadow-sm space-y-4">
 
                     {/* Заголовок */}
                     <div>

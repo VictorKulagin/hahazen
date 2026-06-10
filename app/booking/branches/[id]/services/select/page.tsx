@@ -34,7 +34,7 @@ type Step = "services" | "time" | "master" | "confirm";
 
 const STEPS: Array<{ id: Step; label: string; shortLabel: string }> = [
     { id: "services", label: "Услуги", shortLabel: "Услуги" },
-    { id: "time", label: "Дата и время", shortLabel: "Время" },
+    { id: "time", label: "Дата, затем время", shortLabel: "Дата" },
     { id: "master", label: "Специалист", shortLabel: "Мастер" },
     { id: "confirm", label: "Подтверждение", shortLabel: "Готово" },
 ];
@@ -500,16 +500,28 @@ type TimeStepProps = {
     selectedSlot: string | null;
     loading: boolean;
     error: boolean;
-    onSelect: (slot: string) => void;
+    onSelect: (slot: string | null) => void;
 };
 
 function TimeStep({ groupedSlots, selectedSlot, loading, error, onSelect }: TimeStepProps) {
+    const selectedSlotDate = selectedSlot?.split("T")[0] || null;
+    const [selectedDay, setSelectedDay] = useState<string | null>(selectedSlotDate);
+    const availableDates = Object.keys(groupedSlots);
+    const selectedTimes = selectedDay ? groupedSlots[selectedDay] ?? [] : [];
+
+    const handleDateSelect = (date: string) => {
+        setSelectedDay(date);
+        if (selectedSlotDate !== date) {
+            onSelect(null);
+        }
+    };
+
     return (
         <div>
             <StepHeading
                 icon={<CalendarDays className="h-5 w-5" />}
-                title="Выберите дату и время"
-                text="Показываем только доступные окна для выбранных услуг."
+                title="Сначала выберите дату, затем время"
+                text="После выбора даты покажем доступное время для выбранных услуг."
             />
 
             {loading ? (
@@ -519,29 +531,64 @@ function TimeStep({ groupedSlots, selectedSlot, loading, error, onSelect }: Time
             ) : Object.keys(groupedSlots).length === 0 ? (
                 <EmptyState text="Для выбранных услуг пока нет свободного времени." />
             ) : (
-                <div className="space-y-4">
-                    {Object.entries(groupedSlots).map(([date, times]) => (
-                        <article
-                            key={date}
-                            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-white/[0.04] dark:shadow-none sm:p-5"
-                        >
-                            <div className="mb-4 flex items-center gap-3">
-                                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
-                                    <CalendarDays className="h-5 w-5" />
-                                </span>
-                                <div>
-                                    <p className="text-sm font-semibold capitalize text-slate-950 dark:text-white">
-                                        {formatBookingDate(date)}
-                                    </p>
-                                    <p className="mt-0.5 text-xs text-slate-500">
-                                        Доступно окон: {times.length}
-                                    </p>
-                                </div>
+                <div className="space-y-5">
+                    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-white/[0.04] dark:shadow-none sm:p-5">
+                        <div className="mb-4 flex items-center gap-3">
+                            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white dark:bg-emerald-400 dark:text-[#05251d]">
+                                1
+                            </span>
+                            <div>
+                                <p className="text-sm font-semibold text-slate-950 dark:text-white">Выберите дату</p>
+                                <p className="mt-0.5 text-xs text-slate-500">Показаны дни со свободным временем</p>
                             </div>
+                        </div>
 
+                        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                            {availableDates.map((date) => {
+                                const selected = selectedDay === date;
+
+                                return (
+                                    <button
+                                        type="button"
+                                        key={date}
+                                        onClick={() => handleDateSelect(date)}
+                                        className={`rounded-xl border px-4 py-3 text-left transition ${
+                                            selected
+                                                ? "border-emerald-500 bg-emerald-500 text-white dark:border-emerald-300 dark:bg-emerald-400 dark:text-[#05251d]"
+                                                : "border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-400 hover:bg-emerald-50 dark:border-white/[0.08] dark:bg-white/[0.045] dark:text-slate-200 dark:hover:border-emerald-300/35 dark:hover:bg-emerald-400/[0.08]"
+                                        }`}
+                                    >
+                                        <span className="block text-sm font-semibold capitalize">{formatBookingDate(date)}</span>
+                                        <span className={`mt-1 block text-xs ${selected ? "text-white/75 dark:text-[#05251d]/65" : "text-slate-500"}`}>
+                                            Доступно окон: {groupedSlots[date].length}
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </section>
+
+                    <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/[0.08] dark:bg-white/[0.04] dark:shadow-none sm:p-5">
+                        <div className="mb-4 flex items-center gap-3">
+                            <span className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
+                                selectedDay
+                                    ? "bg-emerald-500 text-white dark:bg-emerald-400 dark:text-[#05251d]"
+                                    : "border border-slate-200 text-slate-400 dark:border-white/10 dark:text-slate-500"
+                            }`}>
+                                2
+                            </span>
+                            <div>
+                                <p className="text-sm font-semibold text-slate-950 dark:text-white">Выберите время</p>
+                                <p className="mt-0.5 text-xs text-slate-500">
+                                    {selectedDay ? formatBookingDate(selectedDay) : "Сначала выберите дату выше"}
+                                </p>
+                            </div>
+                        </div>
+
+                        {selectedDay ? (
                             <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-6">
-                                {times.map((time) => {
-                                    const slot = `${date}T${time}`;
+                                {selectedTimes.map((time) => {
+                                    const slot = `${selectedDay}T${time}`;
                                     const selected = selectedSlot === slot;
 
                                     return (
@@ -560,8 +607,12 @@ function TimeStep({ groupedSlots, selectedSlot, loading, error, onSelect }: Time
                                     );
                                 })}
                             </div>
-                        </article>
-                    ))}
+                        ) : (
+                            <div className="rounded-xl border border-dashed border-slate-200 px-4 py-7 text-center text-sm text-slate-500 dark:border-white/10 dark:text-slate-400">
+                                После выбора даты здесь появится доступное время.
+                            </div>
+                        )}
+                    </section>
                 </div>
             )}
         </div>

@@ -101,7 +101,7 @@ function AcceptInviteContent() {
         : "Придумайте пароль для вашей новой учётной записи.";
 
     return (
-        <main className="relative min-h-screen overflow-hidden bg-[rgb(var(--background))] px-4 py-10 text-[rgb(var(--foreground))]">
+        <main className="public-auth-page relative min-h-screen overflow-hidden bg-[rgb(var(--background))] px-4 py-10 text-[rgb(var(--foreground))]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(34,197,94,0.08),transparent_35%)]" />
             <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.02),transparent)]" />
 
@@ -110,7 +110,7 @@ function AcceptInviteContent() {
             </div>
 
             <div className="relative flex min-h-[calc(100vh-5rem)] items-center justify-center">
-                <section className="w-full max-w-md rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none sm:p-8">
+                <section className="public-auth-card w-full max-w-md rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none sm:p-8">
                     <div className="mb-6 flex flex-col items-center text-center">
                         <img
                             src="/logo.png"
@@ -215,7 +215,7 @@ export default function AcceptInvitePage() {
     return (
         <Suspense
             fallback={
-                <main className="flex min-h-screen items-center justify-center bg-[rgb(var(--background))] text-gray-500">
+                <main className="public-auth-page flex min-h-screen items-center justify-center bg-[rgb(var(--background))] text-gray-500">
                     Загрузка...
                 </main>
             }

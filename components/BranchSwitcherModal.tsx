@@ -144,9 +144,9 @@ export default function BranchSwitcherModal({
     };
 
     return (
-        <div className="fixed inset-0 flex items-center justify-left bg-black/50 z-50" onClick={onClose}>
+        <div className="admin-dialog-overlay fixed inset-0 flex items-center justify-left bg-black/50 z-50" onClick={onClose}>
             <div
-                className="z-50 max-h-[calc(100vh-120px)] overflow-y-auto bg-white dark:bg-[rgb(var(--card))] p-6 rounded-lg shadow-lg dark:shadow-none text-black dark:text-white absolute top-[100px] w-full sm:w-11/12 md:w-[520px]"
+                className="admin-dialog-panel z-50 max-h-[calc(100vh-120px)] overflow-y-auto bg-white dark:bg-[rgb(var(--card))] p-6 rounded-lg shadow-lg dark:shadow-none text-black dark:text-white absolute top-[100px] w-full sm:w-11/12 md:w-[520px]"
                 onClick={(event) => event.stopPropagation()}
             >
                 <div className="flex items-start justify-between gap-4">

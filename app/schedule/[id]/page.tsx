@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useEffect } from 'react';
 import { withAuth } from "@/hoc/withAuth";
-import Image from "next/image";
+import BranchInitial from "@/components/BranchInitial";
 import {
     Bars3Icon,
     ChevronDoubleLeftIcon,
@@ -764,11 +764,8 @@ const Page: React.FC = () => {
                             className="flex items-center min-w-0 flex-1"
                             onClick={toggleFilModal}
                         >
-                            <Image
-                                src="/logo.png"
-                                alt="Логотип"
-                                width={32}
-                                height={32}
+                            <BranchInitial
+                                name={branchesData?.find((branch: BranchItem) => branch.id === id)?.name || branchesData?.[0]?.name}
                                 className="mr-2"
                             />
                             {!collapsed && (
@@ -814,7 +811,7 @@ const Page: React.FC = () => {
                             <CalendarIcon className="w-6 h-6" />
                         </button>
                     ) : (
-                        <div className="hidden md:block mt-4 rounded-lg p-2 shadow-inner bg-[rgb(var(--card))] border border-[rgb(var(--border))]">
+                        <div className="admin-calendar-shell hidden md:block mt-4 rounded-2xl p-2 border">
                             <CustomCalendarDesktop
                                 year={year}
                                 month={month}
@@ -1043,7 +1040,7 @@ const Page: React.FC = () => {
 
                 {/* Заголовок */}
                 <div
-                    className="mb-6 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none lg:flex-row lg:items-center lg:justify-between">
+                    className="admin-page-header mb-6 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none lg:flex-row lg:items-center lg:justify-between">
                     <div className="min-w-0">
                         <div className="flex items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
@@ -1062,7 +1059,7 @@ const Page: React.FC = () => {
                             value={scheduleMasterSearch}
                             onChange={(event) => setScheduleMasterSearch(event.target.value)}
                             placeholder="Поиск мастера"
-                            className="min-w-0 flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-[#1f2937] dark:text-white dark:placeholder:text-white/40"
+                            className="min-w-0 flex-1 rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-white/40"
                         />
                         <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
                             Тема: {theme}
@@ -1074,7 +1071,7 @@ const Page: React.FC = () => {
                 <SetupStepNav branchId={id} currentStep="schedule" />
 
                 {/* Календарь — показывать только на мобильных */}
-                <div className="block md:hidden w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-sm p-3 mb-4">
+                <div className="admin-content-surface block md:hidden w-full rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-sm p-3 mb-4">
                     <CustomCalendarMobile
                         year={year}
                         month={month}
@@ -1088,7 +1085,7 @@ const Page: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     {/* Правая колонка: 80% */}
-                    <section className="col-span-5 p-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] rounded-2xl">{/* rounded shadow */}
+                    <section className="admin-content-surface col-span-5 p-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] rounded-2xl">{/* rounded shadow */}
 
                         <div className="mb-6">
                             <PeriodStatsModule
@@ -1099,7 +1096,7 @@ const Page: React.FC = () => {
 
                 </section>
                 </div>
-                <section className="col-span-5 mt-4 p-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] rounded-2xl">{/* rounded shadow */}
+                <section className="admin-content-surface col-span-5 mt-4 p-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] rounded-2xl">{/* rounded shadow */}
 
                                 <ScheduleModule
                                 employees={employees}

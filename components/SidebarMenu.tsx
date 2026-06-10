@@ -2,7 +2,7 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import BranchInitial from "@/components/BranchInitial";
 import {
     ArrowRightOnRectangleIcon,
     CalendarIcon,
@@ -49,7 +49,7 @@ export default function SidebarMenu({
 
     return (
         <div
-            className={`flex flex-col text-[rgb(var(--sidebar-foreground))] font-sans leading-snug transition-all duration-300 ${
+            className={`admin-sidebar-menu flex flex-col text-[rgb(var(--sidebar-foreground))] font-sans leading-snug transition-all duration-300 ${
                 variant === "mobile"
                     ? "h-full w-full justify-between bg-[rgb(var(--sidebar-background))] p-4"
                     : `${collapsed ? "w-[80px]" : "w-[260px]"} h-full`
@@ -61,14 +61,11 @@ export default function SidebarMenu({
                         type="button"
                         disabled={!onBranchClick}
                         onClick={onBranchClick}
-                        className="mb-4 flex w-full items-center border-b border-[rgb(var(--border))] pb-3 text-left disabled:cursor-default"
+                        className="mb-4 flex w-full items-center rounded-2xl border border-slate-200/80 bg-white/70 p-3 text-left shadow-sm backdrop-blur-xl transition hover:border-emerald-300/70 hover:bg-white disabled:cursor-default dark:border-white/10 dark:bg-white/5 dark:hover:border-emerald-400/30 dark:hover:bg-white/10"
                     >
-                        <Image
-                            src="/logo.png"
-                            alt="Логотип"
-                            width={28}
-                            height={28}
-                            className="mr-2 rounded"
+                        <BranchInitial
+                            name={branchName}
+                            className="mr-3"
                         />
                         <span className="min-w-0">
                             <span className="block truncate text-sm font-semibold text-[rgb(var(--sidebar-foreground))]">
@@ -91,19 +88,20 @@ export default function SidebarMenu({
                                 href={href}
                                 onClick={onNavigate}
                                 title={collapsed ? title : undefined}
-                                className={`group relative z-10 flex items-center rounded-xl py-3 transition-all duration-250 ease-out ${
-                                    collapsed ? "justify-center px-0" : "px-3"
+                                aria-current={active ? "page" : undefined}
+                                className={`group relative z-10 flex items-center overflow-visible rounded-2xl py-3 transition-all duration-200 ease-out ${
+                                    collapsed ? "mx-1 justify-center px-0" : "px-3.5"
                                 } ${
                                     active
-                                        ? "bg-gradient-to-r from-green-500/80 to-green-600/90 text-white shadow-sm"
-                                        : "text-[rgb(var(--sidebar-foreground))] hover:bg-[rgb(var(--sidebar-hover))]"
+                                        ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-[0_10px_28px_rgba(5,150,105,0.22)]"
+                                        : "text-[rgb(var(--sidebar-foreground))] hover:translate-x-0.5 hover:bg-white/70 hover:shadow-sm dark:hover:bg-white/[0.07] dark:hover:shadow-none"
                                 }`}
                             >
                                 {active && (
-                                    <span className="absolute bottom-2 left-0 top-2 w-1 rounded-r-full bg-green-300 shadow-[0_0_10px_rgba(134,239,172,0.45)]" />
+                                    <span className="absolute bottom-2.5 left-0 top-2.5 w-1 rounded-r-full bg-emerald-200 shadow-[0_0_12px_rgba(167,243,208,0.55)]" />
                                 )}
 
-                                <Icon className="h-5 w-5 shrink-0 transition-all duration-200 ease-out group-hover:scale-[1.03] md:h-6 md:w-6" />
+                                <Icon className="h-5 w-5 shrink-0 transition-all duration-200 ease-out group-hover:scale-105 md:h-6 md:w-6" />
                                 {!collapsed && (
                                     <span
                                         className={`ml-3 font-medium ${
@@ -125,12 +123,14 @@ export default function SidebarMenu({
                 </nav>
             </div>
 
-            <div className="mt-auto border-t border-[rgb(var(--border))] pt-3">
+            <div className="mt-auto border-t border-slate-200/70 pt-3 dark:border-white/10">
                 <Link
                     href="/cabinet"
-                    className="flex items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3 transition-all duration-300 ease-out hover:-translate-y-[1px] hover:bg-white/10 hover:shadow-md"
+                    className={`flex items-center rounded-2xl border border-slate-200/80 bg-white/65 p-2.5 shadow-sm backdrop-blur-xl transition-all duration-200 ease-out hover:-translate-y-px hover:border-emerald-300/60 hover:bg-white hover:shadow-md dark:border-white/10 dark:bg-white/5 dark:hover:border-emerald-400/25 dark:hover:bg-white/10 ${
+                        collapsed ? "justify-center" : "gap-3"
+                    }`}
                 >
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/20 font-semibold text-green-400">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 font-semibold text-white shadow-[0_8px_18px_rgba(5,150,105,0.22)]">
                         {(userData?.name?.[0] || "T").toUpperCase()}
                     </div>
 
@@ -147,10 +147,18 @@ export default function SidebarMenu({
                 </Link>
 
                 <button
+                    type="button"
                     onClick={onLogout}
-                    className="group mt-2 flex items-center text-sm font-medium text-green-500 transition-all duration-200 hover:text-green-400"
+                    title={collapsed ? "Выйти" : undefined}
+                    className={`group mt-2 flex h-10 w-full items-center rounded-xl text-sm font-medium text-slate-500 transition-all duration-200 hover:bg-white/70 hover:text-emerald-600 dark:text-white/55 dark:hover:bg-white/[0.07] dark:hover:text-emerald-300 ${
+                        collapsed ? "justify-center" : "px-3"
+                    }`}
                 >
-                    <ArrowRightOnRectangleIcon className="mr-1 h-5 w-5 transition-transform duration-200 hover:text-green-400" />
+                    <ArrowRightOnRectangleIcon
+                        className={`h-5 w-5 transition-transform duration-200 group-hover:translate-x-0.5 ${
+                            collapsed ? "" : "mr-2"
+                        }`}
+                    />
                     {!collapsed && "Выйти"}
                 </button>
             </div>

@@ -29,7 +29,7 @@ type ClientOverviewTabProps = {
 
 function InfoSection({ title, items }: { title: string; items: InfoItem[] }) {
     return (
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
+        <div className="admin-details-section rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/5 dark:shadow-none">
             <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-white">
                 {title}
             </h2>
