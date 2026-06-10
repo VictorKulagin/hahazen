@@ -112,7 +112,8 @@ export const fetchAvailableEmployees = async (
                 params: {
                     services: serviceIds.join(','),
                     time: time
-                }
+                },
+                timeout: 10_000,
             }
         );
         return normalizeListPayload<Employee>(response.data).rows;

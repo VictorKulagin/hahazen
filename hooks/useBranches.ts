@@ -5,7 +5,6 @@ import {
     fetchBranches,
     Service,
     fetchServices,
-    AvailabilitySlot,
     fetchAvailability,
     Employee, fetchAvailableEmployees, AppointmentData, createAppointment
 } from "@/services/branchApi";
@@ -25,7 +24,6 @@ export const useServices = (branchId: number | undefined) => {
         queryKey: ['services', branchId],
         queryFn: async () => {
             if (!branchId) throw new Error('Branch ID is required');
-debugger;
             console.log('Fetching services for branch ID:', branchId);
 
             try {
@@ -107,6 +105,8 @@ export const useAvailableEmployees = (
             }
         },
         staleTime: 5 * 60 * 1000,
+        retry: false,
+        refetchOnWindowFocus: false,
         enabled: !!branchId && !!date && !!time && serviceIds.length > 0
     });
 };
