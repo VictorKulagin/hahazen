@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ComponentType, JSX } from "react";
+import Loader from "@/components/Loader";
 
 export function withAuth<T extends JSX.IntrinsicAttributes>(WrappedComponent: ComponentType<T>) {
     return function ProtectedComponent(props: T) {
@@ -19,11 +20,7 @@ export function withAuth<T extends JSX.IntrinsicAttributes>(WrappedComponent: Co
         }, [router]);
 
         if (isLoading) {
-            return (
-                <div className="h-screen bg-backgroundBlue flex items-center justify-center">
-                    <p className="text-gray-300">Загрузка...</p>
-                </div>
-            );
+            return <Loader type="default" visible />;
         }
 
         return <WrappedComponent {...props} />;
