@@ -61,7 +61,7 @@ function rangeSlots(minMinutes: number, maxMinutes: number, step: number) {
     return slots;
 }
 
-function getAvailableWindowsForEmployee(
+function getAvailabilityForEmployee(
     masterIdx: number,
     employeeId: number,
     selectedDate: Date,
@@ -80,8 +80,7 @@ function getAvailableWindowsForEmployee(
         (event) => event.master === masterIdx
     );
 
-    const availableSlots = allSlots
-        .filter((slotStart) => {
+    const workingSlots = allSlots.filter((slotStart) => {
             const slotEnd = slotStart + slotStepMin;
 
             const working =
@@ -98,8 +97,11 @@ function getAvailableWindowsForEmployee(
                     schedules
                 );
 
-            if (!working) return false;
+            return working;
+        });
 
+    const availableSlots = workingSlots.filter((slotStart) => {
+            const slotEnd = slotStart + slotStepMin;
             const intersects = employeeAppointments.some((event) => {
                 const eventStart = toMins(event.start);
                 const eventEnd = toMins(event.end);
@@ -110,7 +112,7 @@ function getAvailableWindowsForEmployee(
             return !intersects;
         });
 
-    return availableSlots.reduce<Array<{ start: string; end: string }>>(
+    const windows = availableSlots.reduce<Array<{ start: string; end: string }>>(
         (windows, slotStart) => {
             const start = toTime(slotStart);
             const end = toTime(slotStart + slotStepMin);
@@ -126,6 +128,11 @@ function getAvailableWindowsForEmployee(
         },
         []
     );
+
+    return {
+        hasWorkingSlots: workingSlots.length > 0,
+        windows,
+    };
 }
 
 
@@ -647,7 +654,7 @@ export default function ScheduleModule({
                         .filter((event) => event.master === masterIdx)
                         .sort((a, b) => toMins(a.start) - toMins(b.start));
 
-                    const freeWindows = getAvailableWindowsForEmployee(
+                    const availability = getAvailabilityForEmployee(
                         masterIdx,
                         employee.id,
                         selectedDate,
@@ -657,6 +664,7 @@ export default function ScheduleModule({
                         startHour,
                         endHour
                     );
+                    const freeWindows = availability.windows;
                     const freeWindowsExpanded = expandedFreeWindows.has(employee.id);
                     const visibleFreeWindows = freeWindowsExpanded
                         ? freeWindows
@@ -879,6 +887,23 @@ export default function ScheduleModule({
                                                 </button>
                                             )}
                                         </div>
+                                    </div>
+                                )}
+
+                                {can.appointments.create() && freeWindows.length === 0 && (
+                                    <div className="flex items-center gap-2 pt-2 text-xs text-[rgb(var(--foreground))]/55">
+                                        <span
+                                            className={`h-2 w-2 rounded-full ${
+                                                availability.hasWorkingSlots
+                                                    ? "bg-amber-400"
+                                                    : "bg-gray-400"
+                                            }`}
+                                        />
+                                        <span>
+                                            {availability.hasWorkingSlots
+                                                ? "Свободных окон нет"
+                                                : "Нет рабочего графика на выбранный день"}
+                                        </span>
                                     </div>
                                 )}
                             </div>

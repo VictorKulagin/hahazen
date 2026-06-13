@@ -54,10 +54,9 @@ export const useUpdateEmployeeSchedule = () => {
     return useMutation<EmployeeSchedule, Error, EmployeeSchedule>({
         mutationFn: (data) => updateEmployeeSchedule(data.id, data),
 
-        onSuccess: (data) => {
-            // Инвалидация для конкретного сотрудника
+        onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ['employeeSchedules', data.employee_id]
+                queryKey: ['employeeSchedules']
             });
         }
     });
