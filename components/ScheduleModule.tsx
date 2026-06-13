@@ -61,7 +61,7 @@ function rangeSlots(minMinutes: number, maxMinutes: number, step: number) {
     return slots;
 }
 
-function getAvailableSlotsForEmployee(
+function getAvailableWindowsForEmployee(
     masterIdx: number,
     employeeId: number,
     selectedDate: Date,
@@ -80,16 +80,23 @@ function getAvailableSlotsForEmployee(
         (event) => event.master === masterIdx
     );
 
-    return allSlots
+    const availableSlots = allSlots
         .filter((slotStart) => {
             const slotEnd = slotStart + slotStepMin;
 
-            const working = isWorkingSlot(
-                employeeId,
-                toTime(slotStart),
-                selectedDate,
-                schedules
-            );
+            const working =
+                isWorkingSlot(
+                    employeeId,
+                    toTime(slotStart),
+                    selectedDate,
+                    schedules
+                ) &&
+                isWorkingSlot(
+                    employeeId,
+                    toTime(slotEnd - 1),
+                    selectedDate,
+                    schedules
+                );
 
             if (!working) return false;
 
@@ -101,11 +108,24 @@ function getAvailableSlotsForEmployee(
             });
 
             return !intersects;
-        })
-        .map((slotStart) => ({
-            start: toTime(slotStart),
-            end: toTime(slotStart + slotStepMin),
-        }));
+        });
+
+    return availableSlots.reduce<Array<{ start: string; end: string }>>(
+        (windows, slotStart) => {
+            const start = toTime(slotStart);
+            const end = toTime(slotStart + slotStepMin);
+            const previousWindow = windows[windows.length - 1];
+
+            if (previousWindow?.end === start) {
+                previousWindow.end = end;
+            } else {
+                windows.push({ start, end });
+            }
+
+            return windows;
+        },
+        []
+    );
 }
 
 
@@ -143,6 +163,9 @@ export default function ScheduleModule({
     const gridContentRef = useRef<HTMLDivElement | null>(null);
     const headerRowRef = useRef<HTMLDivElement | null>(null);
     const [viewMode, setViewMode] = useState<"grid" | "list">("list");
+    const [expandedFreeWindows, setExpandedFreeWindows] = useState<Set<number>>(
+        () => new Set()
+    );
     const [internalSelectedMaster, setInternalSelectedMaster] = useState<number | "all">("all");
     const [internalMasterSearch, setInternalMasterSearch] = useState("");
     const selectedMaster = selectedMasterFilter ?? internalSelectedMaster;
@@ -370,37 +393,37 @@ export default function ScheduleModule({
     useEffect(() => {
         const getInitialViewMode = () => {
             const isDesktop = window.innerWidth >= 768;
+            const storageKey = isDesktop
+                ? "scheduleDesktopViewMode"
+                : "scheduleMobileViewMode";
+            const saved = localStorage.getItem(storageKey);
 
-            if (!isDesktop) return "list";
-
-            const saved = localStorage.getItem("scheduleDesktopViewMode");
-            return saved === "list" || saved === "grid" ? saved : "grid";
+            if (saved === "list" || saved === "grid") return saved;
+            return isDesktop ? "grid" : "list";
         };
 
-        setViewMode(getInitialViewMode());
+        const frameId = window.requestAnimationFrame(() => {
+            setViewMode(getInitialViewMode());
+        });
 
         const handleResize = () => {
-            const isDesktop = window.innerWidth >= 768;
-
-            if (!isDesktop) {
-                setViewMode("list");
-                return;
-            }
-
-            const saved = localStorage.getItem("scheduleDesktopViewMode");
-            setViewMode(saved === "list" || saved === "grid" ? saved : "grid");
+            setViewMode(getInitialViewMode());
         };
 
         window.addEventListener("resize", handleResize);
-        return () => window.removeEventListener("resize", handleResize);
+        return () => {
+            window.cancelAnimationFrame(frameId);
+            window.removeEventListener("resize", handleResize);
+        };
     }, []);
 
     const handleViewModeChange = (mode: "grid" | "list") => {
         setViewMode(mode);
 
-        if (window.innerWidth >= 768) {
-            localStorage.setItem("scheduleDesktopViewMode", mode);
-        }
+        const storageKey = window.innerWidth >= 768
+            ? "scheduleDesktopViewMode"
+            : "scheduleMobileViewMode";
+        localStorage.setItem(storageKey, mode);
     };
 
 
@@ -512,18 +535,23 @@ export default function ScheduleModule({
     return (
         <>
 
-            <div className="mb-3 hidden md:flex items-center justify-end">
-                <div className="relative inline-flex items-center rounded-2xl bg-white dark:bg-white/[0.05] p-1 shadow-sm border border-gray-200 dark:border-white/10">
+            <div className="mb-2 flex items-center justify-center md:mb-3 md:justify-end">
+                <div
+                    className="relative inline-flex items-center rounded-2xl border border-gray-200 bg-white p-1 shadow-sm dark:border-white/10 dark:bg-white/[0.05]"
+                    role="group"
+                    aria-label="Режим отображения расписания"
+                >
                     <div
-                        className={`absolute top-1 bottom-1 w-[112px] rounded-xl bg-green-500 shadow-md transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                            viewMode === "list" ? "left-1" : "left-[113px]"
+                        className={`absolute bottom-1 top-1 w-[104px] rounded-xl bg-green-500 shadow-md transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:w-[112px] ${
+                            viewMode === "list" ? "left-1" : "left-[105px] md:left-[113px]"
                         }`}
                     />
 
                     <button
                         type="button"
                         onClick={() => handleViewModeChange("list")}
-                        className={`group relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                        aria-pressed={viewMode === "list"}
+                        className={`group relative z-10 inline-flex w-[104px] items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/60 md:w-[112px] md:px-4 md:py-2 ${
                             viewMode === "list"
                                 ? "text-white"
                                 : "text-gray-600 dark:text-white/75 hover:text-black dark:hover:text-white"
@@ -536,7 +564,8 @@ export default function ScheduleModule({
                     <button
                         type="button"
                         onClick={() => handleViewModeChange("grid")}
-                        className={`group relative z-10 inline-flex w-[112px] items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors duration-200 ${
+                        aria-pressed={viewMode === "grid"}
+                        className={`group relative z-10 inline-flex w-[104px] items-center justify-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500/60 md:w-[112px] md:px-4 md:py-2 ${
                             viewMode === "grid"
                                 ? "text-white"
                                 : "text-gray-600 dark:text-white/70 hover:text-black dark:hover:text-white"
@@ -618,7 +647,7 @@ export default function ScheduleModule({
                         .filter((event) => event.master === masterIdx)
                         .sort((a, b) => toMins(a.start) - toMins(b.start));
 
-                    const freeSlots = getAvailableSlotsForEmployee(
+                    const freeWindows = getAvailableWindowsForEmployee(
                         masterIdx,
                         employee.id,
                         selectedDate,
@@ -628,6 +657,10 @@ export default function ScheduleModule({
                         startHour,
                         endHour
                     );
+                    const freeWindowsExpanded = expandedFreeWindows.has(employee.id);
+                    const visibleFreeWindows = freeWindowsExpanded
+                        ? freeWindows
+                        : freeWindows.slice(0, 3);
 
 
 
@@ -691,7 +724,7 @@ export default function ScheduleModule({
         "
                                         onClick={() =>
                                             onCellClick?.(
-                                                freeSlots.length > 0 ? toMins(freeSlots[0].start) : 9 * 60,
+                                                freeWindows.length > 0 ? toMins(freeWindows[0].start) : 9 * 60,
                                                 masterIdx
                                             )
                                         }
@@ -796,23 +829,56 @@ export default function ScheduleModule({
                                     </div>
                                 )}
 
-                                {/* 🟢 Свободные слоты */}
-                                {can.appointments.create() && freeSlots.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 pt-2">
-                                        {freeSlots.slice(0, 3).map((slot) => (
-                                            <button
-                                                key={slot.start}
-                                                onClick={() =>
-                                                    onCellClick?.(
-                                                        toMins(slot.start),
-                                                        masterIdx
-                                                    )
-                                                }
-                                                className="px-2 py-1 text-xs rounded-full border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)] text-[rgb(var(--foreground))]/70"
-                                            >
-                                                {slot.start}
-                                            </button>
-                                        ))}
+                                {/* 🟢 Свободные окна */}
+                                {can.appointments.create() && freeWindows.length > 0 && (
+                                    <div className="pt-2">
+                                        <div className="mb-2 flex items-center gap-2 text-xs font-medium text-[rgb(var(--foreground))]/65">
+                                            <span className="h-2 w-2 rounded-full bg-green-500" />
+                                            <span>Свободные окна</span>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-2">
+                                            {visibleFreeWindows.map((window) => (
+                                                <button
+                                                    key={window.start}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        onCellClick?.(
+                                                            toMins(window.start),
+                                                            masterIdx
+                                                        )
+                                                    }
+                                                    className="rounded-full border border-green-500/25 bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600 transition-colors hover:bg-green-500/15 dark:text-green-400"
+                                                    title="Создать запись в это свободное окно"
+                                                >
+                                                    {window.start}–{window.end}
+                                                </button>
+                                            ))}
+
+                                            {freeWindows.length > 3 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setExpandedFreeWindows((current) => {
+                                                            const next = new Set(current);
+
+                                                            if (next.has(employee.id)) {
+                                                                next.delete(employee.id);
+                                                            } else {
+                                                                next.add(employee.id);
+                                                            }
+
+                                                            return next;
+                                                        })
+                                                    }
+                                                    className="rounded-full border border-[rgb(var(--border))] bg-[rgba(255,255,255,0.02)] px-2.5 py-1 text-xs font-medium text-[rgb(var(--foreground))]/65 transition-colors hover:bg-[rgba(255,255,255,0.05)]"
+                                                >
+                                                    {freeWindowsExpanded
+                                                        ? "Скрыть"
+                                                        : `Ещё ${freeWindows.length - 3}`}
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -838,7 +904,7 @@ export default function ScheduleModule({
             {viewMode === "grid" && (
                 <div
                     ref={scheduleRef}
-                    className="hidden md:block overflow-x-auto overflow-y-auto relative max-h-[75vh] animate-fadeInSoft"
+                    className="block overflow-x-auto overflow-y-auto relative max-h-[75vh] animate-fadeInSoft"
                 >
             <div ref={gridContentRef} className="relative border border-[rgb(var(--border))] dark:border-[rgba(255,255,255,0.08)] rounded bg-[rgba(255,255,255,0.02)] min-w-max">
                 {/* Заголовок */}
