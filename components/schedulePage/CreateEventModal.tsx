@@ -410,7 +410,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                         <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                     </div>
 
-                    <div className="mx-4 mt-4 rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-3">
+                    <div className="create-event-guide mx-4 mt-4 rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-3">
                         <p className="text-sm font-semibold text-green-700 dark:text-green-300">
                             Запись появится в расписании только после кнопки «Сохранить».
                         </p>
