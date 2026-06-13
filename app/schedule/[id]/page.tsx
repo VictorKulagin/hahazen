@@ -845,6 +845,8 @@ const Page: React.FC = () => {
             <div className="md:hidden fixed top-3 left-3 z-30">
                 <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    aria-label="Открыть меню"
+                    aria-expanded={isMenuOpen}
                     className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
                 >
                     <Bars3Icon className="h-6 w-6 text-white" />
@@ -1041,7 +1043,7 @@ const Page: React.FC = () => {
                 {/* Заголовок */}
                 <div
                     className="admin-page-header mb-6 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none lg:flex-row lg:items-center lg:justify-between">
-                    <div className="min-w-0">
+                    <div className="min-w-0 pl-10 md:pl-0">
                         <div className="flex items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
                                 Расписание
