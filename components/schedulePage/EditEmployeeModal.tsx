@@ -34,6 +34,7 @@ import {
     MIN_PHONE_DIGITS,
 } from "@/components/utils/phone";
 import { getApiErrorMessage } from "@/services/apiError";
+import AdminDialogPortal from "@/components/AdminDialogPortal";
 import SpecialtyAutocomplete from '@/components/schedulePage/SpecialtyAutocomplete';
 import QualificationSelect from "@/components/schedulePage/QualificationSelect";
 import { formatMoney, normalizeCurrencyCode } from "@/lib/currency";
@@ -584,6 +585,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     };
 
     return (
+        <AdminDialogPortal onEscape={onClose}>
         <div className="admin-dialog-overlay fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-end">
             <div className="admin-dialog-panel bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-full shadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden flex flex-col">
 
@@ -1389,6 +1391,7 @@ transition"
                 </div>
             </div>
         </div>
+        </AdminDialogPortal>
     );
 };
 

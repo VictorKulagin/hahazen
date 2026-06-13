@@ -10,6 +10,7 @@ import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonuses
 import { formatMoney } from "@/lib/currency";
 import { getApiErrorMessage } from "@/services/apiError";
 import { normalizePhoneInput } from "@/components/utils/phone";
+import AdminDialogPortal from "@/components/AdminDialogPortal";
 
 interface UpdateEventModalProps {
     isOpen: boolean;
@@ -246,7 +247,13 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
     if (!isOpen || !eventData) return null;
 
     return (
-        <div className="admin-dialog-overlay fixed inset-0 z-50 flex justify-end bg-black bg-opacity-50">
+        <AdminDialogPortal onEscape={onClose}>
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="update-event-dialog-title"
+            className="admin-dialog-overlay fixed inset-0 z-50 flex justify-end bg-black bg-opacity-50"
+        >
             <div className="admin-dialog-panel bg-[rgb(var(--background))] text-[rgb(var(--foreground))] w-full sm:w-[28rem] h-full shadow-lg rounded-l-2xl rounded-tr-2xl overflow-hidden">
                 <div className="h-full flex flex-col">
 
@@ -274,7 +281,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                             <div className="flex items-start gap-3 min-w-0">
                                 <span className="mt-[1.3rem] h-2 w-2 rounded-full bg-emerald-400 shrink-0" />
 
-                                <h2 className="text-[17px] leading-[2.75] font-semibold text-[rgb(var(--foreground))] truncate">
+                                <h2 id="update-event-dialog-title" className="text-[17px] leading-[2.75] font-semibold text-[rgb(var(--foreground))] truncate">
                                     Редактировать запись
                                 </h2>
                             </div>
@@ -806,6 +813,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
         </div>
             </div>
         </div>
+        </AdminDialogPortal>
     );
 };
 

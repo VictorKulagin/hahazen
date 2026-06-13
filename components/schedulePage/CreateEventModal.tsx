@@ -10,6 +10,7 @@ import {useCreateClientBonusTransaction} from "@/hooks/useClientBonusTransaction
 import {XMarkIcon} from "@heroicons/react/24/outline";
 import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
 import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
+import AdminDialogPortal from "@/components/AdminDialogPortal";
 import { formatMoney } from "@/lib/currency";
 //import {getPhoneDigitsCount, MIN_PHONE_DIGITS, normalizePhoneInput} from "@/components/utils/phone";
 import {
@@ -348,7 +349,11 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     };
 
     return (
+        <AdminDialogPortal onEscape={onClose}>
         <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="create-event-dialog-title"
             className={`
     admin-dialog-overlay fixed inset-0 z-50 flex justify-end
     bg-black bg-opacity-50
@@ -380,7 +385,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 <span className="mt-[1.30rem] h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.35)] shrink-0" />
 
                                 <div className="min-w-0">
-                                    <h2 className="text-[17px] leading-[2.75] font-semibold text-[rgb(var(--foreground))] truncate">
+                                    <h2 id="create-event-dialog-title" className="text-[17px] leading-[2.75] font-semibold text-[rgb(var(--foreground))] truncate">
                                         Создание записи
                                     </h2>
 
@@ -1028,6 +1033,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 </div>
             </div>
         </div>
+        </AdminDialogPortal>
     );
 };
 export default CreateEventModal;

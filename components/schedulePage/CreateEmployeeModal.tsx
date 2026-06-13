@@ -28,6 +28,7 @@ import SpecialtyAutocomplete from "@/components/schedulePage/SpecialtyAutocomple
 import QualificationSelect from "@/components/schedulePage/QualificationSelect";
 import { formatMoney, normalizeCurrencyCode } from "@/lib/currency";
 import { getApiErrorMessage } from "@/services/apiError";
+import AdminDialogPortal from "@/components/AdminDialogPortal";
 
 
 type Props = {
@@ -451,6 +452,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
 
     return (
+        <AdminDialogPortal onEscape={onClose}>
         <div className="admin-dialog-overlay fixed inset-0 z-50 flex justify-end bg-black/50">
             <div className="admin-dialog-panel flex h-full w-full flex-col overflow-hidden bg-[rgb(var(--background))] text-[rgb(var(--foreground))] shadow-2xl sm:w-[28rem] sm:rounded-l-2xl sm:rounded-tr-2xl sm:border-l sm:border-gray-200 dark:sm:border-white/10">
 
@@ -1222,6 +1224,7 @@ transition"
 
             </div>
         </div>
+        </AdminDialogPortal>
     );
 };
 

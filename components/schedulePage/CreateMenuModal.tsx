@@ -7,6 +7,7 @@ import {
     XMarkIcon,
 } from "@heroicons/react/24/solid";
 import { can } from "@/lib/permissions";
+import AdminDialogPortal from "@/components/AdminDialogPortal";
 
 type Props = {
     isOpen: boolean;
@@ -22,6 +23,7 @@ export const CreateMenuModal: React.FC<Props> = ({
     if (!isOpen) return null;
 
     return (
+        <AdminDialogPortal onEscape={onClose}>
         <div className="admin-dialog-overlay fixed inset-0 z-50 bg-black/50 flex justify-end">
             <div
                 className="
@@ -169,5 +171,6 @@ export const CreateMenuModal: React.FC<Props> = ({
                 </div>
             </div>
         </div>
+        </AdminDialogPortal>
     );
 };
