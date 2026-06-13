@@ -840,19 +840,6 @@ const Page: React.FC = () => {
 
 
 
-            {/* Мобильное всплывающее меню */}
-            {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
-            <div className="md:hidden fixed top-3 left-3 z-30">
-                <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    aria-label="Открыть меню"
-                    aria-expanded={isMenuOpen}
-                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
-                >
-                    <Bars3Icon className="h-6 w-6 text-white" />
-                </button>
-            </div>
-
             {/* Мобильный дровер */}
             {isMenuOpen && (
                 <div
@@ -1043,7 +1030,18 @@ const Page: React.FC = () => {
                 {/* Заголовок */}
                 <div
                     className="admin-page-header mb-6 flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none lg:flex-row lg:items-center lg:justify-between">
-                    <div className="min-w-0 pl-10 md:pl-0">
+                    <div className="flex w-full min-w-0 items-center gap-3 lg:w-auto">
+                        <button
+                            type="button"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            aria-label="Открыть меню"
+                            aria-expanded={isMenuOpen}
+                            className="shrink-0 rounded-md bg-green-500 p-2 shadow transition hover:bg-green-600 md:hidden"
+                        >
+                            <Bars3Icon className="h-6 w-6 text-white" />
+                        </button>
+
+                        <div className="min-w-0">
                         <div className="flex items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
                                 Расписание
@@ -1053,9 +1051,14 @@ const Page: React.FC = () => {
                         <p className="mt-1 hidden text-sm text-gray-500 dark:text-gray-400 md:block">
                             Управление записями, мастерами и рабочими слотами
                         </p>
+                        </div>
+
+                        <div className="ml-auto md:hidden">
+                            <ThemeToggle />
+                        </div>
                     </div>
 
-                    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center lg:max-w-3xl">
+                    <div className="hidden w-full flex-col gap-3 sm:flex-row sm:items-center md:flex lg:max-w-3xl">
                         <input
                             type="search"
                             value={scheduleMasterSearch}
@@ -1068,6 +1071,16 @@ const Page: React.FC = () => {
                         </span>
                         <ThemeToggle />
                     </div>
+                </div>
+
+                <div className="mb-4 md:hidden">
+                    <input
+                        type="search"
+                        value={scheduleMasterSearch}
+                        onChange={(event) => setScheduleMasterSearch(event.target.value)}
+                        placeholder="Поиск мастера"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-white/40"
+                    />
                 </div>
 
                 <SetupStepNav branchId={id} currentStep="schedule" />

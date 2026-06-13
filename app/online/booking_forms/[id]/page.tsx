@@ -315,75 +315,6 @@ const Page: React.FC = () => {
                 </div>
             </aside>
 
-            {/* ✅ Кнопка открытия меню (мобильная версия) */}
-            {/* Мобильная кнопка */}
-            <div className="md:hidden fixed top-3 left-3 z-30">
-                <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
-                >
-                </button>
-            </div>
-
-            {/* Мобильное всплывающее меню */}
-            {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
-            <div className="md:hidden fixed top-3 left-3 z-30">
-                <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
-                >
-                    <Bars3Icon className="h-6 w-6 text-white" />
-                </button>
-            </div>
-
-            {/* Мобильный дровер */}
-            {isMenuOpen && (
-                <div
-                    className="md:hidden fixed inset-0 z-20 bg-black/50"
-                    onClick={() => setIsMenuOpen(false)}
-                >
-                    <div
-                        className="absolute left-0 top-0 h-full w-4/5 sm:w-2/3 flex-shrink-0 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] transform translate-x-0 transition-transform duration-300"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <SidebarMenu
-                            id={id}
-                            companyName={companiesData?.[0]?.name}
-                            branchName={branchesData?.find((branch: any) => branch.id === id)?.name || branchesData?.[0]?.name}
-                            userData={userData}
-                            variant="mobile"
-                            onLogout={handleLogout}
-                            onBranchClick={() => {
-                                setIsMenuOpen(false);
-                                setIsModalFilOpen(true);
-                            }}
-                            onNavigate={() => setIsMenuOpen(false)} // закрываем при переходе
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* ✅ Кнопка открытия меню (мобильная версия) */}
-            {/* Мобильная кнопка */}
-            <div className="md:hidden fixed top-3 left-3 z-30">
-                <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
-                >
-                </button>
-            </div>
-
-            {/* Мобильное всплывающее меню */}
-            {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
-            <div className="md:hidden fixed top-3 left-3 z-30">
-                <button
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
-                >
-                    <Bars3Icon className="h-6 w-6 text-white" />
-                </button>
-            </div>
-
             {/* Мобильный дровер */}
             {isMenuOpen && (
                 <div
@@ -452,7 +383,18 @@ const Page: React.FC = () => {
                 {/* Заголовок */}
                 <div
                     className="admin-page-header mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
-                    <div className="min-w-0">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            aria-label="Открыть меню"
+                            aria-expanded={isMenuOpen}
+                            className="shrink-0 rounded-md bg-green-500 p-2 shadow transition hover:bg-green-600 md:hidden"
+                        >
+                            <Bars3Icon className="h-6 w-6 text-white" />
+                        </button>
+
+                        <div className="min-w-0">
                         <div className="flex items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
                                 Онлайн-запись
@@ -462,6 +404,7 @@ const Page: React.FC = () => {
                         <p className="mt-1 hidden text-sm text-gray-500 dark:text-gray-400 md:block">
                             Управление публичной записью, доступными услугами и слотами
                         </p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-3">

@@ -577,15 +577,6 @@ const Page: React.FC = () => {
                 )}
 
 
-                <div className="md:hidden fixed top-3 left-3 z-30">
-                    <button
-                        onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        className="bg-green-500 p-2 rounded-md shadow hover:bg-green-600 transition"
-                    >
-                        <Bars3Icon className="h-6 w-6 text-white" />
-                    </button>
-                </div>
-
                 {/* Мобильное всплывающее меню */}
                 {/* КНОПКА ОТКРЫТИЯ МЕНЮ — только мобильная */}
                 {/* Мобильный дровер */}
@@ -618,7 +609,18 @@ const Page: React.FC = () => {
                 {/* Заголовок */}
                 <div
                     className="admin-page-header mb-6 flex items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none">
-                    <div className="min-w-0">
+                    <div className="flex min-w-0 items-center gap-3">
+                        <button
+                            type="button"
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
+                            aria-label="Открыть меню"
+                            aria-expanded={isMenuOpen}
+                            className="shrink-0 rounded-md bg-green-500 p-2 shadow transition hover:bg-green-600 md:hidden"
+                        >
+                            <Bars3Icon className="h-6 w-6 text-white" />
+                        </button>
+
+                        <div className="min-w-0">
                         <div className="flex items-center gap-2">
                             <h1 className="truncate text-lg font-semibold text-gray-900 dark:text-white">
                                 Кабинет
@@ -628,6 +630,7 @@ const Page: React.FC = () => {
                         <p className="mt-1 hidden text-sm text-gray-500 dark:text-gray-400 md:block">
                             Быстрый старт после регистрации: услуги, мастера, график и онлайн-запись
                         </p>
+                        </div>
                     </div>
 
                     <div className="flex items-center gap-3">
