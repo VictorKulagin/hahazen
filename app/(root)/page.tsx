@@ -22,10 +22,9 @@ import {
 import { authStorage } from "@/services/authStorage";
 import { can } from "@/lib/permissions";
 import {
-    fetchPublicSalons,
-    PublicSalonListItem,
     resolveCatalogAssetUrl,
 } from "@/services/publicCatalogApi";
+import { usePublicSalons } from "@/hooks/usePublicCatalog";
 
 const navItems = [
     { label: "О нас", href: "#legend" },
@@ -199,9 +198,11 @@ export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAuthChecked, setIsAuthChecked] = useState(false);
     const [activeInterfaceShot, setActiveInterfaceShot] = useState(0);
-    const [catalogSalons, setCatalogSalons] = useState<PublicSalonListItem[]>([]);
-    const [isCatalogLoading, setIsCatalogLoading] = useState(true);
-    const [catalogError, setCatalogError] = useState("");
+    const {
+        data: catalogSalons = [],
+        isLoading: isCatalogLoading,
+        isError: isCatalogError,
+    } = usePublicSalons({ countryCode: "KG", limit: 12 });
     const router = useRouter();
     const activeInterface = interfaceShowcase[activeInterfaceShot];
 
@@ -221,13 +222,6 @@ export default function Home() {
         const timeout = setTimeout(() => setShowContent(true), 120);
         return () => clearTimeout(timeout);
     }, [router]);
-
-    useEffect(() => {
-        fetchPublicSalons({ countryCode: "KG", limit: 12 })
-            .then(setCatalogSalons)
-            .catch(() => setCatalogError("Каталог временно недоступен. Попробуйте обновить страницу позже."))
-            .finally(() => setIsCatalogLoading(false));
-    }, []);
 
     if (!isAuthChecked) return null;
 
@@ -1239,9 +1233,9 @@ export default function Home() {
                                 );
                             })}
 
-                            {!isCatalogLoading && catalogError && (
+                            {!isCatalogLoading && isCatalogError && (
                                 <div className="rounded-[16px] border border-red-300/15 bg-red-950/15 p-5 text-sm leading-6 text-red-100/75 lg:col-span-2">
-                                    {catalogError}
+                                    Каталог временно недоступен. Попробуйте обновить страницу позже.
                                 </div>
                             )}
 

@@ -1,14 +1,18 @@
-import Navbar from "@/components/Navbar";
+"use client";
 
-export default function Layout({
-    children,
-}: {
-    children: React.ReactNode
-}) {
+import { ReactNode } from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
+type RootGroupLayoutProps = {
+    children: ReactNode;
+};
+
+export default function RootGroupLayout({ children }: RootGroupLayoutProps) {
     return (
-        <main className="font-work-sans">
-            {/*<Navbar/>*/}
+        <QueryClientProvider client={queryClient}>
             {children}
-        </main>
-    )
+        </QueryClientProvider>
+    );
 }

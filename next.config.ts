@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
             },
         ],
     },
+    async rewrites() {
+        const apiRoot = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://api.hahazen.com/api/v1").replace(/\/api\/v1\/?$/, "");
+
+        return [
+            {
+                source: "/public-api/:path*",
+                destination: `${apiRoot}/public-api/:path*`,
+            },
+        ];
+    },
     /*eslint: {
         ignoreDuringBuilds: true,
     },*/
