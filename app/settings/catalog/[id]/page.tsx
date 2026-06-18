@@ -11,6 +11,7 @@ import { ChevronDown, EyeOff, ImagePlus, LoaderCircle, Save, Send, Trash2 } from
 import { withAuth } from "@/hoc/withAuth";
 import { useSidebarCollapsed } from "@/hoc/useSidebarCollapsed";
 import SidebarMenu from "@/components/SidebarMenu";
+import BranchInitial from "@/components/BranchInitial";
 import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 import SetupStepNav from "@/components/SetupStepNav";
 import Loader from "@/components/Loader";
@@ -434,8 +435,24 @@ const Page: React.FC = () => {
 
             <aside className={`fixed z-10 hidden h-full flex-col border-r border-slate-200/70 bg-[rgb(var(--sidebar))] text-[rgb(var(--sidebar-foreground))] transition-all duration-300 dark:border-white/10 md:flex ${collapsed ? "w-[96px]" : "w-[320px]"}`}>
                 <div className="flex h-full flex-col p-4">
-                    <div className={`mb-4 flex items-center ${collapsed ? "justify-center" : "justify-between"}`}>
-                        {!collapsed && (
+                    <div className="mb-4 flex items-center justify-between gap-2 border-b border-slate-200/70 pb-3 dark:border-white/10">
+                        <button
+                            type="button"
+                            onClick={() => setIsModalFilOpen(true)}
+                            className={`flex min-w-0 items-center rounded-2xl p-1 text-left transition hover:bg-white/70 dark:hover:bg-white/[0.07] ${
+                                collapsed ? "justify-center" : "flex-1"
+                            }`}
+                            title={collapsed ? branch?.name || "Филиал" : undefined}
+                        >
+                            <BranchInitial name={branch?.name} className={collapsed ? "" : "mr-2"} />
+                            {!collapsed && (
+                                <span className="min-w-0">
+                                    <span className="block truncate text-sm font-semibold">{branch?.name || "Филиал"}</span>
+                                    <span className="block truncate text-xs text-[rgb(var(--muted-foreground))]">{company?.name || "Компания"}</span>
+                                </span>
+                            )}
+                        </button>
+                        {false && !collapsed && (
                             <div>
                                 <p className="text-sm font-semibold">{branch?.name || "Филиал"}</p>
                                 <p className="text-xs text-[rgb(var(--muted-foreground))]">{company?.name || "Компания"}</p>
@@ -443,8 +460,11 @@ const Page: React.FC = () => {
                         )}
                         <button
                             type="button"
-                            onClick={() => setCollapsed(!collapsed)}
-                            className="rounded-xl border border-slate-200/70 bg-white/70 p-2 transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
+                            onClick={(event) => {
+                                event.stopPropagation();
+                                setCollapsed(!collapsed);
+                            }}
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-slate-200/70 bg-white/70 transition hover:bg-white dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10"
                             aria-label={collapsed ? "Развернуть меню" : "Свернуть меню"}
                         >
                             {collapsed ? <ChevronDoubleRightIcon className="h-5 w-5" /> : <ChevronDoubleLeftIcon className="h-5 w-5" />}
