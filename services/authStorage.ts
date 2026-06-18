@@ -32,7 +32,7 @@ export type AuthPayload = {
     user?: AuthUser;
     employee?: AuthEmployee;
     context?: AuthContext;
-    roles?: Record<string, any>;
+    roles?: Record<string, unknown>;
     permissions?: string[];
 };
 
@@ -102,6 +102,11 @@ export const authStorage = {
         return safeJsonParse<AuthContext>(localStorage.getItem(KEYS.context)) ?? null;
     },
 
+    getRoles(): Record<string, unknown> {
+        if (typeof window === "undefined") return {};
+        return safeJsonParse<Record<string, unknown>>(localStorage.getItem(KEYS.roles)) ?? {};
+    },
+
     getPermissions(): string[] {
         if (typeof window === "undefined") return [];
         const context = this.getContext();
@@ -117,6 +122,13 @@ export const authStorage = {
     hasAny(perms: string[]): boolean {
         const set = new Set(this.getPermissions());
         return perms.some((p) => set.has(p));
+    },
+
+    hasRole(role: string): boolean {
+        const expected = role.toLowerCase();
+        const roles = this.getRoles();
+        return [...Object.keys(roles), ...Object.values(roles).map(String)]
+            .some((value) => value.toLowerCase() === expected);
     },
 
     // Примитивная роль мастера: employee != null

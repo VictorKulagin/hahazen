@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { signinApi } from "@/services/signinApi";
 import { authStorage } from "@/services/authStorage";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { ensureApiContext } from "@/services/apiContext";
+import { can } from "@/lib/permissions";
+import { fetchAdminCatalogProfiles } from "@/services/adminCatalogApi";
 
 export default function Page() {
     const [email, setEmail] = useState("");
@@ -18,10 +21,25 @@ export default function Page() {
     useEffect(() => {
         const token = authStorage.getToken();
         if (token) {
-            router.replace(authStorage.getContext() ? "/cabinet" : "/context/select");
+            const redirectAuthenticatedUser = async () => {
+                const hasAdminCatalogAccess = can.catalogAdmin.manage() || await fetchAdminCatalogProfiles()
+                    .then(() => true)
+                    .catch(() => false);
+
+                router.replace(
+                    hasAdminCatalogAccess
+                        ? "/admin/catalog/salons"
+                        : authStorage.getContext()
+                            ? "/cabinet"
+                            : "/context/select",
+                );
+            };
+
+            void redirectAuthenticatedUser();
             return;
         }
 
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setIsAuthChecked(true);
     }, [router]);
 
@@ -33,6 +51,13 @@ export default function Page() {
         try {
             const newSignin = await signinApi({ email, password });
             authStorage.setAuth(newSignin);
+            const hasAdminCatalogAccess = can.catalogAdmin.manage() || await fetchAdminCatalogProfiles()
+                .then(() => true)
+                .catch(() => false);
+            if (hasAdminCatalogAccess) {
+                router.push("/admin/catalog/salons");
+                return;
+            }
             const context = await ensureApiContext();
             authStorage.setContext(context);
             if (!context) {
@@ -58,9 +83,11 @@ export default function Page() {
             <div className="relative flex min-h-screen items-center justify-center px-4 py-10">
                 <div className="public-auth-card w-full max-w-md rounded-[28px] border border-gray-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:shadow-none sm:p-8">
                     <div className="mb-6 flex flex-col items-center text-center">
-                        <img
+                        <Image
                             src="/logo.png"
                             alt="Hahazen"
+                            width={64}
+                            height={64}
                             className="mb-4 h-16 w-16 rounded-2xl object-cover shadow-md"
                         />
 

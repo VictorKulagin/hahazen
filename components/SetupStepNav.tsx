@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
+    BuildingStorefrontIcon,
     CalendarIcon,
     CheckCircleIcon,
     GlobeAltIcon,
@@ -11,7 +12,7 @@ import {
     UserGroupIcon,
 } from "@heroicons/react/24/outline";
 
-type SetupStepId = "services" | "employees" | "schedule" | "online";
+type SetupStepId = "services" | "employees" | "schedule" | "online" | "catalog";
 
 type SetupStepNavProps = {
     branchId?: number | string | null;
@@ -49,6 +50,13 @@ export default function SetupStepNav({ branchId, currentStep }: SetupStepNavProp
             description: "Скопируйте ссылку для клиентов.",
             href: `/online/booking_forms/${branchId}`,
             icon: GlobeAltIcon,
+        },
+        {
+            id: "catalog" as const,
+            title: "Карточка салона",
+            description: "Заполните публичную карточку в каталоге Hahazen.",
+            href: `/settings/catalog/${branchId}`,
+            icon: BuildingStorefrontIcon,
         },
     ];
 

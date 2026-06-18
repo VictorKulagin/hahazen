@@ -5,6 +5,7 @@ import Link from "next/link";
 import BranchInitial from "@/components/BranchInitial";
 import {
     ArrowRightOnRectangleIcon,
+    BuildingStorefrontIcon,
     CalendarIcon,
     GlobeAltIcon,
     IdentificationIcon,
@@ -45,6 +46,7 @@ export default function SidebarMenu({
         { title: "Сотрудники", href: `/settings/filial_staff/${id}`, icon: UserGroupIcon },
         { title: "Клиенты", href: `/clients/base/${id}`, icon: IdentificationIcon },
         { title: "Онлайн-запись", href: `/online/booking_forms/${id}`, icon: GlobeAltIcon },
+        { title: "Карточка салона", href: `/settings/catalog/${id}`, icon: BuildingStorefrontIcon },
     ];
 
     return (

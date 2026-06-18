@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: "https",
-                hostname: "*",
+                hostname: "api.hahazen.com",
             },
         ],
     },

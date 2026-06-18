@@ -843,6 +843,53 @@ body:has(.admin-sidebar-menu) .admin-dashboard-card:hover {
     linear-gradient(135deg, rgba(9, 55, 62, 0.94), rgba(5, 31, 34, 0.92));
 }
 
+.catalog-admin-page .catalog-admin-header,
+.catalog-admin-page .catalog-admin-surface {
+  border-color: rgba(15, 118, 110, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 22px 70px rgba(15, 23, 42, 0.07);
+  backdrop-filter: blur(20px);
+}
+
+.catalog-admin-page .catalog-admin-control {
+  border-color: rgba(15, 118, 110, 0.12);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(20px);
+}
+
+.catalog-admin-page .catalog-admin-header {
+  box-shadow: 0 12px 38px rgba(15, 23, 42, 0.055);
+}
+
+.dark .catalog-admin-page .catalog-admin-header,
+.dark .catalog-admin-page .catalog-admin-surface {
+  border-color: rgba(94, 234, 212, 0.1);
+  background: rgba(7, 30, 34, 0.82);
+  box-shadow: 0 24px 75px rgba(0, 0, 0, 0.2);
+}
+
+.dark .catalog-admin-page .catalog-admin-control {
+  border-color: rgba(94, 234, 212, 0.1);
+  background: rgba(7, 30, 34, 0.82);
+}
+
+.dark .catalog-admin-page .catalog-admin-header {
+  background: rgba(8, 39, 44, 0.86);
+  box-shadow: 0 14px 45px rgba(0, 0, 0, 0.16);
+}
+
+.catalog-admin-page select option,
+body:has(.admin-sidebar-menu) select option {
+  background: rgb(255, 255, 255);
+  color: rgb(15, 23, 42);
+}
+
+.dark .catalog-admin-page select option,
+.dark body:has(.admin-sidebar-menu) select option {
+  background: rgb(8, 39, 44);
+  color: rgb(241, 245, 249);
+}
+
 body:has(.admin-sidebar-menu) .admin-details-panel {
   --card: 255 255 255;
   --border: 210 229 224;

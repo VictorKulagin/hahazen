@@ -47,7 +47,7 @@ export interface AppointmentData {
 
 const publicApiBaseURL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").replace(/\/api\/v1\/?$/, "");
 const publicBookingClient = axios.create({
-    baseURL: `${publicApiBaseURL}/public-api/booking`,
+    baseURL: `${publicApiBaseURL}/api/v1/public/booking`,
     headers: { "Content-Type": "application/json" },
 });
 

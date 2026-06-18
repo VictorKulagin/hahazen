@@ -15,12 +15,17 @@ import {
     MapPin,
     ShieldCheck,
     Send,
-    Star,
     Menu,
     UsersRound,
     X,
 } from "lucide-react";
 import { authStorage } from "@/services/authStorage";
+import { can } from "@/lib/permissions";
+import {
+    fetchPublicSalons,
+    PublicSalonListItem,
+    resolveCatalogAssetUrl,
+} from "@/services/publicCatalogApi";
 
 const navItems = [
     { label: "О нас", href: "#legend" },
@@ -82,25 +87,6 @@ const plans = [
         description: "К любому действующему тарифу",
         price: "+3 000",
         features: ["Отдельное расписание", "Свои мастера и услуги", "Общая база клиентов", "Сводная аналитика"],
-    },
-];
-
-const partnerSalons = [
-    {
-        label: "Пилотный партнёр",
-        name: "Партнёрский салон",
-        location: "Бишкек",
-        services: "Стрижки · Окрашивание · Маникюр",
-        rating: "4.9",
-        visual: "radial-gradient(circle at 24% 20%, rgba(72, 231, 191, 0.22), transparent 34%), linear-gradient(135deg, #21463f, #17312e 54%, #102320)",
-    },
-    {
-        label: "Демо-карточка",
-        name: "Массажная студия",
-        location: "Бишкек",
-        services: "Массаж · SPA · Уход",
-        rating: "—",
-        visual: "radial-gradient(circle at 78% 28%, rgba(70, 210, 179, 0.16), transparent 30%), linear-gradient(145deg, #1c3b36, #142d2a 58%, #0f211f)",
     },
 ];
 
@@ -213,12 +199,19 @@ export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAuthChecked, setIsAuthChecked] = useState(false);
     const [activeInterfaceShot, setActiveInterfaceShot] = useState(0);
+    const [catalogSalons, setCatalogSalons] = useState<PublicSalonListItem[]>([]);
+    const [isCatalogLoading, setIsCatalogLoading] = useState(true);
+    const [catalogError, setCatalogError] = useState("");
     const router = useRouter();
     const activeInterface = interfaceShowcase[activeInterfaceShot];
 
     useEffect(() => {
         const token = authStorage.getToken();
         if (token) {
+            if (can.catalogAdmin.manage()) {
+                router.replace("/admin/catalog/salons");
+                return;
+            }
             router.replace(authStorage.getContext() ? "/cabinet" : "/context/select");
             return;
         }
@@ -228,6 +221,13 @@ export default function Home() {
         const timeout = setTimeout(() => setShowContent(true), 120);
         return () => clearTimeout(timeout);
     }, [router]);
+
+    useEffect(() => {
+        fetchPublicSalons({ countryCode: "KG", limit: 12 })
+            .then(setCatalogSalons)
+            .catch(() => setCatalogError("Каталог временно недоступен. Попробуйте обновить страницу позже."))
+            .finally(() => setIsCatalogLoading(false));
+    }, []);
 
     if (!isAuthChecked) return null;
 
@@ -1168,7 +1168,7 @@ export default function Home() {
                     </div>
                 </section>
 
-                <section className="landing-section soft-section px-4 py-24">
+                <section id="catalog" className="landing-section soft-section scroll-mt-28 px-4 py-24">
                     <div className="relative z-10 mx-auto max-w-[1120px]">
                         <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }} className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                             <div>
@@ -1177,7 +1177,7 @@ export default function Home() {
                                     Каталог салонов
                                 </h2>
                                 <p className="mt-3 max-w-[650px] text-[14px] leading-6 text-[var(--hz-muted)]">
-                                    Мы только запускаемся, поэтому показываем честно: пилотные партнёры и демо-карточки. Скоро здесь появятся реальные салоны вашего города.
+                                    Находите салоны вашего города, знакомьтесь с услугами и переходите к онлайн-записи.
                                 </p>
                             </div>
                             <a
@@ -1191,32 +1191,64 @@ export default function Home() {
                         </motion.div>
 
                         <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.12 }} className="mt-9 grid gap-4 lg:grid-cols-3">
-                            {partnerSalons.map((salon) => (
-                                <article key={salon.name} className="haze-card overflow-hidden rounded-[16px] border border-white/[0.08] bg-[#0c221f]/82">
-                                    <div className="relative h-[150px]" style={{ background: salon.visual }}>
-                                        <span className="absolute left-3 top-3 rounded-full border border-[#45dfb9]/32 bg-[#16483d]/88 px-3 py-1 text-[9px] font-medium text-[#5ce5c3]">
-                                            {salon.label}
-                                        </span>
-                                        <span className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full bg-[#09201c]/80 px-2.5 py-1 text-[10px] font-semibold text-[#cce0db]">
-                                            <Star className="h-3 w-3 fill-[#45dfb9] text-[#45dfb9]" />
-                                            {salon.rating}
-                                        </span>
-                                    </div>
-                                    <div className="p-5">
-                                        <h3 className="text-[16px] font-semibold text-white">{salon.name}</h3>
-                                        <p className="mt-2 flex items-center gap-1.5 text-[11px] text-[#91aaa4]">
-                                            <MapPin className="h-3.5 w-3.5 text-[#45dfb9]" />
-                                            {salon.location}
-                                        </p>
-                                        <p className="mt-4 text-[12px] text-[#9fc2ba]">{salon.services}</p>
+                            {isCatalogLoading && [0, 1].map((item) => (
+                                <article key={item} className="haze-card animate-pulse overflow-hidden rounded-[16px] border border-white/[0.08] bg-[#0c221f]/82">
+                                    <div className="h-[150px] bg-white/[0.06]" />
+                                    <div className="space-y-3 p-5">
+                                        <div className="h-4 w-2/3 rounded bg-white/[0.08]" />
+                                        <div className="h-3 w-1/2 rounded bg-white/[0.06]" />
+                                        <div className="h-3 w-4/5 rounded bg-white/[0.06]" />
                                     </div>
                                 </article>
                             ))}
 
+                            {!isCatalogLoading && catalogSalons.map((salon) => {
+                                const coverImageUrl = resolveCatalogAssetUrl(salon.coverImageUrl);
+
+                                return (
+                                    <Link key={salon.id} href={`/salons/${salon.slug}`} className="haze-card group overflow-hidden rounded-[16px] border border-white/[0.08] bg-[#0c221f]/82 transition hover:border-[#45dfb9]/45">
+                                        <div className="relative h-[150px] overflow-hidden bg-[radial-gradient(circle_at_24%_20%,rgba(72,231,191,0.18),transparent_34%),linear-gradient(135deg,#21463f,#17312e_54%,#102320)]">
+                                            {coverImageUrl && (
+                                                // eslint-disable-next-line @next/next/no-img-element -- Catalog covers come from API upload URLs; raw img avoids optimizer fallback glitches.
+                                                <img
+                                                    src={coverImageUrl}
+                                                    alt={salon.name}
+                                                    className="h-full w-full object-cover"
+                                                />
+                                            )}
+                                            {salon.isPartner && (
+                                                <span className="absolute left-3 top-3 rounded-full border border-[#45dfb9]/32 bg-[#16483d]/88 px-3 py-1 text-[9px] font-medium text-[#5ce5c3]">
+                                                    Партнёр Hahazen
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="p-5">
+                                            <h3 className="text-[16px] font-semibold text-white transition group-hover:text-[#72f0d2]">{salon.name}</h3>
+                                            <p className="mt-2 flex items-center gap-1.5 text-[11px] text-[#91aaa4]">
+                                                <MapPin className="h-3.5 w-3.5 text-[#45dfb9]" />
+                                                {[salon.city, salon.address].filter(Boolean).join(" · ")}
+                                            </p>
+                                            {salon.servicesSummary && (
+                                                <p className="mt-4 text-[12px] text-[#9fc2ba]">{salon.servicesSummary}</p>
+                                            )}
+                                            <span className="mt-4 inline-flex text-[12px] font-semibold text-[#45dfb9] transition group-hover:text-[#9ff7df]">
+                                                Открыть карточку →
+                                            </span>
+                                        </div>
+                                    </Link>
+                                );
+                            })}
+
+                            {!isCatalogLoading && catalogError && (
+                                <div className="rounded-[16px] border border-red-300/15 bg-red-950/15 p-5 text-sm leading-6 text-red-100/75 lg:col-span-2">
+                                    {catalogError}
+                                </div>
+                            )}
+
                             <article className="haze-card group overflow-hidden rounded-[16px] border border-dashed border-[#45dfb9]/32 bg-[#0c221f]/64 transition hover:border-[#45dfb9]/60">
                                 <div className="relative flex h-[150px] items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,rgba(69,223,185,0.16),transparent_50%),linear-gradient(135deg,rgba(31,78,67,0.55),rgba(12,34,31,0.78))]">
                                     <span className="rounded-full border border-[#45dfb9]/28 bg-[#0c2823]/84 px-3 py-1 text-[9px] font-medium text-[#62dfc1]">
-                                        Скоро в каталоге
+                                        {catalogSalons.length === 0 ? "Первым в каталоге" : "Добавить салон"}
                                     </span>
                                 </div>
                                 <div className="p-5">

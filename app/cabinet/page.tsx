@@ -11,6 +11,7 @@ import {
     UserIcon,
     ArrowRightOnRectangleIcon,
     AtSymbolIcon,
+    BuildingStorefrontIcon,
     PhoneIcon,
     CalendarIcon,
     Bars3Icon,
@@ -312,6 +313,12 @@ const Page: React.FC = () => {
                 description: "Покажите клиентам ссылку для самостоятельной записи.",
                 href: `/online/booking_forms/${id}`,
                 icon: GlobeAltIcon,
+            },
+            {
+                title: "Заполнить карточку салона",
+                description: "Название, описание, фото и публикация в каталоге.",
+                href: `/settings/catalog/${id}`,
+                icon: BuildingStorefrontIcon,
             },
         ]
         : [];

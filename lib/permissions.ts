@@ -42,4 +42,8 @@ export const can = {
         updateProfile: () => authStorage.has("company:profile:update"),
         updateSettings: () => authStorage.has("company:settings:update"),
     },
+
+    catalogAdmin: {
+        manage: () => authStorage.has("catalogManage") || authStorage.hasRole("SuperAdmin"),
+    },
 };
