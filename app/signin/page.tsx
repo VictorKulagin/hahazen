@@ -7,8 +7,6 @@ import { signinApi } from "@/services/signinApi";
 import { authStorage } from "@/services/authStorage";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { ensureApiContext } from "@/services/apiContext";
-import { can } from "@/lib/permissions";
-import { fetchAdminCatalogProfiles } from "@/services/adminCatalogApi";
 
 export default function Page() {
     const [email, setEmail] = useState("");
@@ -21,21 +19,7 @@ export default function Page() {
     useEffect(() => {
         const token = authStorage.getToken();
         if (token) {
-            const redirectAuthenticatedUser = async () => {
-                const hasAdminCatalogAccess = can.catalogAdmin.manage() || await fetchAdminCatalogProfiles()
-                    .then(() => true)
-                    .catch(() => false);
-
-                router.replace(
-                    hasAdminCatalogAccess
-                        ? "/admin/catalog/salons"
-                        : authStorage.getContext()
-                            ? "/cabinet"
-                            : "/context/select",
-                );
-            };
-
-            void redirectAuthenticatedUser();
+            router.replace(authStorage.getContext() ? "/cabinet" : "/context/select");
             return;
         }
 
@@ -51,13 +35,6 @@ export default function Page() {
         try {
             const newSignin = await signinApi({ email, password });
             authStorage.setAuth(newSignin);
-            const hasAdminCatalogAccess = can.catalogAdmin.manage() || await fetchAdminCatalogProfiles()
-                .then(() => true)
-                .catch(() => false);
-            if (hasAdminCatalogAccess) {
-                router.push("/admin/catalog/salons");
-                return;
-            }
             const context = await ensureApiContext();
             authStorage.setContext(context);
             if (!context) {

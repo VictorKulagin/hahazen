@@ -20,7 +20,6 @@ import {
     X,
 } from "lucide-react";
 import { authStorage } from "@/services/authStorage";
-import { can } from "@/lib/permissions";
 import {
     resolveCatalogAssetUrl,
 } from "@/services/publicCatalogApi";
@@ -209,10 +208,6 @@ export default function Home() {
     useEffect(() => {
         const token = authStorage.getToken();
         if (token) {
-            if (can.catalogAdmin.manage()) {
-                router.replace("/admin/catalog/salons");
-                return;
-            }
             router.replace(authStorage.getContext() ? "/cabinet" : "/context/select");
             return;
         }
