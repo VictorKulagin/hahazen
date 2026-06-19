@@ -74,6 +74,7 @@ export interface ScheduleEvent {
     master: number;
     client?: any;      // ✅ добавим, чтобы можно было прокидывать клиента
     services?: any[];   // ✅ добавим, чтобы прокидывать услуги
+    comment?: string | null;
 }
 
 const getInitialUserData = () => {
@@ -488,6 +489,7 @@ const Page: React.FC = () => {
         payment_status?: "unpaid" | "paid" | "partial";
         payment_method?: "cash" | "card" | "transfer" | null;
         visit_status?: "expected" | "arrived" | "no_show";
+        comment?: string | null;
     } | null>(null);
 
 
@@ -556,6 +558,7 @@ const Page: React.FC = () => {
             payment_status: src?.payment_status ?? "unpaid",
             payment_method: src?.payment_method ?? null,
             visit_status: src?.visit_status ?? "expected",
+            comment: src?.comment ?? ev.comment ?? null,
         };
 
         setEditingEvent(eventPayload);
@@ -574,6 +577,7 @@ const Page: React.FC = () => {
         paymentStatus: "unpaid" | "paid" | "partial";
         paymentMethod: "cash" | "card" | "transfer" | null;
         visitStatus: "expected" | "arrived" | "no_show";
+        comment: string | null;
     }) => {
         if (!id || selectedMasterIndex === null) return;
 
@@ -581,6 +585,7 @@ const Page: React.FC = () => {
             client_id: data.clientId,
             employee_id: employees[selectedMasterIndex].id,
             branch_id: id,
+            comment: data.comment,
             date: formatDateLocal(selectedDate),
             time_start: data.timeStart,
             time_end: data.timeEnd,

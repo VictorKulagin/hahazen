@@ -5,7 +5,7 @@ import { useUpdateAppointment, useDeleteAppointment } from "@/hooks/useAppointme
 import { useClient, useUpdateClient } from "@/hooks/useClient";
 import { useCreateClientBonusTransaction } from "@/hooks/useClientBonusTransactions";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Pencil, UserCircle2, Package, Clock, CreditCard } from "lucide-react";
+import { Pencil, UserCircle2, Package, Clock, CreditCard, MessageSquareText } from "lucide-react";
 import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
 import { formatMoney } from "@/lib/currency";
 import { getApiErrorMessage } from "@/services/apiError";
@@ -28,6 +28,7 @@ interface UpdateEventModalProps {
         payment_status?: "unpaid" | "paid" | "partial";
         payment_method?: "cash" | "card" | "transfer" | null;
         visit_status?: "expected" | "arrived" | "no_show";
+        comment?: string | null;
     } | null;
     currencyCode?: string | null;
     bonusesEnabled?: boolean;
@@ -64,6 +65,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
     const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid" | "partial">("unpaid");
     const [paymentMethod, setPaymentMethod] = useState<"cash" | "card" | "transfer" | null>(null);
     const [visitStatus, setVisitStatus] = useState<"expected" | "arrived" | "no_show">("expected");
+    const [comment, setComment] = useState("");
     const [bonusSpend, setBonusSpend] = useState(0);
 
     useEffect(() => {
@@ -105,6 +107,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
         setPaymentStatus(eventData.payment_status ?? "unpaid");
         setPaymentMethod(eventData.payment_method ?? null);
         setVisitStatus(eventData.visit_status ?? "expected");
+        setComment(eventData.comment ?? "");
         setIsManualCost(false);
 
         setIsEditingClient(false);
@@ -213,6 +216,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
             payment_status: paymentStatus,
             payment_method: paymentMethod,
             visit_status: visitStatus,
+            comment: comment.trim() || null,
 
             services: selectedServices.map((s) => ({
                 service_id: s.id,
@@ -575,8 +579,26 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                                 )}
                             </div>
 
+                            {/* Comment */}
+                            <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-3">
+                                <div className="flex items-center gap-2">
+                                    <MessageSquareText className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                    <h3 className="text-[13px] font-semibold tracking-wide text-gray-900 dark:text-white/90">
+                                        Комментарий к записи
+                                    </h3>
+                                </div>
 
+                                <textarea
+                                    value={comment}
+                                    onChange={(e) => setComment(e.target.value)}
+                                    rows={3}
+                                    maxLength={500}
+                                    placeholder="Например: пожелания, важные детали, противопоказания"
+                                    className="w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-black transition placeholder:text-gray-400 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder:text-white/35"
+                                />
+                            </div>
 
+                            {/* Statuses and payment */}
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <CreditCard className="w-5 h-5 text-gray-500 dark:text-gray-400" />

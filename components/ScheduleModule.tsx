@@ -6,7 +6,7 @@ import type { EmployeeSchedule } from "@/services/employeeScheduleApi";
 import { Employee } from "@/services/employeeApi";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 //import {authStorage} from "@/services/authStorage"; // 👈 вместо PlusIcon
-import { Pencil, List, LayoutGrid } from "lucide-react";
+import { Pencil, List, LayoutGrid, MessageSquareText } from "lucide-react";
 import Image from "next/image";
 import { can } from "@/lib/permissions";
 import { formatMoney } from "@/lib/currency";
@@ -22,6 +22,7 @@ export interface ScheduleEvent {
     payment_method?: "cash" | "card" | "transfer" | null;
     visit_status?: "expected" | "arrived" | "no_show";
     cost?: number;
+    comment?: string | null;
 }
 
 export type ScheduleModuleProps = {
@@ -306,6 +307,37 @@ export default function ScheduleModule({
 
         return null;
     };
+
+    const getEventComment = (event: ScheduleEvent) => event.comment?.trim() ?? "";
+
+    const getCommentPreview = (comment: string, maxLength = 120) => {
+        const normalized = comment.replace(/\s+/g, " ").trim();
+
+        return normalized.length > maxLength
+            ? `${normalized.slice(0, maxLength - 1).trimEnd()}...`
+            : normalized;
+    };
+
+    const renderCommentIndicator = (comment: string, isSmall = false) => (
+        <span
+            className={`group/comment relative inline-flex shrink-0 items-center justify-center rounded-full border border-cyan-300/70 bg-cyan-50 text-cyan-700 shadow-sm transition hover:bg-cyan-100 ${
+                isSmall ? "h-5 w-5" : "h-6 w-6"
+            }`}
+            aria-label="Есть комментарий к записи"
+            title={getCommentPreview(comment)}
+        >
+            <MessageSquareText className={isSmall ? "h-3 w-3" : "h-3.5 w-3.5"} />
+            <span className="pointer-events-none absolute bottom-full right-0 z-50 mb-2 w-64 rounded-xl border border-cyan-300/40 bg-[#102f36] px-3 py-2 text-left text-xs font-medium leading-snug text-cyan-50 opacity-0 shadow-xl transition group-hover/comment:opacity-100">
+                <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-cyan-200">
+                    Комментарий
+                </span>
+                <span className="block max-h-9 overflow-hidden">
+                    {getCommentPreview(comment)}
+                </span>
+                <span className="absolute -bottom-1 right-3 h-2 w-2 rotate-45 border-b border-r border-cyan-300/40 bg-[#102f36]" />
+            </span>
+        </span>
+    );
 
 
 
@@ -751,6 +783,7 @@ export default function ScheduleModule({
 
                                         const statusLabel = getEventStatusLabel(event);
                                         const accentLine = getEventAccentLine(event);
+                                        const comment = getEventComment(event);
 
                                         const overlapEvent = employeeEvents.find((e) => {
 
@@ -771,7 +804,7 @@ export default function ScheduleModule({
                                                         ? () => onEventClick?.(event)
                                                         : undefined
                                                 }
-                                                className={`w-full text-left rounded-2xl border px-3 py-3 transition-all duration-200 hover:shadow-md ${getEventColors(event)}`}
+                                                className={`relative w-full overflow-visible text-left rounded-2xl border px-3 py-3 pr-12 transition-all duration-200 hover:shadow-md ${getEventColors(event)}`}
                                             >
                                                 <div className="flex items-start gap-3">
                                                     {/* Время */}
@@ -813,6 +846,15 @@ export default function ScheduleModule({
                                                             </div>
                                                         )}
 
+                                                        {comment && (
+                                                            <div className="mt-2 flex min-w-0 items-center gap-1.5 text-[12px] text-cyan-700/80">
+                                                                <MessageSquareText className="h-3.5 w-3.5 shrink-0 text-cyan-600" />
+                                                                <span className="truncate">
+                                                                    {getCommentPreview(comment, 90)}
+                                                                </span>
+                                                            </div>
+                                                        )}
+
                                                         {overlapEvent && (
                                                             <div className="mt-2 inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-[11px] text-red-600">
                                                                 <span>⚠</span>
@@ -821,6 +863,11 @@ export default function ScheduleModule({
                                                         )}
                                                     </div>
                                                 </div>
+                                                {comment && (
+                                                    <span className="absolute bottom-3 right-3">
+                                                        {renderCommentIndicator(comment)}
+                                                    </span>
+                                                )}
                                             </button>
                                         );
                                     })
@@ -1140,14 +1187,16 @@ export default function ScheduleModule({
 
                     const statusLabel = getEventStatusLabel(c.ev);
                     const accentLine = getEventAccentLine(c.ev);
+                    const comment = getEventComment(c.ev);
 
                     const isCompactCard = c.height < 60;
                     const isVeryCompactCard = c.height < 44;
+                    const showInlineComment = Boolean(comment) && c.height >= 72;
 
                     return (
                         <div
                             key={c.id}
-                            className={`absolute border rounded-2xl shadow-sm px-3.5 py-2.5 flex flex-col justify-between cursor-pointer transition hover:shadow-md text-xs overflow-hidden ${getEventColors(c.ev)}`}
+                            className={`absolute border rounded-2xl shadow-sm px-3.5 py-2.5 flex flex-col justify-between cursor-pointer transition hover:z-30 hover:shadow-md text-xs overflow-visible ${getEventColors(c.ev)}`}
                             style={{
                                 top: isNaN(c.top) ? 0 : c.top,
                                 left: isNaN(c.left) ? 0 : c.left,
@@ -1197,10 +1246,10 @@ export default function ScheduleModule({
                                     </div>
 
 
-                                    <div className={`mt-0.5 h-8 w-1 shrink-0 rounded-full ${accentLine}`} />
+                                    <div className={`mt-0.5 ${isVeryCompactCard ? "h-4" : isCompactCard ? "h-5" : "h-8"} w-1 shrink-0 rounded-full ${accentLine}`} />
 
                                     <div className="min-w-0 flex-1">
-                <span className="font-semibold text-black leading-tight block truncate">
+                <span className={`font-semibold text-black leading-tight block truncate ${comment ? "pr-7" : ""}`}>
         {c.ev.text}
     </span>
 
@@ -1223,12 +1272,22 @@ export default function ScheduleModule({
                                             </div>
                                         )}
 
+                                        {showInlineComment && (
+                                            <div className="mt-0.5 flex min-w-0 items-center gap-1 pr-7 text-[11px] text-cyan-700/80">
+                                                <MessageSquareText className="h-3 w-3 shrink-0 text-cyan-600" />
+                                                <span className="truncate">
+                                                    {getCommentPreview(comment, 48)}
+                                                </span>
+                                            </div>
+                                        )}
+
                                     </div>
                                 </div>
 
                                 {!isCompactCard && (
                                     <div className="mt-auto flex items-center justify-end pt-1">
                                         <div className="flex items-center gap-1">
+                                            {comment && renderCommentIndicator(comment)}
                                             {c.ev.visit_status === "expected" && <span title="Ожидается">🕒</span>}
                                             {c.ev.visit_status === "arrived" && <span title="Пришел">✅</span>}
                                             {c.ev.visit_status === "no_show" && <span title="Не пришел">❌</span>}
@@ -1236,6 +1295,11 @@ export default function ScheduleModule({
                                             {c.ev.payment_status === "partial" && <span title="Частично">🟡</span>}
                                         </div>
                                     </div>
+                                )}
+                                {isCompactCard && comment && (
+                                    <span className={`absolute right-2 z-20 ${isVeryCompactCard ? "top-1/2 -translate-y-1/2" : "bottom-2"}`}>
+                                        {renderCommentIndicator(comment, true)}
+                                    </span>
                                 )}
                             </div>
                         </div>

@@ -20,6 +20,7 @@ export function normalizeAppointments(apiAppointments: any[], employees: any[]):
             payment_method: appt.payment_method,
             visit_status: appt.visit_status,
             cost: appt.cost,
+            comment: appt.comment ?? null,
         };
     });
 }
