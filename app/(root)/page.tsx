@@ -13,6 +13,7 @@ import {
     ClipboardList,
     Gift,
     MapPin,
+    Play,
     ShieldCheck,
     Send,
     Menu,
@@ -197,6 +198,7 @@ export default function Home() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAuthChecked, setIsAuthChecked] = useState(false);
     const [activeInterfaceShot, setActiveInterfaceShot] = useState(0);
+    const [isTestimonialPlaying, setIsTestimonialPlaying] = useState(false);
     const {
         data: catalogSalons = [],
         isLoading: isCatalogLoading,
@@ -1155,6 +1157,83 @@ export default function Home() {
                             </motion.div>
                         </div>
                     </div>
+                </section>
+
+                <section id="testimonial" className="landing-section soft-section scroll-mt-28 px-4 py-24">
+                    <motion.div
+                        variants={scrollReveal}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true, amount: 0.16 }}
+                        className="relative z-10 mx-auto max-w-[1120px]"
+                    >
+                        <div className="grid items-center gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-14">
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">
+                                    Живой опыт
+                                </p>
+                                <h2 className="mt-4 text-[34px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[44px]">
+                                    Как Hahazen помогает работать с клиентами
+                                </h2>
+                                <p className="mt-5 text-[15px] leading-7 text-[var(--hz-muted)]">
+                                    Владелица массажной студии рассказывает, как CRM помогает держать клиентскую базу и рабочие процессы в порядке.
+                                </p>
+                                <blockquote className="mt-7 border-l-2 border-[#45dfb9]/60 pl-5 text-[14px] leading-6 text-[#c1d7d1]">
+                                    Не рекламный ролик, а фрагмент реальной истории создания и развития студии.
+                                </blockquote>
+                                <a
+                                    href="https://www.youtube.com/watch?v=7FerXvcEaRM&t=688s"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="mt-7 inline-flex items-center gap-2 text-[13px] font-semibold text-[#45dfb9] transition hover:text-[#72f0d2]"
+                                >
+                                    Смотреть ролик целиком
+                                    <ArrowRight className="h-4 w-4" />
+                                </a>
+                            </div>
+
+                            <div className="overflow-hidden rounded-[22px] border border-white/[0.1] bg-[#071b1c]/90 shadow-[0_28px_90px_rgba(0,0,0,0.34),0_0_55px_rgba(40,224,194,0.08)]">
+                                <div className="relative aspect-video bg-[#061516]">
+                                    {isTestimonialPlaying ? (
+                                        <iframe
+                                            src="https://www.youtube-nocookie.com/embed/7FerXvcEaRM?start=688&autoplay=1&rel=0"
+                                            title="Отзыв о CRM Hahazen от владелицы массажной студии"
+                                            className="absolute inset-0 h-full w-full"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                            referrerPolicy="strict-origin-when-cross-origin"
+                                            allowFullScreen
+                                        />
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsTestimonialPlaying(true)}
+                                            className="group absolute inset-0 h-full w-full overflow-hidden text-left"
+                                            aria-label="Воспроизвести видеоотзыв с 11 минуты 28 секунды"
+                                        >
+                                            {/* eslint-disable-next-line @next/next/no-img-element -- YouTube thumbnail is loaded only as a lightweight poster. */}
+                                            <img
+                                                src="https://i.ytimg.com/vi/7FerXvcEaRM/maxresdefault.jpg"
+                                                alt="Видео об опыте массажной студии с CRM Hahazen"
+                                                className="h-full w-full object-cover opacity-75 transition duration-500 group-hover:scale-[1.02] group-hover:opacity-90"
+                                            />
+                                            <span className="absolute inset-0 bg-gradient-to-t from-[#031012]/85 via-[#031012]/10 to-transparent" />
+                                            <span className="absolute left-5 top-5 rounded-full border border-white/15 bg-[#061516]/75 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#bce5dc] backdrop-blur-md sm:left-7 sm:top-7">
+                                                Фрагмент с 11:28
+                                            </span>
+                                            <span className="absolute inset-0 flex items-center justify-center">
+                                                <span className="flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-[#45dfb9] text-[#062b27] shadow-[0_0_38px_rgba(69,223,185,0.42)] transition group-hover:scale-110 group-hover:bg-[#72f0d2] sm:h-20 sm:w-20">
+                                                    <Play className="ml-1 h-7 w-7 fill-current sm:h-8 sm:w-8" />
+                                                </span>
+                                            </span>
+                                            <span className="absolute bottom-5 left-5 right-5 text-[13px] font-medium text-white sm:bottom-7 sm:left-7 sm:right-7 sm:text-[15px]">
+                                                Нажмите, чтобы посмотреть отзыв о Hahazen
+                                            </span>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
                 </section>
 
                 <section id="catalog" className="landing-section soft-section scroll-mt-28 px-4 py-24">
