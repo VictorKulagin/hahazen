@@ -848,7 +848,7 @@ const Page: React.FC = () => {
             {/* Мобильный дровер */}
             {isMenuOpen && (
                 <div
-                    className="md:hidden fixed inset-0 z-20 bg-black/50"
+                    className="md:hidden fixed inset-0 z-[60] bg-black/50"
                     onClick={() => setIsMenuOpen(false)}
                 >
                     <div
