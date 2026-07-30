@@ -24,6 +24,16 @@ const Footer = () => (
                 <a href="#"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M7 2C4.8 2 3 3.8 3 6v12c0 2.2 1.8 4 4 4h10c2.2 0 4-1.8 4-4V6c0-2.2-1.8-4-4-4H7zm5 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm4.5-1.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" /></svg></a>
             </div>
         </div>
+        <div className="mt-6 text-center text-sm text-green-100">
+            <a
+                href="/legal/public-offer-2026-07-30.pdf"
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-white hover:underline"
+            >
+                Публичная оферта
+            </a>
+        </div>
         <p className="mt-6 text-center text-green-100 text-sm">
             &copy; {new Date().getFullYear()} Hahazen. Все права защищены.
         </p>

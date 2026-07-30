@@ -1176,7 +1176,7 @@ export default function Home() {
                                     Как Hahazen помогает работать с клиентами
                                 </h2>
                                 <p className="mt-5 text-[15px] leading-7 text-[var(--hz-muted)]">
-                                    Владелица массажной студии рассказывает, как CRM помогает держать клиентскую базу и рабочие процессы в порядке.
+                                    Владелец массажной студии рассказывает, как CRM помогает держать клиентскую базу и рабочие процессы в порядке.
                                 </p>
                                 <blockquote className="mt-7 border-l-2 border-[#45dfb9]/60 pl-5 text-[14px] leading-6 text-[#c1d7d1]">
                                     Не рекламный ролик, а фрагмент реальной истории создания и развития студии.
@@ -1396,6 +1396,14 @@ export default function Home() {
                             </span>
                         </Link>
                         <p className="mt-3 text-sm">CRM с душой</p>
+                        <a
+                            href="/legal/public-offer-2026-07-30.pdf"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-4 inline-block text-xs transition hover:text-[var(--hz-text-strong)] hover:underline"
+                        >
+                            Публичная оферта
+                        </a>
                         <p className="mt-8 text-xs">© 2026 Hahazen. Радость в порядке.</p>
                     </div>
 

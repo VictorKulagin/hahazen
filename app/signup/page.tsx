@@ -297,6 +297,19 @@ export default function RegisterPage() {
                                 >
                                     {isLoading ? "Создаём аккаунт..." : "Зарегистрироваться"}
                                 </button>
+
+                                <p className="text-center text-xs leading-5 text-gray-500 dark:text-gray-400">
+                                    Регистрируясь, вы принимаете условия{" "}
+                                    <a
+                                        href="/legal/public-offer-2026-07-30.pdf"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="font-medium text-green-500 underline-offset-2 hover:underline"
+                                    >
+                                        публичной оферты
+                                    </a>
+                                    .
+                                </p>
                             </form>
 
                             <div className="mt-6 border-t border-gray-200 pt-4 text-center dark:border-white/10">
