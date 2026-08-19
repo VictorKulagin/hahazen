@@ -38,6 +38,13 @@ export const can = {
         delete: () => authStorage.has("service:delete"),
     },
 
+    resources: {
+        view: () => authStorage.has("resource:view"),
+        create: () => authStorage.has("resource:create"),
+        update: () => authStorage.has("resource:update"),
+        delete: () => authStorage.has("resource:delete"),
+    },
+
     company: {
         updateProfile: () => authStorage.has("company:profile:update"),
         updateSettings: () => authStorage.has("company:settings:update"),

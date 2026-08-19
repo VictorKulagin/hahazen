@@ -7,11 +7,22 @@ export interface Services {
     id: number;
     branch_id: number;
     name: string;
+    service_group_id?: number | null;
+    group_name?: string | null;
+    sort_order?: number;
     duration_minutes: number;
     base_price: number;
+    price_to?: number | null;
     online_booking: number;
-    online_booking_name: string;
-    online_booking_description: string;
+    online_booking_name: string | null;
+    online_booking_description: string | null;
+}
+
+export interface ServiceGroup {
+    id: number;
+    branch_id: number;
+    name: string;
+    sort_order: number;
 }
 
 export interface EmployeeService {
@@ -38,6 +49,31 @@ export const fetchServices = async (branchId?: number): Promise<Services[]> => {
     } catch (error) {
         console.error("Error fetching services:", error);
         throw new Error(getApiErrorMessage(error, "Не удалось загрузить услуги"));
+    }
+};
+
+export const fetchServiceGroups = async (branchId: number): Promise<ServiceGroup[]> => {
+    try {
+        const response = await apiClient.get<unknown>("/service-groups", {
+            params: { branch_id: branchId },
+        });
+        return normalizeListPayload<ServiceGroup>(response.data).rows;
+    } catch (error) {
+        console.error("Error fetching service groups:", error);
+        throw new Error(getApiErrorMessage(error, "Не удалось загрузить категории услуг"));
+    }
+};
+
+export const createServiceGroup = async (data: {
+    branch_id: number;
+    name: string;
+}): Promise<ServiceGroup> => {
+    try {
+        const response = await apiClient.post<ServiceGroup>("/service-groups", data);
+        return response.data;
+    } catch (error) {
+        console.error("Error creating service group:", error);
+        throw new Error(getApiErrorMessage(error, "Не удалось создать категорию услуг"));
     }
 };
 
@@ -75,11 +111,8 @@ export const syncEmployeeServices = async (
         }
 
         return normalizeListPayload<EmployeeServiceResponse>(response.data).rows;
-    } catch (error: any) {
-        console.error(
-            "Error syncing employee services:",
-            error?.response?.data || error
-        );
+    } catch (error: unknown) {
+        console.error("Error syncing employee services:", error);
         throw new Error(
             getApiErrorMessage(
                 error,

@@ -8,6 +8,7 @@
 export interface AppointmentServiceRequest {
     service_id: number;
     qty: number;
+    individual_price?: number;
 }
 
 
@@ -51,6 +52,7 @@ export interface AppointmentService {
 export interface AppointmentServiceRequest {
     service_id: number;
     qty: number;
+    individual_price?: number;
 }
 
 export type PaymentStatus = "unpaid" | "paid" | "partial";
@@ -59,7 +61,8 @@ export type VisitStatus = "expected" | "arrived" | "no_show";
 
 export interface AppointmentRequest {
     client_id?: number;
-    employee_id: number;
+    employee_id?: number | null;
+    resource_id?: number | null;
     branch_id: number;
     comment?: string | null;
     date: string;
@@ -80,7 +83,8 @@ export interface AppointmentResponse {
     appointment_datetime: string;
     total_duration: number;
     branch_id: number;
-    employee_id: number;
+    employee_id: number | null;
+    resource_id?: number | null;
     datetime_start?: string;
     datetime_end?: string;
 

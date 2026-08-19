@@ -5,6 +5,7 @@ import { useCreateService, useServices } from "@/hooks/useServices";
 import { normalizeCurrencyCode } from "@/lib/currency";
 import { getApiErrorMessage } from "@/services/apiError";
 import AdminDialogPortal from "@/components/AdminDialogPortal";
+import { ServiceGroupSelect } from "@/components/schedulePage/ServiceGroupSelect";
 
 type Props = {
     branchId: number;
@@ -12,13 +13,18 @@ type Props = {
     currencyCode?: string | null;
 };
 
+type PriceMode = "single" | "range";
+
 export const ServiceManager: React.FC<Props> = ({ branchId, onClose, currencyCode }) => {
     const { refetch } = useServices(branchId); // ✅ используем refetch для обновления списка
     const { mutateAsync: createService, isPending } = useCreateService();
 
     const [name, setName] = useState("");
     const [price, setPrice] = useState<number | string>("");
+    const [priceTo, setPriceTo] = useState<number | string>("");
+    const [priceMode, setPriceMode] = useState<PriceMode>("single");
     const [duration, setDuration] = useState<number | string>(30);
+    const [serviceGroupId, setServiceGroupId] = useState<number | null>(null);
     const [success, setSuccess] = useState(false);
 
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -33,10 +39,32 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
     const getErrorMessage = (err: unknown) =>
         getApiErrorMessage(err, "Не удалось добавить услугу. Попробуйте ещё раз.");
     const handleSave = async () => {
-        //if (!name.trim() || !price || !duration) return;
+        const basePrice = Number(price);
+        const upperPrice = Number(priceTo);
+        const durationMinutes = Number(duration);
 
-        if (!name.trim() || !price || !duration) {
+        if (!name.trim() || price === "" || duration === "") {
             setSubmitError("Заполните название, цену и длительность.");
+            return;
+        }
+
+        if (!Number.isInteger(basePrice) || basePrice < 0) {
+            setSubmitError("Цена должна быть целым числом не меньше 0.");
+            return;
+        }
+
+        if (!Number.isInteger(durationMinutes) || durationMinutes <= 0) {
+            setSubmitError("Длительность должна быть целым числом больше 0.");
+            return;
+        }
+
+        if (
+            priceMode === "range" &&
+            (priceTo === "" ||
+                !Number.isInteger(upperPrice) ||
+                upperPrice < basePrice)
+        ) {
+            setSubmitError("Верхняя цена должна быть целым числом не меньше начальной.");
             return;
         }
 
@@ -47,8 +75,11 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             await createService({
                 branch_id: branchId,
                 name: name.trim(),
-                base_price: Number(price),
-                duration_minutes: Number(duration),
+                service_group_id: serviceGroupId,
+                group_name: null,
+                base_price: basePrice,
+                price_to: priceMode === "range" ? upperPrice : null,
+                duration_minutes: durationMinutes,
                 online_booking: 1,
                 online_booking_name: name.trim(),
                 online_booking_description: "",
@@ -57,6 +88,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             setSuccess(true);
             setName("");
             setPrice("");
+            setPriceTo("");
+            setPriceMode("single");
             setDuration(30);
 
             // ✅ обновляем кэш, чтобы список услуг сразу обновился
@@ -122,17 +155,73 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Цена ({normalizeCurrencyCode(currencyCode)})
-                        </label>
-                        <input
-                            type="number"
-                            value={price}
-                            onChange={(e) => setPrice(e.target.value)}
-                            placeholder="Введите цену"
-                            className={inputClass}
-                        />
+                    <ServiceGroupSelect
+                        branchId={branchId}
+                        value={serviceGroupId}
+                        onChange={setServiceGroupId}
+                        inputClass={inputClass}
+                    />
+
+                    <div className="space-y-3">
+                        <div>
+                            <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Стоимость
+                            </span>
+                            <div className="grid grid-cols-2 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
+                                {(["single", "range"] as PriceMode[]).map((mode) => (
+                                    <button
+                                        key={mode}
+                                        type="button"
+                                        onClick={() => setPriceMode(mode)}
+                                        className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                                            priceMode === mode
+                                                ? "bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white"
+                                                : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+                                        }`}
+                                    >
+                                        {mode === "single" ? "Одна цена" : "Диапазон"}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className={priceMode === "range" ? "grid grid-cols-2 gap-3" : ""}>
+                            <label>
+                                <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {priceMode === "range" ? "Цена от" : "Цена"} ({normalizeCurrencyCode(currencyCode)})
+                                </span>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    value={price}
+                                    onChange={(e) => setPrice(e.target.value)}
+                                    placeholder="0"
+                                    className={inputClass}
+                                />
+                            </label>
+
+                            {priceMode === "range" && (
+                                <label>
+                                    <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Цена до ({normalizeCurrencyCode(currencyCode)})
+                                    </span>
+                                    <input
+                                        type="number"
+                                        min={typeof price === "number" ? price : Number(price) || 0}
+                                        step={1}
+                                        value={priceTo}
+                                        onChange={(e) => setPriceTo(e.target.value)}
+                                        placeholder="0"
+                                        className={inputClass}
+                                    />
+                                </label>
+                            )}
+                        </div>
+
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                            При диапазоне точная стоимость указывается в записи клиента.
+                        </p>
                     </div>
 
                     <div className="space-y-2">

@@ -59,7 +59,7 @@ export const fetchBookedDays = async (
     branch_id?: number | null
 ): Promise<BookedDaysResponse> => {
     try {
-        const params: Record<string, any> = { year, month };
+        const params: Record<string, unknown> = { year, month };
         if (branch_id !== undefined) {
             params.branch_id = branch_id;
         }
@@ -202,6 +202,7 @@ const buildAppointmentCommentPayload = (
     return {
         client_id: appointment.client?.id,
         employee_id: appointment.employee_id,
+        resource_id: appointment.resource_id ?? null,
         branch_id: appointment.branch_id,
         date,
         time_start: timeStart,
@@ -210,6 +211,7 @@ const buildAppointmentCommentPayload = (
             .map((service) => ({
                 service_id: service.service_id ?? service.id ?? 0,
                 qty: service.qty ?? 1,
+                individual_price: service.individual_price,
             }))
             .filter((service) => service.service_id > 0),
         cost: appointment.cost ?? 0,
@@ -251,7 +253,7 @@ export const fetchBookedDays = async (
     branch_id?: number | null
 ): Promise<BookedDaysResponse> => {
     try {
-        const params: Record<string, any> = { year, month };
+        const params: Record<string, unknown> = { year, month };
 
         if (branch_id !== undefined) {
             params.branch_id = branch_id;

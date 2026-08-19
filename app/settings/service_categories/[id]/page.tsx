@@ -1,24 +1,30 @@
 // app\settings\service_categories\[id]\page
 "use client";
-import React, {useEffect, useState, useRef} from "react";
+import React, {useEffect, useState} from "react";
 
 import {
     Bars3Icon, // Для редактирования
     ChevronDoubleLeftIcon,
     ChevronDoubleRightIcon,
+    FolderPlusIcon,
     PlusIcon
 } from "@heroicons/react/24/outline";
 import {withAuth} from "@/hoc/withAuth";
 import {useParams, useRouter} from "next/navigation";
 import {branchesList} from "@/services/branchesList";
 import {companiesList} from "@/services/companiesList";
-import { Services, fetchServices } from "@/services/servicesApi";
+import { ServiceGroup, Services } from "@/services/servicesApi";
 import {cabinetDashboard} from "@/services/cabinetDashboard";
 import SidebarMenu from "@/components/SidebarMenu";
 import BranchSwitcherModal from "@/components/BranchSwitcherModal";
 import SetupStepNav from "@/components/SetupStepNav";
 
-import { useServices, useDeleteService } from "@/hooks/useServices";
+import {
+    useCreateServiceGroup,
+    useDeleteService,
+    useServiceGroups,
+    useServices,
+} from "@/hooks/useServices";
 
 import { ServiceManager } from "@/components/schedulePage/ServiceManager";
 import { ServiceManagerUpdateOne } from "@/components/schedulePage/ServiceManagerUpdateOne";
@@ -28,13 +34,14 @@ import {AxiosError} from "axios";
 import BranchInitial from "@/components/BranchInitial";
 import Loader from "@/components/Loader";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { ChevronDown, Folder, Trash2 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTheme } from "@/lib/theme/theme.context";
 import {useSidebarCollapsed} from "@/hoc/useSidebarCollapsed";
 import { logoutApi } from "@/services/logoutApi";
 import { can } from "@/lib/permissions";
 import { formatMoney } from "@/lib/currency";
+import AdminDialogPortal from "@/components/AdminDialogPortal";
 
 const Page: React.FC = ( ) => {
 
@@ -42,12 +49,9 @@ const Page: React.FC = ( ) => {
     // Закрыть меню при клике на элемент
     const handleMenuItemClick = () => setIsMenuOpen(false);
 
-    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isGroupManagerOpen, setIsGroupManagerOpen] = useState(false);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const nameInputRef = useRef<HTMLInputElement>(null);
 
     const [userData, setUserData] = useState<any>(null);
     const [branchesData, setBranchesData] = useState<any>(null);
@@ -58,8 +62,6 @@ const Page: React.FC = ( ) => {
     const [isAccordionOpenClients, setIsAccordionOpenClients] = useState(false);
 
     const [isServiceManagerOpen, setIsServiceManagerOpen] = useState(false);
-    const [isUpdateOpen, setIsUpdateOpen] = useState(false);
-
     const [selectedService, setSelectedService] = useState<Services | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
@@ -82,6 +84,11 @@ const Page: React.FC = ( ) => {
     const id = routeBranchId ?? branchesData?.[0]?.id ?? null;
 
     const { data: services = [], isLoading: servicesLoading, error: servicesError } = useServices(id ?? undefined);
+    const {
+        data: serviceGroups = [],
+        isLoading: groupsLoading,
+        error: groupsError,
+    } = useServiceGroups(id ?? undefined);
     const { mutateAsync: deleteService } = useDeleteService(); // ✅ Добавлено
 
     const { theme } = useTheme();
@@ -210,14 +217,6 @@ const Page: React.FC = ( ) => {
         // Изменяем заголовок страницы
         document.title = isNotFound ? "404 - Страница не найдена" : "Название вашей страницы";
     }, [isNotFound]);
-
-
-
-    useEffect(() => {
-        if (isModalOpen) {
-            nameInputRef.current?.focus();
-        }
-    }, [isModalOpen]);
 
 
 
@@ -449,12 +448,21 @@ const Page: React.FC = ( ) => {
 
                         <div className="flex items-center gap-2 md:gap-3">
                             {can.services.create() && (
-                                <button
-                                    onClick={() => setIsServiceManagerOpen(true)}
-                                    className="hidden md:inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600"
-                                >
-                                    + Добавить услугу
-                                </button>
+                                <>
+                                    <button
+                                        onClick={() => setIsGroupManagerOpen(true)}
+                                        className="hidden md:inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-100 dark:border-white/10 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
+                                    >
+                                        <FolderPlusIcon className="h-4 w-4" />
+                                        Добавить категорию
+                                    </button>
+                                    <button
+                                        onClick={() => setIsServiceManagerOpen(true)}
+                                        className="hidden md:inline-flex items-center justify-center rounded-xl bg-green-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-600"
+                                    >
+                                        + Добавить услугу
+                                    </button>
+                                </>
                             )}
 
                             <span className="hidden sm:inline text-sm text-gray-500 dark:text-gray-400">
@@ -482,40 +490,32 @@ const Page: React.FC = ( ) => {
                 {/* Таблица Услуг */}
                 <ServicesTable
                     loading={servicesLoading}
-                    error={servicesError?.message || ""}  // чтобы тип совпал
                     services={services}
+                    groups={serviceGroups}
+                    groupsLoading={groupsLoading}
                     currencyCode={currencyCode}
+                    error={[servicesError?.message, groupsError?.message].filter(Boolean).join(" ")}
                     handleDelete={handleDelete}
-                    setIsUpdateOpen={setIsUpdateOpen}
                     setSelectedService={setSelectedService}
                 />
 
                 {can.services.create() && (
-                    <button
-                        onClick={() => setIsServiceManagerOpen(true)}
-                        className="fixed bottom-5 right-5 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition hover:bg-green-600 md:hidden"
-                        aria-label="Добавить услугу"
-                    >
-                        <PlusIcon className="h-6 w-6" />
-                    </button>
-                )}
-
-                {/* Модальное окно */}
-                {isModalOpen && (
-                    <div className="admin-dialog-overlay fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                        <div className="admin-dialog-panel bg-white text-black p-6 rounded shadow-lg w-96 relative">
-                            {/* Кнопка закрытия */}
-                            <button
-                                onClick={() => setIsModalOpen(false)}
-                                className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
-                            >
-                                ✖
-                            </button>
-
-                            <h2 className="text-xl font-bold mb-4">Добавить услугу</h2>
-
-                        </div>
-                    </div>
+                    <>
+                        <button
+                            onClick={() => setIsGroupManagerOpen(true)}
+                            className="fixed bottom-5 right-20 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-700 shadow-lg transition hover:bg-gray-100 dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white md:hidden"
+                            aria-label="Добавить категорию"
+                        >
+                            <FolderPlusIcon className="h-6 w-6" />
+                        </button>
+                        <button
+                            onClick={() => setIsServiceManagerOpen(true)}
+                            className="fixed bottom-5 right-5 z-30 inline-flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-white shadow-lg transition hover:bg-green-600 md:hidden"
+                            aria-label="Добавить услугу"
+                        >
+                            <PlusIcon className="h-6 w-6" />
+                        </button>
+                    </>
                 )}
 
                 {can.services.create() && isServiceManagerOpen && (
@@ -526,8 +526,16 @@ const Page: React.FC = ( ) => {
                     />
                 )}
 
-                {can.services.update() && (
+                {can.services.create() && isGroupManagerOpen && id && (
+                    <ServiceGroupManager
+                        branchId={id}
+                        onClose={() => setIsGroupManagerOpen(false)}
+                    />
+                )}
+
+                {can.services.update() && selectedService && (
                     <ServiceManagerUpdateOne
+                        key={selectedService.id}
                         service={selectedService}
                         onClose={() => setSelectedService(null)}
                         currencyCode={currencyCode}
@@ -542,23 +550,81 @@ const Page: React.FC = ( ) => {
 
 export default withAuth(Page);
 
+const formatServicePrice = (
+    service: Services,
+    currencyCode?: string | null
+) => {
+    const priceFrom = formatMoney(service.base_price, currencyCode);
+
+    return service.price_to == null
+        ? priceFrom
+        : `${priceFrom}–${formatMoney(service.price_to, currencyCode)}`;
+};
+
 const ServicesTable = ({
                            loading,
                            error,
                            services,
+                           groups,
+                           groupsLoading,
                            currencyCode,
                            handleDelete,
-                           setIsUpdateOpen,
                            setSelectedService
                        }: {
     loading: boolean;
     error: string;
     services: Services[];
+    groups: ServiceGroup[];
+    groupsLoading: boolean;
     currencyCode?: string | null;
     handleDelete: (id: number) => void;
-    setIsUpdateOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setSelectedService: React.Dispatch<React.SetStateAction<Services | null>>;
 }) => {
+    const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+    const knownGroupIds = new Set(groups.map((group) => group.id));
+    const fallbackGroupNames = Array.from(
+        new Set(
+            services
+                .filter(
+                    (service) =>
+                        service.group_name?.trim() &&
+                        (service.service_group_id == null || !knownGroupIds.has(service.service_group_id))
+                )
+                .map((service) => service.group_name!.trim())
+        )
+    );
+    const groupedSections = [
+        ...groups.map((group) => ({
+            key: `group-${group.id}`,
+            name: group.name,
+            services: services.filter(
+                (service) =>
+                    service.service_group_id === group.id ||
+                    (service.service_group_id == null && service.group_name === group.name)
+            ),
+        })),
+        ...fallbackGroupNames
+            .filter((name) => !groups.some((group) => group.name === name))
+            .map((name) => ({
+                key: `legacy-${name}`,
+                name,
+                services: services.filter((service) => service.group_name?.trim() === name),
+            })),
+    ];
+    const groupedServiceIds = new Set(
+        groupedSections.flatMap((section) => section.services.map((service) => service.id))
+    );
+    const ungroupedServices = services.filter((service) => !groupedServiceIds.has(service.id));
+
+    const toggleGroup = (key: string) => {
+        setCollapsedGroups((current) => {
+            const next = new Set(current);
+            if (next.has(key)) next.delete(key);
+            else next.add(key);
+            return next;
+        });
+    };
+
     return (
         <div className="grid grid-cols-1">
             <section className="admin-list-surface rounded-[28px] border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none md:p-6">
@@ -573,79 +639,264 @@ const ServicesTable = ({
                 </div>
 
                 <div className="overflow-auto">
-                    {loading ? (
+                    {loading || groupsLoading ? (
                         <div className="text-center text-gray-500">Загрузка...</div>
                     ) : error ? (
                         <div className="text-center text-red-500">Ошибка: {error}</div>
-                    ) : services.length === 0 ? (
+                    ) : services.length === 0 && groups.length === 0 ? (
                         <div className="text-center text-gray-500">Нет данных</div>
                     ) : (
-                        <div className="space-y-3">
-                            {services.map((service) => (
-                                <div
-                                    key={service.id}
-                                    className="admin-list-row rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5 md:py-4"
-                                >
-                                    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(220px,1fr)_110px_110px_auto] lg:items-center lg:gap-6">
-                                        {/* Название + время + цена на мобиле */}
-                                        <div className="min-w-0">
-                                            <div className="text-base font-semibold text-gray-900 dark:text-white md:text-lg">
-                                                {service.name}
-                                            </div>
-
-                                            <div className="mt-1 flex items-center gap-2 text-sm lg:hidden">
-            <span className="text-gray-500 dark:text-gray-400">
-                {service.duration_minutes} мин
-            </span>
-
-                                                <span className="text-gray-400 dark:text-gray-500">•</span>
-
-                                                <span className="font-semibold text-gray-900 dark:text-white">
-                {formatMoney(service.base_price, currencyCode)}
-            </span>
-                                            </div>
-                                        </div>
-
-                                        {/* Длительность на desktop */}
-                                        <div className="hidden text-sm text-gray-500 dark:text-gray-400 lg:block lg:text-left">
-                                            {service.duration_minutes} мин
-                                        </div>
-
-                                        {/* Цена на desktop */}
-                                        <div className="hidden text-sm font-semibold text-gray-900 dark:text-white lg:block lg:text-left">
-                                            {formatMoney(service.base_price, currencyCode)}
-                                        </div>
-
-                                        {/* Кнопки */}
-                                        <div className="flex items-center gap-2 self-start lg:self-center lg:justify-end">
-                                            {can.services.update() && (
-                                                <button
-                                                    onClick={() => setSelectedService(service)}
-                                                    className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
-                                                >
-                                                    <span>Редактировать</span>
-                                                </button>
-                                            )}
-
-                                            {can.services.delete() && (
-                                                <button
-                                                    onClick={() => handleDelete(service.id)}
-                                                    className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60"
-                                                >
-                <span className="sm:hidden">
-                    <Trash2 size={15} />
-                </span>
-                                                    <span className="hidden sm:inline">Удалить</span>
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
+                        <div className="space-y-4">
+                            {groupedSections.map((section) => (
+                                <ServiceGroupSection
+                                    key={section.key}
+                                    sectionKey={section.key}
+                                    name={section.name}
+                                    services={section.services}
+                                    collapsed={collapsedGroups.has(section.key)}
+                                    currencyCode={currencyCode}
+                                    onToggle={toggleGroup}
+                                    onDelete={handleDelete}
+                                    onEdit={setSelectedService}
+                                />
                             ))}
+
+                            {(ungroupedServices.length > 0 || groupedSections.length === 0) && (
+                                <ServiceGroupSection
+                                    sectionKey="ungrouped"
+                                    name="Без категории"
+                                    services={ungroupedServices}
+                                    collapsed={collapsedGroups.has("ungrouped")}
+                                    currencyCode={currencyCode}
+                                    onToggle={toggleGroup}
+                                    onDelete={handleDelete}
+                                    onEdit={setSelectedService}
+                                    ungrouped
+                                />
+                            )}
                         </div>
                     )}
                 </div>
             </section>
         </div>
+    );
+};
+
+const ServiceGroupSection = ({
+    sectionKey,
+    name,
+    services,
+    collapsed,
+    currencyCode,
+    onToggle,
+    onDelete,
+    onEdit,
+    ungrouped = false,
+}: {
+    sectionKey: string;
+    name: string;
+    services: Services[];
+    collapsed: boolean;
+    currencyCode?: string | null;
+    onToggle: (key: string) => void;
+    onDelete: (id: number) => void;
+    onEdit: (service: Services) => void;
+    ungrouped?: boolean;
+}) => (
+    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50/70 dark:border-white/10 dark:bg-white/[0.025]">
+        <button
+            type="button"
+            onClick={() => onToggle(sectionKey)}
+            className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition hover:bg-gray-100 dark:hover:bg-white/5 md:px-5"
+        >
+            <span className="flex min-w-0 items-center gap-3">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-400/10 dark:text-emerald-300">
+                    <Folder className="h-4 w-4" />
+                </span>
+                <span className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-gray-900 dark:text-white">
+                        {name}
+                    </span>
+                    <span className="block text-xs text-gray-500 dark:text-gray-400">
+                        {services.length} {services.length === 1 ? "услуга" : "услуг"}
+                    </span>
+                </span>
+            </span>
+            <ChevronDown
+                className={`h-5 w-5 shrink-0 text-gray-400 transition ${collapsed ? "-rotate-90" : ""}`}
+            />
+        </button>
+
+        {!collapsed && (
+            <div className="space-y-2 border-t border-gray-200 p-3 dark:border-white/10">
+                {services.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-gray-200 px-4 py-5 text-center text-sm text-gray-500 dark:border-white/10">
+                        {ungrouped ? "Все услуги распределены по категориям" : "В категории пока нет услуг"}
+                    </div>
+                ) : (
+                    services.map((service) => (
+                        <ServiceRow
+                            key={service.id}
+                            service={service}
+                            currencyCode={currencyCode}
+                            onDelete={onDelete}
+                            onEdit={onEdit}
+                        />
+                    ))
+                )}
+            </div>
+        )}
+    </div>
+);
+
+const ServiceRow = ({
+    service,
+    currencyCode,
+    onDelete,
+    onEdit,
+}: {
+    service: Services;
+    currencyCode?: string | null;
+    onDelete: (id: number) => void;
+    onEdit: (service: Services) => void;
+}) => (
+    <div className="admin-list-row rounded-xl border border-gray-200 bg-white px-4 py-4 shadow-sm transition-colors dark:border-white/10 dark:bg-white/5 dark:shadow-none md:px-5">
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(220px,1fr)_110px_140px_auto] lg:items-center lg:gap-6">
+            <div className="min-w-0">
+                <div className="text-base font-semibold text-gray-900 dark:text-white">
+                    {service.name}
+                </div>
+                <div className="mt-1 flex items-center gap-2 text-sm lg:hidden">
+                    <span className="text-gray-500 dark:text-gray-400">
+                        {service.duration_minutes} мин
+                    </span>
+                    <span className="text-gray-400 dark:text-gray-500">•</span>
+                    <span className="font-semibold text-gray-900 dark:text-white">
+                        {formatServicePrice(service, currencyCode)}
+                    </span>
+                </div>
+            </div>
+
+            <div className="hidden text-sm text-gray-500 dark:text-gray-400 lg:block">
+                {service.duration_minutes} мин
+            </div>
+            <div className="hidden text-sm font-semibold text-gray-900 dark:text-white lg:block">
+                {formatServicePrice(service, currencyCode)}
+            </div>
+            <div className="flex items-center gap-2 self-start lg:self-center lg:justify-end">
+                {can.services.update() && (
+                    <button
+                        onClick={() => onEdit(service)}
+                        className="inline-flex items-center justify-center rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+                    >
+                        Редактировать
+                    </button>
+                )}
+                {can.services.delete() && (
+                    <button
+                        onClick={() => onDelete(service.id)}
+                        className="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-600 transition hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60"
+                    >
+                        <span className="sm:hidden"><Trash2 size={15} /></span>
+                        <span className="hidden sm:inline">Удалить</span>
+                    </button>
+                )}
+            </div>
+        </div>
+    </div>
+);
+
+const ServiceGroupManager = ({
+    branchId,
+    onClose,
+}: {
+    branchId: number;
+    onClose: () => void;
+}) => {
+    const [name, setName] = useState("");
+    const [submitError, setSubmitError] = useState<string | null>(null);
+    const { mutateAsync: createGroup, isPending } = useCreateServiceGroup();
+
+    const handleSave = async () => {
+        const normalizedName = name.trim();
+        if (!normalizedName) {
+            setSubmitError("Введите название категории.");
+            return;
+        }
+
+        setSubmitError(null);
+        try {
+            await createGroup({ branch_id: branchId, name: normalizedName });
+            onClose();
+        } catch (error) {
+            setSubmitError(error instanceof Error ? error.message : "Не удалось создать категорию.");
+        }
+    };
+
+    return (
+        <AdminDialogPortal onEscape={onClose}>
+            <div className="admin-dialog-overlay fixed inset-0 z-50 flex justify-end bg-black/50">
+                <div className="admin-dialog-panel flex h-full w-full flex-col overflow-hidden bg-[rgb(var(--background))] text-[rgb(var(--foreground))] shadow-lg sm:w-[28rem] sm:rounded-l-2xl">
+                    <div className="border-b border-gray-200 bg-white/95 px-5 py-4 backdrop-blur-md dark:border-white/10 dark:bg-[rgb(var(--card))]/95">
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                                <h2 className="text-lg font-semibold">Создание категории</h2>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="flex h-9 w-9 items-center justify-center rounded-xl border border-gray-200 bg-gray-100 text-gray-500 transition hover:bg-gray-200 dark:border-white/10 dark:bg-white/5 dark:text-white/60 dark:hover:bg-white/10"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 p-6">
+                        <label className="block">
+                            <span className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Название категории
+                            </span>
+                            <input
+                                autoFocus
+                                value={name}
+                                onChange={(event) => setName(event.target.value)}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter") handleSave();
+                                }}
+                                placeholder="Например: Поклейка"
+                                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-black outline-none transition focus:border-gray-500 focus:ring-2 focus:ring-gray-500/20 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                            />
+                        </label>
+                    </div>
+
+                    <div className="border-t border-gray-200 bg-white/95 px-4 py-4 dark:border-white/10 dark:bg-[rgb(var(--card))]/95">
+                        {submitError && (
+                            <div className="mb-3 rounded-xl border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
+                                {submitError}
+                            </div>
+                        )}
+                        <div className="flex justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                className="h-11 rounded-xl border border-gray-300 bg-white px-5 text-gray-700 transition hover:bg-gray-100 dark:border-white/10 dark:bg-white/[0.03] dark:text-white dark:hover:bg-white/10"
+                            >
+                                Закрыть
+                            </button>
+                            <button
+                                type="button"
+                                onClick={handleSave}
+                                disabled={isPending}
+                                className="h-11 rounded-xl bg-green-600 px-5 font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-70"
+                            >
+                                {isPending ? "Сохранение..." : "Сохранить"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </AdminDialogPortal>
     );
 };

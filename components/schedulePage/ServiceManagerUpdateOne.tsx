@@ -1,30 +1,42 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useUpdateService, useServices } from "@/hooks/useServices";
 import { normalizeCurrencyCode } from "@/lib/currency";
 import { getApiErrorMessage } from "@/services/apiError";
 import AdminDialogPortal from "@/components/AdminDialogPortal";
+import { ServiceGroupSelect } from "@/components/schedulePage/ServiceGroupSelect";
+
+type PriceMode = "single" | "range";
 
 type Props = {
     service: {
         id: number;
         branch_id?: number;
         name: string;
+        service_group_id?: number | null;
         base_price: number;
+        price_to?: number | null;
         duration_minutes: number;
-    } | null;
+    };
     onClose: () => void;
     currencyCode?: string | null;
 };
 
 export const ServiceManagerUpdateOne: React.FC<Props> = ({ service, onClose, currencyCode }) => {
-    const { refetch } = useServices(service?.branch_id);
+    const { refetch } = useServices(service.branch_id);
     const { mutateAsync: updateService, isPending } = useUpdateService();
 
     // 🧩 всегда вызываем хуки, даже если service = null
-    const [name, setName] = useState(service?.name ?? "");
-    const [basePrice, setBasePrice] = useState<number | string>(service?.base_price ?? "");
-    const [duration, setDuration] = useState<number | string>(service?.duration_minutes ?? "");
+    const [name, setName] = useState(service.name);
+    const [basePrice, setBasePrice] = useState<number | string>(service.base_price);
+    const [priceTo, setPriceTo] = useState<number | string>(service.price_to ?? "");
+    const [priceMode, setPriceMode] = useState<PriceMode>(
+        service.price_to == null ? "single" : "range"
+    );
+    const [duration, setDuration] = useState<number | string>(service.duration_minutes);
+    const [serviceGroupId, setServiceGroupId] = useState<number | null>(
+        service.service_group_id ?? null
+    );
     const [success, setSuccess] = useState(false);
 
     const [submitError, setSubmitError] = useState<string | null>(null);
@@ -36,36 +48,36 @@ text-black dark:text-white \
 transition \
 focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
-    // если service обновился (например, выбрали новую услугу)
-    useEffect(() => {
-        if (service) {
-            setName(service.name);
-            setBasePrice(service.base_price);
-            setDuration(service.duration_minutes);
-        }
-    }, [service]);
-
-
-    useEffect(() => {
-        if (service) {
-            setName(service.name);
-            setBasePrice(service.base_price);
-            setDuration(service.duration_minutes);
-            setSubmitError(null);
-            setSuccess(false);
-        }
-    }, [service]);
-
-
     const getErrorMessage = (err: unknown) =>
         getApiErrorMessage(err, "Не удалось сохранить услугу. Попробуйте ещё раз.");
 
     const handleSave = async () => {
-        if (!service) return;
-        //if (!name.trim() || !basePrice || !duration) return;
+        const numericBasePrice = Number(basePrice);
+        const numericPriceTo = Number(priceTo);
+        const durationMinutes = Number(duration);
 
-        if (!name.trim() || !basePrice || !duration) {
+        if (!name.trim() || basePrice === "" || duration === "") {
             setSubmitError("Заполните название, цену и длительность.");
+            return;
+        }
+
+        if (!Number.isInteger(numericBasePrice) || numericBasePrice < 0) {
+            setSubmitError("Цена должна быть целым числом не меньше 0.");
+            return;
+        }
+
+        if (!Number.isInteger(durationMinutes) || durationMinutes <= 0) {
+            setSubmitError("Длительность должна быть целым числом больше 0.");
+            return;
+        }
+
+        if (
+            priceMode === "range" &&
+            (priceTo === "" ||
+                !Number.isInteger(numericPriceTo) ||
+                numericPriceTo < numericBasePrice)
+        ) {
+            setSubmitError("Верхняя цена должна быть целым числом не меньше начальной.");
             return;
         }
 
@@ -76,8 +88,11 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 id: service.id,
                 data: {
                     name: name.trim(),
-                    base_price: Number(basePrice),
-                    duration_minutes: Number(duration),
+                    service_group_id: serviceGroupId,
+                    group_name: null,
+                    base_price: numericBasePrice,
+                    price_to: priceMode === "range" ? numericPriceTo : null,
+                    duration_minutes: durationMinutes,
                 },
             });
 
@@ -92,9 +107,6 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             setSubmitError(getErrorMessage(err)); // ✅ вместо молчания
         }
     };
-
-    // ✅ теперь условный рендер ниже, а не до хуков
-    if (!service) return null;
 
     return (
         <AdminDialogPortal onEscape={onClose}>
@@ -142,6 +154,13 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                         />
                     </div>
 
+                    <ServiceGroupSelect
+                        branchId={service.branch_id}
+                        value={serviceGroupId}
+                        onChange={setServiceGroupId}
+                        inputClass={inputClass}
+                    />
+
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Длительность (мин)</label>
                         <input
@@ -152,16 +171,55 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                         />
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Цена ({normalizeCurrencyCode(currencyCode)})
-                        </label>
-                        <input
-                            type="number"
-                            value={basePrice}
-                            onChange={(e) => setBasePrice(e.target.value)}
-                            className={inputClass}
-                        />
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-2 rounded-xl bg-gray-100 p-1 dark:bg-white/5">
+                            {(["single", "range"] as PriceMode[]).map((mode) => (
+                                <button
+                                    key={mode}
+                                    type="button"
+                                    onClick={() => setPriceMode(mode)}
+                                    className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
+                                        priceMode === mode
+                                            ? "bg-white text-gray-900 shadow-sm dark:bg-white/10 dark:text-white"
+                                            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
+                                    }`}
+                                >
+                                    {mode === "single" ? "Одна цена" : "Диапазон"}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className={priceMode === "range" ? "grid grid-cols-2 gap-3" : ""}>
+                            <label>
+                                <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {priceMode === "range" ? "Цена от" : "Цена"} ({normalizeCurrencyCode(currencyCode)})
+                                </span>
+                                <input
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    value={basePrice}
+                                    onChange={(e) => setBasePrice(e.target.value)}
+                                    className={inputClass}
+                                />
+                            </label>
+
+                            {priceMode === "range" && (
+                                <label>
+                                    <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Цена до ({normalizeCurrencyCode(currencyCode)})
+                                    </span>
+                                    <input
+                                        type="number"
+                                        min={typeof basePrice === "number" ? basePrice : Number(basePrice) || 0}
+                                        step={1}
+                                        value={priceTo}
+                                        onChange={(e) => setPriceTo(e.target.value)}
+                                        className={inputClass}
+                                    />
+                                </label>
+                            )}
+                        </div>
                     </div>
 
                     {success && (

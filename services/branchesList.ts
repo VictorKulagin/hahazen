@@ -21,6 +21,8 @@ interface branchesL {
     created_at?: number;
     updated_at?: number;
     companyId?: number;
+    booking_slug?: string | null;
+    online_booking?: number | boolean;
 }
 
 export const branchesList = async (companyId: number): Promise<branchesL[]> => {

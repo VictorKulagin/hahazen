@@ -15,6 +15,7 @@ import {
     PhoneIcon,
     CalendarIcon,
     Bars3Icon,
+    BellAlertIcon,
     SparklesIcon,
     UserGroupIcon,
     GlobeAltIcon,
@@ -35,6 +36,7 @@ import { logoutApi } from "@/services/logoutApi";
 import CompanySettingsCard from "@/components/settings/CompanySettingsCard";
 import { getApiErrorMessage } from "@/services/apiError";
 import { normalizePhoneInput } from "@/components/utils/phone";
+import { fetchWhatsAppSettings, isWhatsAppSettingsEnabled } from "@/services/whatsappApi";
 
 type BranchItem = {
     id: number;
@@ -45,6 +47,8 @@ type BranchItem = {
     phone?: string | null;
     email?: string | null;
 };
+
+type WhatsAppIntegrationStatus = "checking" | "configured" | "not_configured";
 
 const Page: React.FC = () => {
     // ✅ ВСЕ STATE ПЕРЕМЕННЫЕ
@@ -66,6 +70,7 @@ const Page: React.FC = () => {
     const [isCreatingBranch, setIsCreatingBranch] = useState(false);
     const [isSwitchingBranch, setIsSwitchingBranch] = useState<number | null>(null);
     const [branchModalError, setBranchModalError] = useState("");
+    const [whatsAppStatus, setWhatsAppStatus] = useState<WhatsAppIntegrationStatus>("checking");
     const { theme } = useTheme();
     //const [collapsed, setCollapsed] = useState(false);
     const { collapsed, setCollapsed, isReady } = useSidebarCollapsed();
@@ -194,6 +199,32 @@ const Page: React.FC = () => {
     };
 
     const id = getCompanyId(branchesData);
+    const whatsAppCompanyId = companiesData?.[0]?.id ?? null;
+
+    useEffect(() => {
+        if (!whatsAppCompanyId) return;
+
+        let isCancelled = false;
+
+        const loadWhatsAppStatus = async () => {
+            try {
+                const settings = await fetchWhatsAppSettings(whatsAppCompanyId);
+                if (!isCancelled) {
+                    setWhatsAppStatus(isWhatsAppSettingsEnabled(settings) ? "configured" : "not_configured");
+                }
+            } catch {
+                if (!isCancelled) {
+                    setWhatsAppStatus("not_configured");
+                }
+            }
+        };
+
+        void loadWhatsAppStatus();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [whatsAppCompanyId]);
 
     const refreshBranches = async () => {
         const companyId = companiesData?.[0]?.id;
@@ -322,6 +353,17 @@ const Page: React.FC = () => {
             },
         ]
         : [];
+
+    const whatsAppStatusLabel =
+        whatsAppStatus === "checking"
+            ? "проверка"
+            : whatsAppStatus === "configured"
+                ? "настроено"
+                : "не настроено";
+    const whatsAppStatusClass =
+        whatsAppStatus === "configured"
+            ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-300"
+            : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200";
 
 
     // 🔹 Единая обработка загрузки
@@ -778,11 +820,51 @@ const Page: React.FC = () => {
                         )}
                     </section>
 
-                    <CompanySettingsCard
-                        company={companiesData?.[0]}
-                        canManageCompany={canManageCompanySettings}
-                        onSaved={handleCompanySaved}
-                    />
+                    <div className="space-y-4">
+                        <CompanySettingsCard
+                            company={companiesData?.[0]}
+                            canManageCompany={canManageCompanySettings}
+                            onSaved={handleCompanySaved}
+                        />
+
+                        {Boolean(id) && (
+                            <section className="admin-content-surface rounded-2xl border border-gray-200 bg-white p-4 text-gray-900 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none">
+                                <div className="mb-4">
+                                    <h2 className="text-lg font-semibold">Интеграции</h2>
+                                    <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                        Подключите WhatsApp, Telegram или SMS для автоматического общения с клиентами.
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/5 sm:flex-row sm:items-center sm:justify-between">
+                                    <div className="flex min-w-0 items-start gap-3">
+                                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-green-500/15 text-green-600 dark:bg-green-400/15 dark:text-green-300">
+                                            <BellAlertIcon className="h-5 w-5" />
+                                        </span>
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-gray-950 dark:text-white">
+                                                WhatsApp
+                                            </p>
+                                            <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${whatsAppStatusClass}`}>
+                                                Статус: {whatsAppStatusLabel}
+                                            </span>
+                                            <p className="mt-1 text-sm leading-5 text-gray-500 dark:text-gray-400">
+                                                Клиенты будут получать подтверждения, отмены и напоминания по записям.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <Link
+                                        href={`/settings/integrations/${id}`}
+                                        className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-green-500 px-4 text-sm font-semibold text-white transition hover:bg-green-600"
+                                    >
+                                        Открыть интеграции
+                                        <ArrowRightIcon className="h-4 w-4" />
+                                    </Link>
+                                </div>
+                            </section>
+                        )}
+                    </div>
                 </div>
             </main>
         </div>

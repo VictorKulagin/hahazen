@@ -10,6 +10,7 @@ import { Pencil, List, LayoutGrid, MessageSquareText } from "lucide-react";
 import Image from "next/image";
 import { can } from "@/lib/permissions";
 import { formatMoney } from "@/lib/currency";
+import type { ScheduleAxis } from "@/services/companiesList";
 
 
 export interface ScheduleEvent {
@@ -45,6 +46,7 @@ export type ScheduleModuleProps = {
     onMasterSearchChange?: (value: string) => void;
     showMasterSearch?: boolean;
     currencyCode?: string | null;
+    scheduleAxis?: ScheduleAxis;
 };
 
 export function toMins(t: string): number {
@@ -70,7 +72,8 @@ function getAvailabilityForEmployee(
     schedules: EmployeeSchedule[],
     slotStepMin: number,
     startHour: number,
-    endHour: number
+    endHour: number,
+    useEmployeeSchedule = true
 ) {
     const minMinutes = startHour * 60;
     const maxMinutes = endHour * 60;
@@ -81,7 +84,7 @@ function getAvailabilityForEmployee(
         (event) => event.master === masterIdx
     );
 
-    const workingSlots = allSlots.filter((slotStart) => {
+    const workingSlots = useEmployeeSchedule ? allSlots.filter((slotStart) => {
             const slotEnd = slotStart + slotStepMin;
 
             const working =
@@ -99,7 +102,7 @@ function getAvailabilityForEmployee(
                 );
 
             return working;
-        });
+        }) : allSlots;
 
     const availableSlots = workingSlots.filter((slotStart) => {
             const slotEnd = slotStart + slotStepMin;
@@ -159,6 +162,7 @@ export default function ScheduleModule({
                                            onMasterSearchChange,
                                            showMasterSearch = true,
                                            currencyCode,
+                                           scheduleAxis = "employee",
                                        }: ScheduleModuleProps) {
     const minMinutes = startHour * 60;
     const maxMinutes = endHour * 60;
@@ -185,6 +189,7 @@ export default function ScheduleModule({
         can.clients.create() ||
         can.employees.create() ||
         can.services.create();
+    const usesEmployeeColumns = scheduleAxis === "employee";
 
     const filteredEmployees = useMemo(
         () => selectedMaster === "all"
@@ -624,7 +629,7 @@ export default function ScheduleModule({
                             type="search"
                             value={masterSearch}
                             onChange={(event) => setMasterSearch(event.target.value)}
-                            placeholder="Поиск мастера"
+                            placeholder={usesEmployeeColumns ? "Поиск мастера" : "Поиск ресурса"}
                             className="w-full rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-white/40"
                         />
                     </div>
@@ -694,7 +699,8 @@ export default function ScheduleModule({
                         schedules,
                         slotStepMin,
                         startHour,
-                        endHour
+                        endHour,
+                        usesEmployeeColumns && employee.id > 0
                     );
                     const freeWindows = availability.windows;
                     const freeWindowsExpanded = expandedFreeWindows.has(employee.id);
@@ -726,11 +732,11 @@ export default function ScheduleModule({
                                     className="flex min-w-0 flex-1 items-center gap-3 text-left rounded-xl transition-all duration-150 active:scale-[0.99]
         "
                                     onClick={
-                                        can.employees.update()
+                                        usesEmployeeColumns && employee.id > 0 && can.employees.update()
                                             ? () => onMasterClick?.(employee)
                                             : undefined
                                     }
-                                    title="Редактировать сотрудника"
+                                    title={usesEmployeeColumns && employee.id > 0 ? "Редактировать сотрудника" : undefined}
                                 >
                                     <div
                                         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white group-active:-translate-x-0.5 group-active:scale-95 ${getAvatarColor(employee.name)}`}
@@ -1005,11 +1011,11 @@ export default function ScheduleModule({
     active:scale-[0.99]
         "
                             onClick={
-                                can.employees.update()
+                                usesEmployeeColumns && employee.id > 0 && can.employees.update()
                                     ? () => onMasterClick?.(employee)
                                     : undefined
                             }
-                            title="Редактировать сотрудника"
+                            title={usesEmployeeColumns && employee.id > 0 ? "Редактировать сотрудника" : undefined}
                         >
                             <div className="flex min-w-0 items-center gap-3">
                                 <div
@@ -1040,7 +1046,7 @@ export default function ScheduleModule({
                                 </div>
                             </div>
 
-                            {can.employees.update() && (
+                            {usesEmployeeColumns && employee.id > 0 && can.employees.update() && (
                                 <span className="
     ml-3 shrink-0 rounded-lg p-1 opacity-30
     transition-all duration-150
@@ -1085,7 +1091,7 @@ export default function ScheduleModule({
                                 {toTime(min)}
                             </div>
                             {gridEmployees.map(({ employee, masterIdx }) => {
-                                const working = employee
+                                const working = usesEmployeeColumns && employee.id > 0
                                     ? isWorkingSlot(employee.id, toTime(min), selectedDate, schedules)
                                     : true;
 

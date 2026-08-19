@@ -9,10 +9,12 @@ import {
     CalendarIcon,
     GlobeAltIcon,
     IdentificationIcon,
+    RectangleGroupIcon,
     SparklesIcon,
     UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { usePathname } from "next/navigation";
+import { can } from "@/lib/permissions";
 
 type SidebarMenuProps = {
     id: string | number | null;
@@ -43,6 +45,9 @@ export default function SidebarMenu({
     const menuItems = [
         { title: "Расписание", href: `/schedule/${id}`, icon: CalendarIcon },
         { title: "Услуги", href: `/settings/service_categories/${id}`, icon: SparklesIcon },
+        ...(can.resources.view()
+            ? [{ title: "Ресурсы", href: `/settings/resources/${id}`, icon: RectangleGroupIcon }]
+            : []),
         { title: "Сотрудники", href: `/settings/filial_staff/${id}`, icon: UserGroupIcon },
         { title: "Клиенты", href: `/clients/base/${id}`, icon: IdentificationIcon },
         { title: "Онлайн-запись", href: `/online/booking_forms/${id}`, icon: GlobeAltIcon },

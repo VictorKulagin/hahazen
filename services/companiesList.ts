@@ -1,6 +1,20 @@
 import apiClient from "./api";
 import { normalizeListPayload } from "./normalize";
 
+export type BookingAssignmentMode =
+    | "client_picks_employee"
+    | "admin_assigns";
+export type ScheduleAxis = "employee" | "resource";
+export type PublicBookingAxis = "employee" | "resource";
+export type PublicResourceAssignment = "client_picks" | "auto_assigns";
+
+export const DEFAULT_BOOKING_ASSIGNMENT_MODE: BookingAssignmentMode =
+    "client_picks_employee";
+export const DEFAULT_SCHEDULE_AXIS: ScheduleAxis = "employee";
+export const DEFAULT_PUBLIC_BOOKING_AXIS: PublicBookingAxis = "employee";
+export const DEFAULT_PUBLIC_RESOURCE_ASSIGNMENT: PublicResourceAssignment =
+    "client_picks";
+
 export interface Company {
     id: number;
     name: string;
@@ -14,6 +28,10 @@ export interface Company {
     bonuses_enabled?: boolean;
     bonus_spend_max_percent?: number | null;
     bonus_points_label?: string | null;
+    booking_assignment_mode?: BookingAssignmentMode;
+    schedule_axis?: ScheduleAxis;
+    public_booking_axis?: PublicBookingAxis;
+    public_resource_assignment?: PublicResourceAssignment;
     created_at?: number;
     updated_at?: number;
 }
@@ -30,12 +48,30 @@ export type CompanyUpdatePayload = Partial<
         | "bonuses_enabled"
         | "bonus_spend_max_percent"
         | "bonus_points_label"
+        | "booking_assignment_mode"
+        | "schedule_axis"
+        | "public_booking_axis"
+        | "public_resource_assignment"
     >
 >;
 
+const withCompatibleCompanyDefaults = (company: Company): Company => ({
+    ...company,
+    booking_assignment_mode:
+        company.booking_assignment_mode ?? DEFAULT_BOOKING_ASSIGNMENT_MODE,
+    schedule_axis: company.schedule_axis ?? DEFAULT_SCHEDULE_AXIS,
+    public_booking_axis:
+        company.public_booking_axis ?? DEFAULT_PUBLIC_BOOKING_AXIS,
+    public_resource_assignment:
+        company.public_resource_assignment ??
+        DEFAULT_PUBLIC_RESOURCE_ASSIGNMENT,
+});
+
 export const companiesList = async (): Promise<Company[]> => {
     const response = await apiClient.get<unknown>("/companies");
-    return normalizeListPayload<Company>(response.data).rows;
+    return normalizeListPayload<Company>(response.data).rows.map(
+        withCompatibleCompanyDefaults
+    );
 };
 
 export const updateCompany = async (
@@ -43,5 +79,5 @@ export const updateCompany = async (
     data: CompanyUpdatePayload
 ): Promise<Company> => {
     const response = await apiClient.patch<Company>(`/companies/${id}`, data);
-    return response.data;
+    return withCompatibleCompanyDefaults(response.data);
 };

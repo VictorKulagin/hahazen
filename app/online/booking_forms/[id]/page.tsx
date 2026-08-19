@@ -71,9 +71,7 @@ const Page: React.FC = () => {
 
     const handleCopy = async () => {
         try {
-            await navigator.clipboard.writeText(
-                `https://hahazen.com/booking/branches/${id}/services/select`
-            );
+            await navigator.clipboard.writeText(publicBookingUrl);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
@@ -82,7 +80,7 @@ const Page: React.FC = () => {
     };
 
     const handleShare = async () => {
-        const url = `https://hahazen.com/booking/branches/${id}/services/select`;
+        const url = publicBookingUrl;
 
         try {
             if (navigator.share) {
@@ -202,6 +200,17 @@ const Page: React.FC = () => {
     const parsedIdFromUrl = idFromUrl ? Number(idFromUrl) : NaN;
     const routeBranchId = Number.isFinite(parsedIdFromUrl) ? parsedIdFromUrl : null;
     const id = routeBranchId ?? branchesData?.[0]?.id ?? null;
+    const activeBranch = branchesData?.find(
+        (branch: any) => Number(branch.id) === Number(id)
+    );
+    const bookingSlug =
+        typeof activeBranch?.booking_slug === "string"
+            ? activeBranch.booking_slug.trim()
+            : "";
+    const publicBookingPath = bookingSlug
+        ? `/booking/b/${encodeURIComponent(bookingSlug)}`
+        : `/booking/branches/${id}/services/select`;
+    const publicBookingUrl = `https://hahazen.com${publicBookingPath}`;
 
 
 
@@ -433,8 +442,18 @@ const Page: React.FC = () => {
                     {/* Ссылка */}
                     <div className="flex items-center gap-2">
                         <div className="flex-1 px-4 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-black/20 text-sm truncate">
-                            https://hahazen.com/booking/branches/{id}/services/select
+                            {publicBookingUrl}
                         </div>
+
+                        <Link
+                            href={publicBookingPath}
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="Открыть онлайн-запись"
+                            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition group"
+                        >
+                            <ArrowTopRightOnSquareIcon className="h-5 w-5 text-gray-600 dark:text-gray-300 group-hover:text-black dark:group-hover:text-white transition" />
+                        </Link>
 
                         <button
                             onClick={handleCopy}

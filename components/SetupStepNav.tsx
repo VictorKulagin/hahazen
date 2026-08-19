@@ -122,7 +122,11 @@ export default function SetupStepNav({ branchId, currentStep }: SetupStepNavProp
                     </div>
                 </div>
 
-                <div className="relative mt-4 grid grid-cols-4 gap-1.5" aria-hidden="true">
+                <div
+                    className="relative mt-4 grid gap-1.5"
+                    style={{ gridTemplateColumns: `repeat(${steps.length}, minmax(0, 1fr))` }}
+                    aria-hidden="true"
+                >
                     {steps.map((step, index) => (
                         <span
                             key={step.id}

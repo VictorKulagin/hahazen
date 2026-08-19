@@ -1,14 +1,14 @@
 "use client";
 
 import React, {useEffect, useState} from "react";
-import {useEmployeeServices} from "@/hooks/useServices";
+import {useAppointmentServices} from "@/hooks/useServices";
 import type {Services} from "@/services/servicesApi";
 import ClientAutocomplete from "@/components/ClientAutocomplete";
 import type {Client} from "@/services/clientApi";
 import {useUpdateClient} from "@/hooks/useClient";
 import {useCreateClientBonusTransaction} from "@/hooks/useClientBonusTransactions";
 import {XMarkIcon} from "@heroicons/react/24/outline";
-import { Pencil, UserCircle2, Package, Clock, CreditCard, MessageSquareText } from "lucide-react";
+import { Box, Pencil, UserCircle2, Package, Clock, CreditCard, MessageSquareText } from "lucide-react";
 import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
 import AdminDialogPortal from "@/components/AdminDialogPortal";
 import { formatMoney } from "@/lib/currency";
@@ -20,6 +20,9 @@ import {
     MIN_PHONE_DIGITS,
 } from "@/components/utils/phone";
 import { getApiErrorMessage } from "@/services/apiError";
+import type { ScheduleResource } from "@/services/resourcesApi";
+import type { Employee } from "@/services/employeeApi";
+import { AppointmentServicePickerList } from "@/components/schedulePage/AppointmentServicePickerList";
 
 type EmployeeServiceEither =
     | (Services & {
@@ -63,7 +66,7 @@ interface CreateEventModalProps {
         name: string;
         lastName: string;
         phone: string;
-        services: { id: number; qty: number }[];
+        services: { id: number; qty: number; individualPrice: number }[];
         timeStart: string;
         timeEnd: string;
     }) => void;*/
@@ -72,9 +75,11 @@ interface CreateEventModalProps {
         name: string;
         lastName: string;
         phone: string;
-        services: { id: number; qty: number }[];
+        services: { id: number; qty: number; individualPrice: number }[];
         timeStart: string;
         timeEnd: string;
+        employeeId: number | null;
+        resourceId: number | null;
         cost: number;
         paymentStatus: "unpaid" | "paid" | "partial";
         paymentMethod: "cash" | "card" | "transfer" | null;
@@ -83,6 +88,11 @@ interface CreateEventModalProps {
     }) => Promise<void>;
     loading: boolean;
     employeeId: number | null;
+    branchId: number | null;
+    employees?: Employee[];
+    allowUnassignedEmployee?: boolean;
+    resources?: ScheduleResource[];
+    initialResourceId?: number | null;
     defaultStartTime?: string;
     defaultEndTime?: string;
     isOutsideSchedule?: boolean; // 👈 добавляем сюда (необязательный проп)
@@ -98,6 +108,11 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
                                                                onSave,
                                                                loading,
                                                                employeeId,
+                                                               branchId,
+                                                               employees = [],
+                                                               allowUnassignedEmployee = false,
+                                                               resources = [],
+                                                               initialResourceId = null,
                                                                defaultStartTime,
                                                                defaultEndTime,
                                                                isOutsideSchedule = false, // 👈 значение по умолчанию
@@ -114,11 +129,13 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     const [showClientFields, setShowClientFields] = useState(false);
     const [isEditingClient, setIsEditingClient] = useState(false);
     const [selectedServices, setSelectedServices] = useState<
-        { id: number; qty: number }[]
+        { id: number; qty: number; individualPrice: number }[]
     >([]);
 
     const [timeStart, setTimeStart] = useState(defaultStartTime || "09:00");
     const [timeEnd, setTimeEnd] = useState(defaultEndTime || "09:30");
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(employeeId);
+    const [resourceId, setResourceId] = useState<number | null>(null);
 
     const [cost, setCost] = useState(0);
     const [paymentStatus, setPaymentStatus] = useState<"unpaid" | "paid" | "partial">("unpaid");
@@ -142,8 +159,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     const showError = touched && phone.length > 0 && !phoneIsValid;
 
 
-    const {data: services = [], isLoading} = useEmployeeServices(
-        employeeId ?? undefined
+    const {data: services = [], isLoading} = useAppointmentServices(
+        allowUnassignedEmployee ? null : selectedEmployeeId,
+        branchId
     );
 
     const {mutateAsync: updateClientMutate, isPending: updating} =
@@ -162,6 +180,8 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         setIsEditingClient(false);
         setTimeStart(defaultStartTime || "09:00");
         setTimeEnd(defaultEndTime || "09:30");
+        setSelectedEmployeeId(employeeId);
+        setResourceId(initialResourceId);
 
         setCost(0);
         setPaymentStatus("unpaid");
@@ -172,7 +192,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         setIsServiceDropdownOpen(false);
         setIsManualCost(false);
         setBonusSpend(0);
-    }, [employeeId, isOpen]);
+    }, [employeeId, initialResourceId, isOpen]);
 
     useEffect(() => {
         if (paymentStatus === "unpaid") {
@@ -191,9 +211,7 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         if (isManualCost) return;
 
         const total = selectedServices.reduce((sum, s) => {
-            const service = services.find((item) => item.service_id === s.id);
-            const price = service?.individual_price ?? service?.base_price ?? 0;
-            return sum + price * s.qty;
+            return sum + s.individualPrice * s.qty;
         }, 0);
 
         setCost(total);
@@ -206,9 +224,10 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
 
     const filteredServices = services.filter((item) => {
-        const matchesSearch = item.name
+        const normalizedSearch = serviceSearch.trim().toLowerCase();
+        const matchesSearch = `${item.name} ${item.group_name ?? ""}`
             .toLowerCase()
-            .includes(serviceSearch.toLowerCase());
+            .includes(normalizedSearch);
 
         const alreadySelected = selectedServices.some((s) => s.id === item.service_id);
 
@@ -221,7 +240,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         setSelectedServices((prev) => {
             const exists = prev.some((s) => s.id === serviceId);
             if (exists) return prev;
-            return [...prev, {id: serviceId, qty: 1}];
+            const service = services.find((item) => item.service_id === serviceId);
+            const individualPrice = service?.individual_price ?? service?.base_price ?? 0;
+            return [...prev, {id: serviceId, qty: 1, individualPrice}];
         });
 
         setServiceSearch("");
@@ -244,6 +265,16 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
         setSelectedServices((prev) =>
             prev.map((s) =>
                 s.id === serviceId ? {...s, qty: qty > 0 ? qty : 1} : s
+            )
+        );
+    };
+
+    const updateIndividualPrice = (serviceId: number, individualPrice: number) => {
+        setSelectedServices((prev) =>
+            prev.map((service) =>
+                service.id === serviceId
+                    ? {...service, individualPrice: Math.max(0, individualPrice)}
+                    : service
             )
         );
     };
@@ -296,9 +327,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
     const calculateServicesCost = () => {
         return selectedServices.reduce((sum, s) => {
-            const service = services.find((item) => item.service_id === s.id);
-            const price = service?.individual_price ?? service?.base_price ?? 0;
-            return sum + price * s.qty;
+            return sum + s.individualPrice * s.qty;
         }, 0);
     };
 
@@ -315,6 +344,11 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
             return;
         }
 
+        if (!allowUnassignedEmployee && !selectedEmployeeId) {
+            setSubmitError("Выберите мастера");
+            return;
+        }
+
         setSubmitError(null);
 
         try {
@@ -326,6 +360,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                 services: selectedServices,
                 timeStart,
                 timeEnd,
+                employeeId: selectedEmployeeId,
+                resourceId,
                 cost,
                 paymentStatus,
                 paymentMethod,
@@ -654,6 +690,68 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                 </div>
                             </div>
 
+                            {allowUnassignedEmployee && (
+                                <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <UserCircle2 className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                        <h3 className="text-[13px] font-semibold tracking-wide text-gray-900 dark:text-white/90">
+                                            Мастер
+                                        </h3>
+                                    </div>
+                                    <p className="text-xs leading-snug text-gray-500 dark:text-white/50">
+                                        Можно назначить позже. Такая запись останется нераспределённой.
+                                    </p>
+                                    <select
+                                        value={selectedEmployeeId ?? ""}
+                                        onChange={(event) => {
+                                            setSelectedEmployeeId(
+                                                event.target.value ? Number(event.target.value) : null
+                                            );
+                                        }}
+                                        className={inputClass}
+                                    >
+                                        <option value="">— назначить позже —</option>
+                                        {employees.map((employee) => (
+                                            <option key={employee.id} value={employee.id}>
+                                                {employee.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {resources.length > 0 && (
+                                <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <Box className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                        <h3 className="text-[13px] font-semibold tracking-wide text-gray-900 dark:text-white/90">
+                                            Ресурс
+                                        </h3>
+                                    </div>
+                                    <p className="text-xs leading-snug text-gray-500 dark:text-white/50">
+                                        Необязательно. Выберите бокс, кабинет или оборудование для этой записи.
+                                    </p>
+                                    <select
+                                        value={resourceId ?? ""}
+                                        onChange={(event) =>
+                                            setResourceId(
+                                                event.target.value
+                                                    ? Number(event.target.value)
+                                                    : null
+                                            )
+                                        }
+                                        className={inputClass}
+                                    >
+                                        <option value="">— не выбран —</option>
+                                        {resources.map((resource) => (
+                                            <option key={resource.id} value={resource.id}>
+                                                {resource.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
                             {/* 4. Услуги */}
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div className="flex items-center justify-between">
@@ -665,8 +763,8 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                     </div>
 
                                     <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-    Кол-во
-  </span>
+                                        Цена / кол-во
+                                    </span>
                                 </div>
 
                                 <p className="text-xs leading-snug text-gray-500 dark:text-white/50">
@@ -686,22 +784,41 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                     const service = services.find((item) => item.service_id === selected.id);
                                                     if (!service) return null;
 
-                                                    const price = service.individual_price ?? service.base_price;
-
                                                     return (
                                                         <div
                                                             key={selected.id}
-                                                            className="flex items-center gap-2 rounded-full bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 px-3 py-1.5 text-gray-800 dark:text-white"
+                                                            className="flex w-full flex-wrap items-end gap-2 rounded-xl bg-gray-100 dark:bg-white/10 border border-gray-200 dark:border-white/10 px-3 py-2 text-gray-800 dark:text-white"
                                                         >
-                                <span className="text-sm font-medium text-gray-800 dark:text-white">
+                                <span className="min-w-[8rem] flex-1 self-center text-sm font-medium text-gray-800 dark:text-white">
                                     {service.name}
                                 </span>
 
-                                                            <span className="text-sm text-gray-500">
-                                    {formatMoney(price, currencyCode)}
-                                </span>
+                                                            <label className="flex flex-col gap-0.5">
+                                                                <span className="text-[10px] uppercase tracking-wide text-gray-400 dark:text-white/40">
+                                                                    Цена
+                                                                </span>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    step={1}
+                                                                    value={selected.individualPrice}
+                                                                    onChange={(event) =>
+                                                                        updateIndividualPrice(
+                                                                            selected.id,
+                                                                            Number(event.target.value)
+                                                                        )
+                                                                    }
+                                                                    className="w-24 rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm text-gray-900 outline-none focus:border-gray-400 dark:border-white/10 dark:bg-white/5 dark:text-white"
+                                                                    aria-label={`Цена услуги ${service.name}`}
+                                                                />
+                                                                {service.price_to != null && (
+                                                                    <span className="text-[10px] text-gray-400 dark:text-white/40">
+                                                                        Прайс: {formatMoney(service.base_price, currencyCode)}–{formatMoney(service.price_to, currencyCode)}
+                                                                    </span>
+                                                                )}
+                                                            </label>
 
-                                                            <div className="flex items-center gap-1 ml-1">
+                                                            <div className="flex items-center gap-1 ml-1 mb-0.5">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateQty(selected.id, selected.qty - 1)}
@@ -726,7 +843,7 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeService(selected.id)}
-                                                                className="ml-1 text-gray-400 hover:text-red-500"
+                                                                className="ml-1 mb-2 text-gray-400 hover:text-red-500"
                                                             >
                                                                 <XMarkIcon className="w-4 h-4"/>
                                                             </button>
@@ -761,37 +878,11 @@ focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500";
 
                                         {/* dropdown */}
                                         {isServiceDropdownOpen && filteredServices.length > 0 && (
-                                            <div
-                                                className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto  rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[rgb(var(--card))] shadow-xl backdrop-blur-sm transition-all duration-200 animate-in fade-in slide-in-from-top-1"
-                                            >
-                                                {filteredServices.map((item) => {
-                                                    const price = item.individual_price ?? item.base_price;
-
-                                                    return (
-                                                        <button
-                                                            key={item.service_id}
-                                                            type="button"
-                                                            onClick={() => addService(item.service_id)}
-                                                            className="
-          flex w-full items-center justify-between
-          px-4 py-3
-          text-left
-          transition
-          hover:bg-gray-100
-          dark:hover:bg-white/10
-        "
-                                                        >
-        <span className="text-sm text-gray-900 dark:text-white">
-          {item.name}
-        </span>
-
-                                                            <span className="text-sm text-gray-500 dark:text-white/60">
-          {formatMoney(price, currencyCode)}
-        </span>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
+                                            <AppointmentServicePickerList
+                                                services={filteredServices}
+                                                currencyCode={currencyCode}
+                                                onSelect={addService}
+                                            />
                                         )}
 
                                         {isServiceDropdownOpen && filteredServices.length === 0 && serviceSearch.trim() !== "" && (

@@ -1,9 +1,17 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
+    BookingAssignmentMode,
     Company,
     CompanyUpdatePayload,
+    DEFAULT_BOOKING_ASSIGNMENT_MODE,
+    DEFAULT_PUBLIC_BOOKING_AXIS,
+    DEFAULT_PUBLIC_RESOURCE_ASSIGNMENT,
+    DEFAULT_SCHEDULE_AXIS,
+    PublicBookingAxis,
+    PublicResourceAssignment,
+    ScheduleAxis,
     updateCompany,
 } from "@/services/companiesList";
 import { can } from "@/lib/permissions";
@@ -44,6 +52,35 @@ export default function CompanySettingsCard({
     canManageCompany = false,
     onSaved,
 }: CompanySettingsCardProps) {
+    if (!company) {
+        return (
+            <section className="admin-content-surface rounded-2xl border border-gray-200 bg-white p-4 text-gray-500 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-gray-400 dark:shadow-none">
+                Компания не найдена.
+            </section>
+        );
+    }
+
+    return (
+        <CompanySettingsForm
+            key={company.id}
+            company={company}
+            canManageCompany={canManageCompany}
+            onSaved={onSaved}
+        />
+    );
+}
+
+type CompanySettingsFormProps = {
+    company: Company;
+    canManageCompany: boolean;
+    onSaved?: (company: Company) => void;
+};
+
+function CompanySettingsForm({
+    company,
+    canManageCompany,
+    onSaved,
+}: CompanySettingsFormProps) {
     const permissions = can as CompanyPermissionApi;
     const canUpdateProfile =
         canManageCompany || (permissions.company?.updateProfile?.() ?? false);
@@ -51,43 +88,52 @@ export default function CompanySettingsCard({
         canManageCompany || (permissions.company?.updateSettings?.() ?? false);
     const canSave = canUpdateProfile || canUpdateSettings;
 
-    const [name, setName] = useState("");
-    const [address, setAddress] = useState("");
-    const [phone, setPhone] = useState("");
-    const [email, setEmail] = useState("");
-    const [countryCode, setCountryCode] = useState("KG");
-    const [currencyCode, setCurrencyCode] = useState("KGS");
-    const [bonusesEnabled, setBonusesEnabled] = useState(true);
-    const [bonusSpendMaxPercent, setBonusSpendMaxPercent] = useState(50);
-    const [bonusPointsLabel, setBonusPointsLabel] = useState("");
+    const [name, setName] = useState(company.name ?? "");
+    const [address, setAddress] = useState(company.address ?? "");
+    const [phone, setPhone] = useState(normalizePhoneInput(company.phone ?? ""));
+    const [email, setEmail] = useState(company.email ?? "");
+    const [countryCode, setCountryCode] = useState(
+        (company.country_code ?? "KG").toUpperCase()
+    );
+    const [currencyCode, setCurrencyCode] = useState(
+        (company.currency_code ?? "KGS").toUpperCase()
+    );
+    const [bonusesEnabled, setBonusesEnabled] = useState(
+        company.bonuses_enabled ?? true
+    );
+    const [bonusSpendMaxPercent, setBonusSpendMaxPercent] = useState(
+        company.bonus_spend_max_percent ?? 50
+    );
+    const [bonusPointsLabel, setBonusPointsLabel] = useState(
+        company.bonus_points_label ?? ""
+    );
+    const [bookingAssignmentMode, setBookingAssignmentMode] =
+        useState<BookingAssignmentMode>(
+            company.booking_assignment_mode ?? DEFAULT_BOOKING_ASSIGNMENT_MODE
+        );
+    const [scheduleAxis, setScheduleAxis] =
+        useState<ScheduleAxis>(company.schedule_axis ?? DEFAULT_SCHEDULE_AXIS);
+    const [publicBookingAxis, setPublicBookingAxis] =
+        useState<PublicBookingAxis>(
+            company.public_booking_axis ?? DEFAULT_PUBLIC_BOOKING_AXIS
+        );
+    const [publicResourceAssignment, setPublicResourceAssignment] =
+        useState<PublicResourceAssignment>(
+            company.public_resource_assignment ??
+                DEFAULT_PUBLIC_RESOURCE_ASSIGNMENT
+        );
     const [isSaving, setIsSaving] = useState(false);
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
 
-    useEffect(() => {
-        if (!company) return;
-
-        setName(company.name ?? "");
-        setAddress(company.address ?? "");
-        setPhone(normalizePhoneInput(company.phone ?? ""));
-        setEmail(company.email ?? "");
-        setCountryCode((company.country_code ?? "KG").toUpperCase());
-        setCurrencyCode((company.currency_code ?? "KGS").toUpperCase());
-        setBonusesEnabled(company.bonuses_enabled ?? true);
-        setBonusSpendMaxPercent(company.bonus_spend_max_percent ?? 50);
-        setBonusPointsLabel(company.bonus_points_label ?? "");
-        setMessage("");
-        setError("");
-    }, [company]);
-
     const localePreview = useMemo(() => {
-        if (company?.default_locale) return company.default_locale;
+        if (company.default_locale) return company.default_locale;
         return countryCode === "KG" ? "ru_KG" : "ru_RU";
-    }, [company?.default_locale, countryCode]);
+    }, [company.default_locale, countryCode]);
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        if (!company?.id || !canSave) return;
+        if (!canSave) return;
 
         const payload: CompanyUpdatePayload = {};
 
@@ -107,6 +153,10 @@ export default function CompanySettingsCard({
                 Math.min(100, Number(bonusSpendMaxPercent) || 0)
             );
             payload.bonus_points_label = bonusPointsLabel.trim() || null;
+            payload.booking_assignment_mode = bookingAssignmentMode;
+            payload.schedule_axis = scheduleAxis;
+            payload.public_booking_axis = publicBookingAxis;
+            payload.public_resource_assignment = publicResourceAssignment;
         }
 
         setIsSaving(true);
@@ -123,14 +173,6 @@ export default function CompanySettingsCard({
             setIsSaving(false);
         }
     };
-
-    if (!company) {
-        return (
-            <section className="admin-content-surface rounded-2xl border border-gray-200 bg-white p-4 text-gray-500 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-gray-400 dark:shadow-none">
-                Компания не найдена.
-            </section>
-        );
-    }
 
     return (
         <section className="admin-content-surface rounded-2xl border border-gray-200 bg-white p-4 text-gray-900 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none">
@@ -297,6 +339,125 @@ export default function CompanySettingsCard({
                         />
                         <span>Бонусная программа включена</span>
                     </label>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4 dark:border-white/10">
+                    <div className="mb-3">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                            Запись
+                        </h3>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Настройте назначение мастера и структуру рабочего календаря.
+                        </p>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <label className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/5">
+                            <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                Кто назначает мастера
+                            </span>
+                            <span className="mb-3 block min-h-10 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                                Администратор может принять заявку без мастера и назначить его позже.
+                            </span>
+                            <select
+                                value={bookingAssignmentMode}
+                                onChange={(event) =>
+                                    setBookingAssignmentMode(
+                                        event.target.value as BookingAssignmentMode
+                                    )
+                                }
+                                disabled={!canUpdateSettings || isSaving}
+                                className={inputClass}
+                            >
+                                <option value="client_picks_employee">
+                                    Клиент выбирает сам
+                                </option>
+                                <option value="admin_assigns">
+                                    Администратор назначает
+                                </option>
+                            </select>
+                        </label>
+
+                        <label className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/5">
+                            <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                Колонки календаря
+                            </span>
+                            <span className="mb-3 block min-h-10 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                                Используйте ресурсы для боксов, кабинетов или оборудования.
+                            </span>
+                            <select
+                                value={scheduleAxis}
+                                onChange={(event) =>
+                                    setScheduleAxis(event.target.value as ScheduleAxis)
+                                }
+                                disabled={!canUpdateSettings || isSaving}
+                                className={inputClass}
+                            >
+                                <option value="employee">По мастерам</option>
+                                <option value="resource">По ресурсам</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div className="mt-4 grid gap-4 md:grid-cols-2">
+                        <label className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/5">
+                            <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                Онлайн-запись
+                            </span>
+                            <span className="mb-3 block min-h-10 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                                Определяет, по кому или чему рассчитываются свободные слоты для клиента.
+                            </span>
+                            <select
+                                value={publicBookingAxis}
+                                onChange={(event) =>
+                                    setPublicBookingAxis(
+                                        event.target.value as PublicBookingAxis
+                                    )
+                                }
+                                disabled={!canUpdateSettings || isSaving}
+                                className={inputClass}
+                            >
+                                <option value="employee">По мастерам</option>
+                                <option value="resource">По ресурсам</option>
+                            </select>
+                        </label>
+
+                        <label className="rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-white/10 dark:bg-white/5">
+                            <span className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-200">
+                                Назначение ресурса
+                            </span>
+                            <span className="mb-3 block min-h-10 text-xs leading-5 text-gray-500 dark:text-gray-400">
+                                При автоматическом назначении клиент не выбирает бокс или кабинет.
+                            </span>
+                            <select
+                                value={publicResourceAssignment}
+                                onChange={(event) =>
+                                    setPublicResourceAssignment(
+                                        event.target
+                                            .value as PublicResourceAssignment
+                                    )
+                                }
+                                disabled={
+                                    !canUpdateSettings ||
+                                    isSaving ||
+                                    publicBookingAxis !== "resource"
+                                }
+                                className={inputClass}
+                            >
+                                <option value="client_picks">
+                                    Клиент выбирает
+                                </option>
+                                <option value="auto_assigns">
+                                    Назначается автоматически
+                                </option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                        Для существующих компаний сохраняются прежние значения: запись
+                        по мастерам, ресурс при необходимости выбирает клиент.
+                    </p>
                 </div>
 
                 {(message || error) && (

@@ -56,6 +56,7 @@ import { authStorage } from "@/services/authStorage";
 import { getApiErrorMessage } from "@/services/apiError";
 import { normalizePhoneInput } from "@/components/utils/phone";
 import { can } from "@/lib/permissions";
+import { useResources } from "@/hooks/useResources";
 
 type BranchItem = {
     id: number;
@@ -66,6 +67,28 @@ type BranchItem = {
     phone?: string | null;
     email?: string | null;
 };
+
+const createResourceCalendarColumn = (
+    id: number,
+    name: string,
+    specialty: string
+): Employee => ({
+    id,
+    name,
+    specialty,
+    lvl: null,
+    hire_date: "",
+    branch_id: 0,
+    online_booking: 0,
+    description: null,
+    email: null,
+    gender: null,
+    last_name: null,
+    patronymic: null,
+    phone: null,
+    photo: null,
+    role: "resource",
+});
 export interface ScheduleEvent {
     id: string;
     start: string;
@@ -183,6 +206,9 @@ const Page: React.FC = () => {
     const bonusesEnabled = companySettings?.bonuses_enabled ?? true;
     const bonusSpendMaxPercent = companySettings?.bonus_spend_max_percent ?? 50;
     const bonusPointsLabel = companySettings?.bonus_points_label?.trim() || "Б";
+    const scheduleAxis = companySettings?.schedule_axis ?? "employee";
+    const allowUnassignedEmployee =
+        companySettings?.booking_assignment_mode === "admin_assigns";
 
     // const { employees } = useEmployees();
 
@@ -214,7 +240,7 @@ const Page: React.FC = () => {
         !companiesData ||
         !branchesData ||
         !userData ||
-        employeesList.length === 0;
+        (employeesList.length === 0 && !allowUnassignedEmployee);
 
     const globalError = error || !companiesData || !branchesData ? error : "";
 
@@ -444,6 +470,35 @@ const Page: React.FC = () => {
 
     // Получаем мастеров из API (сотрудников для филиала)
     const { data: employees, isLoading: employeesLoading, error: employeesError } = useEmployees(id);
+    const { data: resources = [] } = useResources(
+        id ?? undefined,
+        can.resources.view()
+    );
+    const resourceCalendarColumns: Employee[] = [
+        createResourceCalendarColumn(-1, "Нераспределённые", "Без ресурса"),
+        ...resources.map((resource) =>
+            createResourceCalendarColumn(
+                resource.id,
+                resource.name,
+                resource.type === "room"
+                    ? "Кабинет"
+                    : resource.type === "equipment"
+                        ? "Оборудование"
+                        : resource.type === "box"
+                            ? "Бокс"
+                            : "Ресурс"
+            )
+        ),
+    ];
+    const employeeCalendarColumns: Employee[] = allowUnassignedEmployee
+        ? [
+            createResourceCalendarColumn(-2, "Нераспределённые", "Без мастера"),
+            ...(employees ?? []),
+        ]
+        : employees ?? [];
+    const calendarColumns = scheduleAxis === "resource"
+        ? resourceCalendarColumns
+        : employeeCalendarColumns;
 
     // Средствами useAppointments подгружай события выбранного дня:
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -465,14 +520,19 @@ const Page: React.FC = () => {
 
     const { data: appointments, isLoading: isAppointmentsLoading, error: appointmentsError } = useAppointmentsByBranchAndDate(id, selectedDate);
     const normalizedAppointments =
-        employees && employees.length > 0 && appointments
-            ? normalizeAppointments(appointments, employees)
+        appointments
+            ? normalizeAppointments(appointments, employees ?? [], {
+                axis: scheduleAxis,
+                resources,
+                includeUnassignedEmployeeColumn: allowUnassignedEmployee,
+            })
             : [];
     const groupedAppointments = groupAppointments(appointments ?? []);
     const scheduleEvents = flattenGroupedAppointments(groupedAppointments, employees ?? []);
     const { mutateAsync: createAppointmentMutate, isPending: isCreating } = useCreateAppointment();
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedMasterIndex, setSelectedMasterIndex] = useState<number | null>(null);
+    const [selectedResourceId, setSelectedResourceId] = useState<number | null>(null);
     const [selectedStartMinutes, setSelectedStartMinutes] = useState<number | null>(null);
     const [isOutsideSchedule, setIsOutsideSchedule] = useState(false); // 👈 добавляем!
 
@@ -481,8 +541,9 @@ const Page: React.FC = () => {
         date: string;                             // ⬅ добавили
         timeStart: string;
         timeEnd: string;
-        employeeId: number;
-        services: { id: number; qty: number }[];
+        employeeId: number | null;
+        resourceId?: number | null;
+        services: { id: number; qty: number; individualPrice?: number }[];
         client?: { id: number; name: string; last_name?: string; phone?: string; bonus_balance?: number };
 
         cost?: number;
@@ -494,14 +555,27 @@ const Page: React.FC = () => {
 
 
     const handleOpenCreateModal = (startMinutes: number, masterIndex: number) => {
-        const emp = employees[masterIndex];
+        if (scheduleAxis === "resource") {
+            setSelectedStartMinutes(startMinutes);
+            setSelectedResourceId(masterIndex === 0 ? null : resources[masterIndex - 1]?.id ?? null);
+            setSelectedMasterIndex(
+                allowUnassignedEmployee ? null : employees?.length ? 0 : null
+            );
+            setIsOutsideSchedule(false);
+            setIsCreateModalOpen(true);
+            return;
+        }
+
+        const employeeIndex = allowUnassignedEmployee ? masterIndex - 1 : masterIndex;
+        const emp = employeeIndex >= 0 ? employees?.[employeeIndex] : undefined;
         const timeStr = formatTimeLocal(startMinutes);
         const working = emp
             ? isWorkingSlot(emp.id, timeStr, selectedDate, schedules)
             : true;
 
         setSelectedStartMinutes(startMinutes);
-        setSelectedMasterIndex(masterIndex);
+        setSelectedMasterIndex(employeeIndex >= 0 ? employeeIndex : null);
+        setSelectedResourceId(null);
 
         setIsCreateModalOpen(true);
         setIsOutsideSchedule(!working); // 👈 добавляем этот стейт
@@ -510,23 +584,27 @@ const Page: React.FC = () => {
     const handleEventClick = (ev: ScheduleEvent) => {
         console.log("🖱 handleEventClick вызван для события:", ev);
 
-        // 1. Находим сотрудника по индексу колонки
-        const emp = employees?.[ev.master];
-        if (!emp) {
+        // 1. Находим исходную запись и назначенного сотрудника.
+        const src = (appointments ?? []).find(a => a.id === Number(ev.id));
+        const emp = employees?.find((employee) => employee.id === src?.employee_id)
+            ?? (scheduleAxis === "employee" && !allowUnassignedEmployee
+                ? employees?.[ev.master]
+                : undefined);
+        if (!emp && !allowUnassignedEmployee) {
             console.warn("❗ Нет сотрудника по индексу колонки:", ev.master, employees);
             return;
         }
         console.log("👤 Найден сотрудник:", emp);
 
         // 2. Находим исходную запись в appointments (чтобы достать клиента и услуги)
-        const src = (appointments ?? []).find(a => a.id === Number(ev.id));
         console.log("📦 Исходная запись из appointments:", src);
 
 
         // 3. Преобразуем услуги в формат { id, qty }
         const initialSelected = (src?.services ?? []).map(s => ({
-            id: (s as any).service_id ?? (s as any).id, // Поддержка и service_id, и id на всякий случай
-            qty: (s as any).qty ?? 1,
+            id: s.service_id ?? s.id ?? 0, // Поддержка и service_id, и id на всякий случай
+            qty: s.qty ?? 1,
+            individualPrice: s.individual_price,
         }));
         console.log("🎯 Преобразованные услуги (initialSelected):", initialSelected);
 
@@ -542,7 +620,8 @@ const Page: React.FC = () => {
             date: dateFromSrc,              // ⬅ вот она, корректная дата записи
             timeStart: ev.start,
             timeEnd: ev.end,
-            employeeId: emp.id,
+            employeeId: emp?.id ?? null,
+            resourceId: src?.resource_id ?? null,
             services: initialSelected,
             client: src?.client
                 ? {
@@ -570,20 +649,24 @@ const Page: React.FC = () => {
         lastName: string;
         phone: string;
         clientId?: number;
-        services: { id: number; qty: number }[];
+        employeeId: number | null;
+        services: { id: number; qty: number; individualPrice: number }[];
         timeStart: string;
         timeEnd: string;
+        resourceId: number | null;
         cost: number;
         paymentStatus: "unpaid" | "paid" | "partial";
         paymentMethod: "cash" | "card" | "transfer" | null;
         visitStatus: "expected" | "arrived" | "no_show";
         comment: string | null;
     }) => {
-        if (!id || selectedMasterIndex === null) return;
+        if (!id) return;
+        if (!allowUnassignedEmployee && !data.employeeId) return;
 
         const payload: AppointmentRequest = {
             client_id: data.clientId,
-            employee_id: employees[selectedMasterIndex].id,
+            employee_id: data.employeeId,
+            resource_id: data.resourceId,
             branch_id: id,
             comment: data.comment,
             date: formatDateLocal(selectedDate),
@@ -598,6 +681,7 @@ const Page: React.FC = () => {
             services: data.services.map(s => ({
                 service_id: s.id,
                 qty: s.qty,
+                individual_price: s.individualPrice,
             })),
         };
 
@@ -605,6 +689,7 @@ const Page: React.FC = () => {
             await createAppointmentMutate(payload);
             setIsCreateModalOpen(false);
             setSelectedMasterIndex(null);
+            setSelectedResourceId(null);
             setSelectedStartMinutes(null);
         } catch (err) {
             console.error("Ошибка создания записи:", err);
@@ -1083,7 +1168,7 @@ const Page: React.FC = () => {
                         type="search"
                         value={scheduleMasterSearch}
                         onChange={(event) => setScheduleMasterSearch(event.target.value)}
-                        placeholder="Поиск мастера"
+                        placeholder={scheduleAxis === "resource" ? "Поиск ресурса" : "Поиск мастера"}
                         className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/20 dark:border-white/10 dark:bg-white/[0.06] dark:text-white dark:placeholder:text-white/40"
                     />
                 </div>
@@ -1119,7 +1204,7 @@ const Page: React.FC = () => {
                 <section className="admin-content-surface col-span-5 mt-4 p-4 bg-[rgb(var(--card))] text-[rgb(var(--foreground))] border border-[rgb(var(--border))] rounded-2xl">{/* rounded shadow */}
 
                                 <ScheduleModule
-                                employees={employees}
+                                employees={calendarColumns}
                                 appointments={normalizedAppointments}
                                 schedules={schedules}
                                 selectedDate={selectedDate}
@@ -1134,6 +1219,7 @@ const Page: React.FC = () => {
                                 onMasterSearchChange={setScheduleMasterSearch}
                                 showMasterSearch={false}
                                 currencyCode={currencyCode}
+                                scheduleAxis={scheduleAxis}
                             />
 
                     {can.employees.update() && (
@@ -1151,6 +1237,10 @@ const Page: React.FC = () => {
                             isOpen={!!editingEvent}
                             onClose={() => setEditingEvent(null)}
                             eventData={editingEvent}
+                            resources={resources}
+                            branchId={id}
+                            employees={employees ?? []}
+                            allowUnassignedEmployee={allowUnassignedEmployee}
                             currencyCode={currencyCode}
                             bonusesEnabled={bonusesEnabled}
                             bonusSpendMaxPercent={bonusSpendMaxPercent}
@@ -1166,6 +1256,11 @@ const Page: React.FC = () => {
                             onSave={handleSaveAppointment}
                             loading={false}
                             employeeId={selectedMasterIndex !== null ? employees[selectedMasterIndex].id : null}
+                            branchId={id}
+                            employees={employees ?? []}
+                            allowUnassignedEmployee={allowUnassignedEmployee}
+                            resources={resources}
+                            initialResourceId={selectedResourceId}
                             defaultStartTime={formatTimeLocal(selectedStartMinutes)}
                             defaultEndTime={formatTimeLocal(selectedStartMinutes + 30)} // пока 30 мин шаг
                             isOutsideSchedule={isOutsideSchedule} // 👈 передаём

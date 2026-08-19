@@ -1,16 +1,19 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { useEmployeeServices } from "@/hooks/useServices";
+import { useAppointmentServices } from "@/hooks/useServices";
 import { useUpdateAppointment, useDeleteAppointment } from "@/hooks/useAppointments";
 import { useClient, useUpdateClient } from "@/hooks/useClient";
 import { useCreateClientBonusTransaction } from "@/hooks/useClientBonusTransactions";
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Pencil, UserCircle2, Package, Clock, CreditCard, MessageSquareText } from "lucide-react";
+import { Box, Pencil, UserCircle2, Package, Clock, CreditCard, MessageSquareText } from "lucide-react";
 import AppointmentBonusesCard from "@/components/schedulePage/AppointmentBonusesCard";
 import { formatMoney } from "@/lib/currency";
 import { getApiErrorMessage } from "@/services/apiError";
 import { normalizePhoneInput } from "@/components/utils/phone";
 import AdminDialogPortal from "@/components/AdminDialogPortal";
+import type { ScheduleResource } from "@/services/resourcesApi";
+import type { Employee } from "@/services/employeeApi";
+import { AppointmentServicePickerList } from "@/components/schedulePage/AppointmentServicePickerList";
 
 interface UpdateEventModalProps {
     isOpen: boolean;
@@ -19,10 +22,11 @@ interface UpdateEventModalProps {
         id: number;
         date: string;
         client?: { id: number; name: string; last_name?: string; phone?: string; bonus_balance?: number };
-        services: { id: number; qty: number }[];
+        services: { id: number; qty: number; individualPrice?: number }[];
         timeStart: string;
         timeEnd: string;
-        employeeId: number;
+        employeeId: number | null;
+        resourceId?: number | null;
 
         cost?: number;
         payment_status?: "unpaid" | "paid" | "partial";
@@ -34,6 +38,10 @@ interface UpdateEventModalProps {
     bonusesEnabled?: boolean;
     bonusSpendMaxPercent?: number | null;
     bonusPointsLabel?: string | null;
+    resources?: ScheduleResource[];
+    branchId: number | null;
+    employees?: Employee[];
+    allowUnassignedEmployee?: boolean;
 }
 
 const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
@@ -44,20 +52,32 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
     bonusesEnabled = true,
     bonusSpendMaxPercent = 50,
     bonusPointsLabel = "Б",
+    resources = [],
+    branchId,
+    employees = [],
+    allowUnassignedEmployee = false,
 }) => {
-    const employeeId = eventData?.employeeId ?? undefined;
+    const [selectedEmployeeId, setSelectedEmployeeId] = useState<number | null>(
+        eventData?.employeeId ?? null
+    );
 
     // Подгружаем ВСЕ услуги сотрудника
-    const { data: services = [], isLoading } = useEmployeeServices(employeeId);
+    const { data: services = [], isLoading } = useAppointmentServices(
+        allowUnassignedEmployee ? null : selectedEmployeeId,
+        branchId
+    );
 
     const [timeStart, setTimeStart] = useState("09:00");
     const [timeEnd, setTimeEnd] = useState("09:30");
+    const [resourceId, setResourceId] = useState<number | null>(null);
     const [name, setName] = useState("");
     const [lastName, setLastName] = useState("");
     const [phone, setPhone] = useState("");
     const [isEditingClient, setIsEditingClient] = useState(false);
 
-    const [selectedServices, setSelectedServices] = useState<{ id: number; qty: number }[]>([]);
+    const [selectedServices, setSelectedServices] = useState<
+        { id: number; qty: number; individualPrice?: number }[]
+    >([]);
 
     const [cost, setCost] = useState(0);
     const [isManualCost, setIsManualCost] = useState(false);
@@ -97,11 +117,14 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
             (eventData.services ?? []).map((s) => ({
                 id: s.id,
                 qty: s.qty ?? 1,
+                individualPrice: s.individualPrice,
             }))
         );
 
         setTimeStart(eventData.timeStart);
         setTimeEnd(eventData.timeEnd);
+        setSelectedEmployeeId(eventData.employeeId);
+        setResourceId(eventData.resourceId ?? null);
 
         setCost(eventData.cost ?? 0);
         setPaymentStatus(eventData.payment_status ?? "unpaid");
@@ -131,7 +154,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
     const calculateServicesCost = () => {
         return selectedServices.reduce((sum, s) => {
             const service = services.find((item) => item.service_id === s.id);
-            const price = service?.individual_price ?? service?.base_price ?? 0;
+            const price = s.individualPrice ?? service?.individual_price ?? service?.base_price ?? 0;
             return sum + price * s.qty;
         }, 0);
     };
@@ -155,7 +178,9 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
         setSelectedServices((prev) => {
             const exists = prev.some((s) => s.id === serviceId);
             if (exists) return prev;
-            return [...prev, { id: serviceId, qty: 1 }];
+            const service = services.find((item) => item.service_id === serviceId);
+            const individualPrice = service?.individual_price ?? service?.base_price ?? 0;
+            return [...prev, { id: serviceId, qty: 1, individualPrice }];
         });
 
         setServiceSearch("");
@@ -163,9 +188,10 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
     };
 
     const filteredServices = services.filter((item) => {
-        const matchesSearch = item.name
+        const normalizedSearch = serviceSearch.trim().toLowerCase();
+        const matchesSearch = `${item.name} ${item.group_name ?? ""}`
             .toLowerCase()
-            .includes(serviceSearch.toLowerCase());
+            .includes(normalizedSearch);
 
         const alreadySelected = selectedServices.some((s) => s.id === item.service_id);
 
@@ -209,7 +235,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
             date: eventData.date,
             time_start: timeStart,
             time_end: timeEnd,
-            employee_id: eventData.employeeId,
+            employee_id: selectedEmployeeId,
+            resource_id: resourceId,
             client_id: eventData.client?.id,
 
             cost,
@@ -218,10 +245,16 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
             visit_status: visitStatus,
             comment: comment.trim() || null,
 
-            services: selectedServices.map((s) => ({
-                service_id: s.id,
-                qty: s.qty,
-            })),
+            services: selectedServices.map((s) => {
+                const service = services.find((item) => item.service_id === s.id);
+
+                return {
+                    service_id: s.id,
+                    qty: s.qty,
+                    individual_price:
+                        s.individualPrice ?? service?.individual_price ?? service?.base_price ?? 0,
+                };
+            }),
         });
 
         if (bonusesEnabled && eventData.client?.id && bonusSpend > 0) {
@@ -246,6 +279,16 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
             console.error("Ошибка удаления:", err);
             alert(getApiErrorMessage(err, "Не удалось удалить запись"));
         }
+    };
+
+    const updateIndividualPrice = (serviceId: number, individualPrice: number) => {
+        setSelectedServices((prev) =>
+            prev.map((service) =>
+                service.id === serviceId
+                    ? { ...service, individualPrice: Math.max(0, individualPrice) }
+                    : service
+            )
+        );
     };
 
     if (!isOpen || !eventData) return null;
@@ -400,6 +443,68 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                             </div>
                             </div>
 
+                            {allowUnassignedEmployee && (
+                                <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <UserCircle2 className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                        <h3 className="text-[13px] font-semibold tracking-wide text-gray-900 dark:text-white/90">
+                                            Мастер
+                                        </h3>
+                                    </div>
+                                    <p className="text-xs leading-snug text-gray-500 dark:text-white/50">
+                                        Можно назначить сейчас или оставить запись нераспределённой.
+                                    </p>
+                                    <select
+                                        value={selectedEmployeeId ?? ""}
+                                        onChange={(event) =>
+                                            setSelectedEmployeeId(
+                                                event.target.value ? Number(event.target.value) : null
+                                            )
+                                        }
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-black dark:text-white transition focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                    >
+                                        <option value="">— назначить позже —</option>
+                                        {employees.map((employee) => (
+                                            <option key={employee.id} value={employee.id}>
+                                                {employee.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
+                            {resources.length > 0 && (
+                                <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <Box className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                                        <h3 className="text-[13px] font-semibold tracking-wide text-gray-900 dark:text-white/90">
+                                            Ресурс
+                                        </h3>
+                                    </div>
+                                    <p className="text-xs leading-snug text-gray-500 dark:text-white/50">
+                                        Необязательно. Запись без ресурса останется нераспределённой.
+                                    </p>
+                                    <select
+                                        value={resourceId ?? ""}
+                                        onChange={(event) =>
+                                            setResourceId(
+                                                event.target.value
+                                                    ? Number(event.target.value)
+                                                    : null
+                                            )
+                                        }
+                                        className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-black dark:text-white transition focus:outline-none focus:ring-2 focus:ring-gray-500/20 focus:border-gray-500"
+                                    >
+                                        <option value="">— не выбран —</option>
+                                        {resources.map((resource) => (
+                                            <option key={resource.id} value={resource.id}>
+                                                {resource.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
+
                             {/* Услуги */}
                             <div className="bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl p-4 space-y-4">
                                 <div className="flex items-center justify-between">
@@ -411,8 +516,8 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                                     </div>
 
                                     <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
-    Кол-во
-  </span>
+                                        Цена / кол-во
+                                    </span>
                                 </div>
 
                                 {isLoading ? (
@@ -427,29 +532,53 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                                                     const service = services.find((item) => item.service_id === selected.id);
                                                     if (!service) return null;
 
-                                                    const price = service.individual_price ?? service.base_price;
+                                                    const price =
+                                                        selected.individualPrice ??
+                                                        service.individual_price ??
+                                                        service.base_price;
 
                                                     return (
                                                         <div
                                                             key={selected.id}
                                                             className="
-              flex items-center gap-2
-              rounded-full
+              flex w-full flex-wrap items-end gap-2
+              rounded-xl
               px-4 py-2
               border border-white/10
               bg-white/[0.06]
               text-white
             "
                                                         >
-            <span className="text-sm text-white/90">
+            <span className="min-w-[8rem] flex-1 self-center text-sm text-white/90">
               {service.name}
             </span>
 
-                                                            <span className="text-sm text-white/55">
-              {formatMoney(price, currencyCode)}
-            </span>
+                                                            <label className="flex flex-col gap-0.5">
+                                                                <span className="text-[10px] uppercase tracking-wide text-white/40">
+                                                                    Цена
+                                                                </span>
+                                                                <input
+                                                                    type="number"
+                                                                    min={0}
+                                                                    step={1}
+                                                                    value={price}
+                                                                    onChange={(event) =>
+                                                                        updateIndividualPrice(
+                                                                            selected.id,
+                                                                            Number(event.target.value)
+                                                                        )
+                                                                    }
+                                                                    className="w-24 rounded-lg border border-white/10 bg-white/[0.06] px-2 py-1 text-sm text-white outline-none focus:border-white/30"
+                                                                    aria-label={`Цена услуги ${service.name}`}
+                                                                />
+                                                                {service.price_to != null && (
+                                                                    <span className="text-[10px] text-white/40">
+                                                                        Прайс: {formatMoney(service.base_price, currencyCode)}–{formatMoney(service.price_to, currencyCode)}
+                                                                    </span>
+                                                                )}
+                                                            </label>
 
-                                                            <div className="flex items-center gap-1 ml-1">
+                                                            <div className="flex items-center gap-1 ml-1 mb-0.5">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateQty(selected.id, selected.qty - 1)}
@@ -493,7 +622,7 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                                                                 type="button"
                                                                 onClick={() => removeService(selected.id)}
                                                                 className="
-                ml-1
+                ml-1 mb-2
                 w-6 h-6
                 flex items-center justify-center
                 rounded-full
@@ -533,30 +662,11 @@ const UpdateEventModal: React.FC<UpdateEventModalProps> = ({
                                         </div>
 
                                         {isServiceDropdownOpen && filteredServices.length > 0 && (
-                                            <div
-                                                className="absolute left-0 right-0 top-full mt-2 z-20 max-h-60 overflow-y-auto rounded-2xl border border-white/10 bg-[rgb(var(--card))] shadow-xl"
-                                            >
-                                                {filteredServices.map((item) => {
-                                                    const price = item.individual_price ?? item.base_price;
-
-                                                    return (
-                                                        <button
-                                                            key={item.service_id}
-                                                            type="button"
-                                                            onClick={() => addService(item.service_id)}
-                                                            className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-white/10 transition-colors"
-                                                        >
-            <span className="text-sm text-white">
-              {item.name}
-            </span>
-
-                                                            <span className="text-sm text-white/60">
-              {formatMoney(price, currencyCode)}
-            </span>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
+                                            <AppointmentServicePickerList
+                                                services={filteredServices}
+                                                currencyCode={currencyCode}
+                                                onSelect={addService}
+                                            />
                                         )}
 
                                         {isServiceDropdownOpen &&
