@@ -35,6 +35,30 @@ export default function Contacts() {
                     <p className="text-lg leading-relaxed text-gray-200 max-w-prose mx-auto">
                         Проект в разработке. Открыты к партнёрству, обратной связи и предложениям. Напишите нам на почту или через мессенджеры.
                     </p>
+                    <div className="mt-8 space-y-3 rounded-xl border border-cyan-400/20 bg-gray-900/45 p-6 text-left text-gray-200">
+                        <p>
+                            <span className="font-semibold text-cyan-300">Оператор сайта и сервиса:</span>{' '}
+                            ИП Кулагин Виктор Викторович
+                        </p>
+                        <p>
+                            <span className="font-semibold text-cyan-300">ИНН:</span> 20805198850058
+                        </p>
+                        <p>
+                            <span className="font-semibold text-cyan-300">Email:</span>{' '}
+                            <a className="text-cyan-300 hover:underline" href="mailto:info@hahazen.com">
+                                info@hahazen.com
+                            </a>
+                        </p>
+                        <p>
+                            <span className="font-semibold text-cyan-300">Телефон:</span>{' '}
+                            <a className="text-cyan-300 hover:underline" href="tel:+996880377888">
+                                +996 880 377 888
+                            </a>
+                        </p>
+                        <a className="inline-block font-semibold text-cyan-300 hover:underline" href="/requisites">
+                            Полные реквизиты Hahazen
+                        </a>
+                    </div>
                 </section>
             </main>
             <Footer />
