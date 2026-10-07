@@ -26,6 +26,7 @@ export interface Company {
     currency_code?: string | null;
     default_locale?: string | null;
     bonuses_enabled?: boolean;
+    crm_enabled?: 0 | 1;
     bonus_spend_max_percent?: number | null;
     bonus_points_label?: string | null;
     booking_assignment_mode?: BookingAssignmentMode;
@@ -46,6 +47,7 @@ export type CompanyUpdatePayload = Partial<
         | "country_code"
         | "currency_code"
         | "bonuses_enabled"
+        | "crm_enabled"
         | "bonus_spend_max_percent"
         | "bonus_points_label"
         | "booking_assignment_mode"
@@ -72,6 +74,11 @@ export const companiesList = async (): Promise<Company[]> => {
     return normalizeListPayload<Company>(response.data).rows.map(
         withCompatibleCompanyDefaults
     );
+};
+
+export const fetchCompany = async (id: number): Promise<Company> => {
+    const response = await apiClient.get<Company>(`/companies/${id}`);
+    return withCompatibleCompanyDefaults(response.data);
 };
 
 export const updateCompany = async (
