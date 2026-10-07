@@ -9,6 +9,7 @@ import {
     DEFAULT_PUBLIC_BOOKING_AXIS,
     DEFAULT_PUBLIC_RESOURCE_ASSIGNMENT,
     DEFAULT_SCHEDULE_AXIS,
+    fetchCompany,
     PublicBookingAxis,
     PublicResourceAssignment,
     ScheduleAxis,
@@ -17,6 +18,7 @@ import {
 import { can } from "@/lib/permissions";
 import { getApiErrorMessage } from "@/services/apiError";
 import { normalizePhoneInput } from "@/components/utils/phone";
+import { authStorage } from "@/services/authStorage";
 
 type CompanySettingsCardProps = {
     company: Company | null | undefined;
@@ -101,6 +103,10 @@ function CompanySettingsForm({
     const [bonusesEnabled, setBonusesEnabled] = useState(
         company.bonuses_enabled ?? true
     );
+    const [crmEnabled, setCrmEnabled] = useState(company.crm_enabled === 1);
+    const [isSavingCrm, setIsSavingCrm] = useState(false);
+    const [crmMessage, setCrmMessage] = useState("");
+    const [crmError, setCrmError] = useState("");
     const [bonusSpendMaxPercent, setBonusSpendMaxPercent] = useState(
         company.bonus_spend_max_percent ?? 50
     );
@@ -165,12 +171,62 @@ function CompanySettingsForm({
 
         try {
             const updatedCompany = await updateCompany(company.id, payload);
+            const currentContext = authStorage.getContext();
+            if (currentContext?.company_id === company.id) {
+                authStorage.setContext({
+                    ...currentContext,
+                    crm_enabled: updatedCompany.crm_enabled ?? (crmEnabled ? 1 : 0),
+                });
+            }
             onSaved?.(updatedCompany);
             setMessage("Настройки сохранены");
         } catch (err) {
             setError(getApiErrorMessage(err, "Не удалось сохранить настройки компании"));
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleCrmToggle = async (enabled: boolean) => {
+        if (!canUpdateSettings || isSavingCrm) return;
+
+        const previousValue = crmEnabled;
+        setCrmEnabled(enabled);
+        setIsSavingCrm(true);
+        setCrmMessage("");
+        setCrmError("");
+
+        try {
+            const updated = await updateCompany(company.id, {
+                crm_enabled: enabled ? 1 : 0,
+            });
+            const confirmedCompany = updated.crm_enabled === undefined
+                ? await fetchCompany(company.id)
+                : updated;
+            const confirmedEnabled = Number(confirmedCompany.crm_enabled) === 1;
+
+            if (confirmedEnabled !== enabled) {
+                throw new Error(
+                    "Сервер не сохранил crm_enabled. Проверьте версию backend и право company:settings:update."
+                );
+            }
+
+            const currentContext = authStorage.getContext();
+            if (currentContext?.company_id === company.id) {
+                authStorage.setContext({
+                    ...currentContext,
+                    crm_enabled: confirmedEnabled ? 1 : 0,
+                });
+            }
+
+            setCrmEnabled(confirmedEnabled);
+            onSaved?.(confirmedCompany);
+            setCrmMessage(confirmedEnabled ? "CRM включена" : "CRM выключена");
+        } catch (err) {
+            setCrmEnabled(previousValue);
+            setCrmError(getApiErrorMessage(err, "Не удалось изменить состояние CRM"));
+        } finally {
+            setIsSavingCrm(false);
         }
     };
 
@@ -211,7 +267,7 @@ function CompanySettingsForm({
 
                     <label>
                         <span className="mb-1 block text-sm font-medium text-gray-600 dark:text-gray-300">
-                            Email
+                            Email компании
                         </span>
                         <input
                             type="email"
@@ -220,6 +276,9 @@ function CompanySettingsForm({
                             disabled={!canUpdateProfile || isSaving}
                             className={inputClass}
                         />
+                        <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+                            Контактный адрес организации
+                        </span>
                     </label>
 
                     <label>
@@ -339,6 +398,50 @@ function CompanySettingsForm({
                         />
                         <span>Бонусная программа включена</span>
                     </label>
+                </div>
+
+                <div className="border-t border-gray-200 pt-4 dark:border-white/10">
+                    <div className="mb-3">
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                            Модули
+                        </h3>
+                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                            Включайте только те рабочие разделы, которые нужны компании.
+                        </p>
+                    </div>
+
+                    <label className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm dark:border-white/10 dark:bg-white/5">
+                        <input
+                            type="checkbox"
+                            checked={crmEnabled}
+                            onChange={(event) => void handleCrmToggle(event.target.checked)}
+                            disabled={!canUpdateSettings || isSavingCrm}
+                            className="mt-0.5 h-4 w-4"
+                        />
+                        <span>
+                            <span className="block font-semibold text-gray-900 dark:text-white">
+                                CRM включена
+                            </span>
+                            <span className="mt-1 block leading-5 text-gray-500 dark:text-gray-400">
+                                Добавляет обращения, сделки и воронки в левое меню. Переключатель сохраняется сразу.
+                            </span>
+                        </span>
+                    </label>
+
+                    {isSavingCrm && (
+                        <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                            Сохраняем и создаём стандартные воронки…
+                        </p>
+                    )}
+                    {(crmMessage || crmError) && !isSavingCrm && (
+                        <div className={`mt-2 rounded-xl px-3 py-2 text-sm ${
+                            crmError
+                                ? "bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-300"
+                                : "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-300"
+                        }`}>
+                            {crmError || crmMessage}
+                        </div>
+                    )}
                 </div>
 
                 <div className="border-t border-gray-200 pt-4 dark:border-white/10">

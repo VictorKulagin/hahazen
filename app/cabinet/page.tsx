@@ -769,54 +769,77 @@ const Page: React.FC = () => {
                     )}
                 </section>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <section className="admin-content-surface rounded-2xl border border-gray-200 bg-white p-4 text-black shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none">
-                        <div className="flex items-center mb-2">
-                            <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">Личные данные</h2>
-                        </div>
-
-                        <div className="mb-2">
-                            <div className="space-y-3">
-                                <p className="text-2xl font-bold text-gray-900 dark:text-white">Привет, {userData?.name}!</p>
-                                <div className="flex items-center">
-                                    <AtSymbolIcon className="h-6 w-6 text-black dark:text-white mr-2" />
-                                    <p>Email: {userData?.email}</p>
-                                </div>
-                                <div className="flex items-center">
-                                    <UserIcon className="h-6 w-6 text-black dark:text-white mr-2" />
-                                    <p>Фамилия: {userData?.last_name}</p>
-                                </div>
-                                <div className="flex items-center">
-                                    <PhoneIcon className="h-6 w-6 text-black dark:text-white mr-2" />
-                                    <p>Телефон: {normalizePhoneInput(userData?.phone ?? "") || "Телефон не найден"}</p>
-                                </div>
-                                <div className="flex items-center">
-                                    <UserIcon className="h-6 w-6 text-black dark:text-white mr-2" />
-                                    <p>Статус: {userData?.type}</p>
-                                </div>
-                                <p>ID: {userData?.id}</p>
-
-                                <p>Компания: {companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Компания не найдена"}</p>
-                                <p>Адрес: {companiesData && companiesData.length > 0 ? companiesData[0]?.name : "Адрес не найден"}</p>
-                                <p>Телефон: {companiesData && companiesData.length > 0 ? normalizePhoneInput(companiesData[0]?.phone ?? "") || "Телефон не найден" : "Телефон не найден"}</p>
-                                <p>Email: {companiesData && companiesData.length > 0 ? companiesData[0]?.email : "Email не найден"}</p>
-                                <p>ID: {companiesData && companiesData.length > 0 ? companiesData[0]?.id : "id не найден"}</p>
+                <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(280px,360px)_minmax(0,1fr)] lg:gap-6">
+                    <section className="admin-content-surface self-start rounded-2xl border border-gray-200 bg-white p-4 text-gray-900 shadow-sm dark:border-white/10 dark:bg-[rgb(var(--card))] dark:text-white dark:shadow-none lg:sticky lg:top-4">
+                        <div className="flex items-center gap-3 border-b border-gray-200 pb-4 dark:border-white/10">
+                            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-green-500/15 text-green-600 dark:bg-green-400/15 dark:text-green-300">
+                                <UserIcon className="h-6 w-6" />
+                            </span>
+                            <div className="min-w-0">
+                                <h2 className="text-lg font-semibold text-gray-950 dark:text-white">Личные данные</h2>
+                                <p className="truncate text-sm text-gray-500 dark:text-gray-400">
+                                    {userData?.name || "Пользователь"} {userData?.last_name || ""}
+                                </p>
                             </div>
                         </div>
 
-                        {Boolean(id) && (
-                            <div className="mb-2">
-                                <Link href={`/settings/service_categories/${id}`} className="hover:underline text-gray-700 dark:text-gray-300">
-                                    Услуги
-                                </Link>
+                        <dl className="mt-4 space-y-4">
+                            <div className="flex min-w-0 items-start gap-3">
+                                <AtSymbolIcon className="mt-0.5 h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500" />
+                                <div className="min-w-0">
+                                    <dt className="text-xs font-medium text-gray-500 dark:text-gray-400">Email пользователя</dt>
+                                    <dd className="break-words text-sm font-medium text-gray-900 dark:text-white">
+                                        {userData?.email || "Не указан"}
+                                    </dd>
+                                    <p className="mt-0.5 text-xs leading-4 text-gray-500 dark:text-gray-400">
+                                        Для входа и восстановления доступа
+                                    </p>
+                                </div>
                             </div>
-                        )}
-                        {Boolean(id) && (
-                            <div className="mb-2">
-                                <Link href={`/settings/filial_staff/${id}`} className="hover:underline text-gray-700 dark:text-gray-300">
-                                    Сотрудники
-                                </Link>
+                            <div className="flex min-w-0 items-start gap-3">
+                                <PhoneIcon className="mt-0.5 h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500" />
+                                <div className="min-w-0">
+                                    <dt className="text-xs font-medium text-gray-500 dark:text-gray-400">Телефон</dt>
+                                    <dd className="text-sm font-medium text-gray-900 dark:text-white">
+                                        {normalizePhoneInput(userData?.phone ?? "") || "Не указан"}
+                                    </dd>
+                                </div>
                             </div>
+                            <div className="flex min-w-0 items-start gap-3">
+                                <UserIcon className="mt-0.5 h-5 w-5 shrink-0 text-gray-400 dark:text-gray-500" />
+                                <div className="min-w-0">
+                                    <dt className="text-xs font-medium text-gray-500 dark:text-gray-400">Роль</dt>
+                                    <dd className="text-sm font-medium text-gray-900 dark:text-white">
+                                        {userData?.type || "Не указана"}
+                                    </dd>
+                                </div>
+                            </div>
+                        </dl>
+
+                        {Boolean(id) && (
+                            <nav className="mt-5 border-t border-gray-200 pt-4 dark:border-white/10" aria-label="Управление компанией">
+                                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                    Управление
+                                </p>
+                                <div className="space-y-2">
+                                    <Link
+                                        href={`/settings/service_categories/${id}`}
+                                        className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 hover:text-gray-950 focus:outline-none focus:ring-2 focus:ring-green-400/40 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
+                                    >
+                                        <SparklesIcon className="h-5 w-5 text-green-600 dark:text-green-300" />
+                                        <span className="flex-1">Услуги</span>
+                                        <ArrowRightIcon className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" />
+                                    </Link>
+                                    <Link
+                                        href={`/settings/filial_staff/${id}`}
+                                        className="group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-100 hover:text-gray-950 focus:outline-none focus:ring-2 focus:ring-green-400/40 dark:text-gray-200 dark:hover:bg-white/10 dark:hover:text-white"
+                                    >
+                                        <UserGroupIcon className="h-5 w-5 text-green-600 dark:text-green-300" />
+                                        <span className="flex-1">Сотрудники</span>
+                                        <ArrowRightIcon className="h-4 w-4 text-gray-400 transition-transform group-hover:translate-x-0.5" />
+                                    </Link>
+                                </div>
+                            </nav>
                         )}
                     </section>
 
