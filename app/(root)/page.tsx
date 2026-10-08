@@ -35,8 +35,8 @@ const navItems = [
 
 const ownerFeatures = [
     {
-        title: "Расписание мастеров",
-        text: "Видите загрузку каждого мастера по дням и неделям. Перетаскивайте записи, избегайте пересечений.",
+        title: "Расписание команды и ресурсов",
+        text: "Видите загрузку сотрудников, кабинетов и боксов. Перетаскивайте записи и избегайте пересечений.",
         icon: CalendarRange,
     },
     {
@@ -50,8 +50,8 @@ const ownerFeatures = [
         icon: CalendarDays,
     },
     {
-        title: "История визитов и карта тела",
-        text: "Карточка клиента с историей услуг, отметками по телу для массажа и SPA, суммами и заметками мастера.",
+        title: "История визитов и работ",
+        text: "Карточка клиента с услугами, суммами и заметками. Для массажа и SPA доступна карта тела.",
         icon: ClipboardList,
     },
     {
@@ -66,6 +66,16 @@ const ownerFeatures = [
     },
 ];
 
+const businessTypes = [
+    "Салоны красоты",
+    "Массажные студии, SPA и wellness-центры",
+    "Барбершопы",
+    "Детейлинг и автомойки",
+    "Фотографы и фотостудии",
+    "Груминг",
+    "Тату-студии",
+];
+
 const plans = [
     {
         name: "Solo",
@@ -74,12 +84,12 @@ const plans = [
         features: ["Расписание и записи", "Клиентская база", "Онлайн-запись", "Карточка клиента"],
     },
     {
-        name: "Salon",
-        description: "Один филиал · неограниченное число мастеров",
+        name: "Business",
+        description: "Один филиал · неограниченное число сотрудников",
         price: "3 000",
         badge: "Популярный",
         featured: true,
-        features: ["Всё из Solo", "Безлимит мастеров", "Карта тела и SPA-протоколы", "Роли и доступы сотрудников"],
+        features: ["Всё из Solo", "Безлимит сотрудников", "Боксы, кабинеты и оборудование", "Роли и доступы сотрудников"],
     },
     {
         name: "Доп. филиал",
@@ -819,19 +829,19 @@ export default function Home() {
                         <div className="relative z-10 pt-7 lg:pt-0">
                             <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 rounded-full border border-[#2ee6cf]/25 bg-[#123d36]/75 px-3 py-1.5 text-[11px] font-medium text-[#43e6c1]">
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#43e6c1]/70" />
-                                CRM для салонов и массажных студий
+                                CRM для салонов, студий и детейлинг-сервисов
                             </motion.div>
 
                             <motion.h1 variants={fadeInUp} className="hero-reference-title display-serif mt-7 max-w-[555px] text-[43px] font-bold leading-[1.04] text-[var(--hz-text-strong)] sm:text-[56px] lg:text-[61px]">
                                 Все записи,
-                                <span className="block">клиенты и мастера</span>
+                                <span className="block">клиенты и команда</span>
                                 <span className="block">
                                     — <span className="text-[#4de7bd]">в одном спокойном интерфейсе.</span>
                                 </span>
                             </motion.h1>
 
                             <motion.p variants={fadeInUp} className="mt-6 max-w-[550px] text-[16px] leading-[1.75] text-[#b9cfca] sm:text-[17px]">
-                                Hahazen помогает салонам убрать хаос из WhatsApp,
+                                Hahazen помогает сервисному бизнесу убрать хаос из WhatsApp,
                                 <span className="block">тетрадей и Excel: расписание, онлайн-запись, клиентская база</span>
                                 <span className="block">и история визитов в одной системе.</span>
                             </motion.p>
@@ -854,7 +864,7 @@ export default function Home() {
                             </motion.div>
 
                             <motion.div variants={fadeInUp} className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-[12px] text-[#b7ccc7]">
-                                {["без оплаты за каждого мастера", "3000 сом за салон", "онлайн-запись 24/7"].map((benefit) => (
+                                {["без оплаты за каждого сотрудника", "3000 сом за филиал", "онлайн-запись 24/7"].map((benefit) => (
                                     <span key={benefit} className="flex items-center gap-2">
                                         <Check className="h-4 w-4 stroke-[2.5] text-[#42e4bb]" />
                                         {benefit}
@@ -959,13 +969,50 @@ export default function Home() {
                 <section id="business" className="landing-section soft-section scroll-mt-28 px-4 pb-24 pt-20 sm:pt-24">
                     <div className="relative z-10 mx-auto max-w-[1120px]">
                         <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
-                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Для бизнеса</p>
+                            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#28e0c2]/76">Кому подходит</p>
                             <h2 className="mt-4 max-w-[740px] text-[34px] font-bold leading-tight text-[var(--hz-text-strong)] sm:text-[44px]">
-                                Что видит владелец салона
+                                Для бизнеса, который работает по записи
                             </h2>
                             <p className="mt-4 max-w-[660px] text-base leading-7 text-[var(--hz-muted)]">
-                                Один экран — и понятно, что происходит сегодня, кто пришёл, кто записан и сколько заработали мастера.
+                                Если клиент выбирает услугу и время, а вы управляете командой или ресурсами, Hahazen помогает собрать процесс в одном месте.
                             </p>
+                            <div className="mt-7 flex max-w-[900px] flex-wrap gap-2.5">
+                                {businessTypes.map((businessType) => (
+                                    <span
+                                        key={businessType}
+                                        className="rounded-full border border-[#45dfb9]/22 bg-[#45dfb9]/8 px-4 py-2 text-[11px] font-medium text-[#8be8d2]"
+                                    >
+                                        {businessType}
+                                    </span>
+                                ))}
+                            </div>
+                        </motion.div>
+
+                        <motion.div
+                            variants={scrollReveal}
+                            initial="hidden"
+                            whileInView="visible"
+                            viewport={{ once: true, amount: 0.16 }}
+                            className="mt-8 overflow-hidden rounded-[18px] border border-[#45dfb9]/24 bg-[#0d2926]/72 p-6 sm:p-8"
+                        >
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#45e4be]">Для детейлинга и автомоек</p>
+                            <div className="mt-3 grid gap-4 lg:grid-cols-[1fr_0.9fr] lg:items-end">
+                                <div>
+                                    <h3 className="text-[24px] font-semibold leading-tight text-white sm:text-[30px]">
+                                        Планируйте загрузку боксов, сотрудников и оборудования
+                                    </h3>
+                                    <p className="mt-3 max-w-[680px] text-[13px] leading-6 text-[#abc7c0]">
+                                        Создавайте боксы как ресурсы, привязывайте к ним услуги, принимайте онлайн-записи и сохраняйте историю работ по каждому клиенту.
+                                    </p>
+                                </div>
+                                <div className="flex flex-wrap gap-2 lg:justify-end">
+                                    {["Боксы и оборудование", "Цена и длительность услуг", "Онлайн-запись", "CRM-воронка"].map((item) => (
+                                        <span key={item} className="rounded-full border border-white/[0.09] bg-white/[0.05] px-3 py-2 text-[10px] text-[#c6d9d4]">
+                                            {item}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
                         </motion.div>
 
                         <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.12 }} className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -1074,10 +1121,10 @@ export default function Home() {
                         <div id="pricing" className="scroll-mt-28 mt-24 border-t border-white/[0.06] pt-20">
                             <motion.div variants={scrollReveal} initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}>
                                 <h2 className="max-w-[620px] text-[34px] font-bold leading-[1.05] text-[var(--hz-text-strong)] sm:text-[44px]">
-                                    Простые тарифы без оплаты за каждого мастера
+                                    Простые тарифы без оплаты за каждого сотрудника
                                 </h2>
                                 <p className="mt-4 max-w-[680px] text-base leading-7 text-[var(--hz-muted)]">
-                                    Фиксированная цена за салон. Сколько мастеров — столько и работайте.
+                                    Фиксированная цена за филиал. Сколько сотрудников — столько и работайте.
                                 </p>
                             </motion.div>
 
@@ -1142,7 +1189,7 @@ export default function Home() {
                                         6 месяцев бесплатно — в обмен на обратную связь
                                     </h3>
                                     <p className="mx-auto mt-5 max-w-[620px] text-[14px] leading-6 text-[#c1d7d1]">
-                                        Подключаем первые салоны бесплатно. Помогаем настроить систему и развиваем продукт вместе с вами.
+                                        Подключаем первые салоны и сервисные студии бесплатно. Помогаем настроить систему и развиваем продукт вместе с вами.
                                     </p>
                                     <a
                                         href="https://t.me/hahazencrm"
@@ -1150,7 +1197,7 @@ export default function Home() {
                                         rel="noreferrer"
                                         className="hero-button-primary relative mx-auto mt-7 flex h-12 w-fit items-center justify-center overflow-hidden rounded-full bg-[#46e8c4] px-7 text-[13px] font-semibold text-[#073229] shadow-[0_0_34px_rgba(70,232,196,0.3)] transition hover:bg-[#70f3d6]"
                                     >
-                                        <span className="relative z-10">Стать пилотным салоном</span>
+                                        <span className="relative z-10">Стать пилотным клиентом</span>
                                         <span className="absolute inset-y-0 left-0 w-10 bg-white/35 blur-md" />
                                     </a>
                                 </div>
@@ -1361,7 +1408,7 @@ export default function Home() {
                             </h2>
 
                             <p className="mt-6 max-w-[460px] text-[14px] leading-7 text-[#abc7c0]">
-                                Hahazen появился из простой мысли: порядок в салоне должен ощущаться не как контроль, а как забота. Спокойное расписание, довольные мастера и клиенты — это и есть радость в порядке.
+                                Hahazen появился из простой мысли: порядок в сервисном бизнесе должен ощущаться не как контроль, а как забота. Спокойное расписание, довольная команда и клиенты — это и есть радость в порядке.
                             </p>
 
                             <div className="mt-7 flex flex-wrap gap-2">
@@ -1396,14 +1443,25 @@ export default function Home() {
                             </span>
                         </Link>
                         <p className="mt-3 text-sm">CRM с душой</p>
-                        <a
-                            href="/legal/public-offer-2026-07-30.pdf"
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-4 inline-block text-xs transition hover:text-[var(--hz-text-strong)] hover:underline"
-                        >
-                            Публичная оферта
-                        </a>
+                        <p className="mt-4 max-w-sm text-xs leading-5 text-[var(--hz-muted)]">
+                            Hahazen — сервис, предоставляемый ИП Кулагин Виктор Викторович.
+                        </p>
+                        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs">
+                            <Link
+                                href="/requisites"
+                                className="transition hover:text-[var(--hz-text-strong)] hover:underline"
+                            >
+                                Реквизиты
+                            </Link>
+                            <a
+                                href="/legal/public-offer-2026-07-30.pdf"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="transition hover:text-[var(--hz-text-strong)] hover:underline"
+                            >
+                                Публичная оферта
+                            </a>
+                        </div>
                         <p className="mt-8 text-xs">© 2026 Hahazen. Радость в порядке.</p>
                     </div>
 

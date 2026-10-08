@@ -35,7 +35,7 @@ const organizationStructuredData = {
     url: "https://hahazen.com",
     taxID: "20805198850058",
     telephone: "+996880377888",
-    email: "info@hahazen.com",
+    email: "noreply@hahazen.com",
     address: {
         "@type": "PostalAddress",
         streetAddress: "ул. Уметалиева, д. 81, кв. 30",
@@ -106,8 +106,8 @@ export default function RequisitesPage() {
                 <section className="mt-10">
                     <h2 className="text-2xl font-semibold text-white">Контакты</h2>
                     <div className="mt-4 flex flex-col gap-3 text-[#b8d7d0] sm:flex-row sm:flex-wrap sm:gap-6">
-                        <a className="hover:text-[#70efd0] hover:underline" href="mailto:info@hahazen.com">
-                            info@hahazen.com
+                        <a className="hover:text-[#70efd0] hover:underline" href="mailto:noreply@hahazen.com">
+                            noreply@hahazen.com
                         </a>
                         <a className="hover:text-[#70efd0] hover:underline" href="tel:+996880377888">
                             +996 880 377 888

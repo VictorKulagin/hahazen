@@ -10,12 +10,14 @@ const Footer = () => (
         viewport={{ once: true }}
         className="bg-gradient-to-r from-green-600 via-green-500 to-green-400 text-white py-8 px-5 mt-0"
     >
-    <footer className="bg-gradient-to-r from-green-600 via-green-500 to-green-400 text-white py-8 px-5">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="text-center md:text-left">
                 <h3 className="font-bold text-xl mb-2">Hahazen</h3>
                 <p className="text-green-100 max-w-sm">
-                    CRM-система для массажных и бьюти-салонов. Автоматизация рутины и улучшение сервиса.
+                    CRM для салонов, студий и сервисного бизнеса по предварительной записи.
+                </p>
+                <p className="mt-3 max-w-sm text-sm text-green-100">
+                    Hahazen — сервис, предоставляемый ИП Кулагин Виктор Викторович.
                 </p>
             </div>
             <div className="flex space-x-6 text-green-100">
@@ -24,7 +26,13 @@ const Footer = () => (
                 <a href="#"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M7 2C4.8 2 3 3.8 3 6v12c0 2.2 1.8 4 4 4h10c2.2 0 4-1.8 4-4V6c0-2.2-1.8-4-4-4H7zm5 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm4.5-1.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z" /></svg></a>
             </div>
         </div>
-        <div className="mt-6 text-center text-sm text-green-100">
+        <div className="mt-6 flex flex-wrap justify-center gap-4 text-center text-sm text-green-100">
+            <a
+                href="/requisites"
+                className="transition hover:text-white hover:underline"
+            >
+                Реквизиты
+            </a>
             <a
                 href="/legal/public-offer-2026-07-30.pdf"
                 target="_blank"
@@ -37,7 +45,6 @@ const Footer = () => (
         <p className="mt-6 text-center text-green-100 text-sm">
             &copy; {new Date().getFullYear()} Hahazen. Все права защищены.
         </p>
-    </footer>
     </motion.footer>
 );
 
